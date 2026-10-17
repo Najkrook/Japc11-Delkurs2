@@ -122,6 +122,17 @@ test('Course Arena Multiplayer: Generates L6-L9 decks and calculates time-bonus 
   assert.match(code, /^\d{4}$/);
 });
 
+test('Arena preserves a small focus pool without adding other categories', () => {
+  const config = { weekFilter: 'week-1', focusMode: 'grammar', roundCount: 15 } as const;
+  const available = buildAllCourseArenaQuestions(config.weekFilter, () => 0.5).filter(
+    (q) => q.category === config.focusMode,
+  );
+  assert.ok(available.length > 0 && available.length < config.roundCount);
+  const deck = generateArenaQuestionDeck(config, () => 0.5);
+  assert.deepEqual(new Set(deck.map((q) => q.id)), new Set(available.map((q) => q.id)));
+  assert.equal(deck.length, available.length);
+});
+
 test('Apple Fluid Interface Physics: rubberband and momentum projection follow WWDC 2018 equations', () => {
   assert.equal(rubberband(0, 300), 0);
   const pos = rubberband(100, 300, 0.55);

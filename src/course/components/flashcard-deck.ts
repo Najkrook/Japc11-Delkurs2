@@ -56,16 +56,22 @@ export function renderVocabModule(
         ? week.vocab.filter((v) => !progress.masteredVocabIds[v.id])
         : week.vocab.filter((v) => v.category === deckState.vocabFilter);
 
-  const items = filtered.length > 0 ? filtered : week.vocab;
-  const safeIdx = ((deckState.vocabIndex % items.length) + items.length) % items.length;
+  const items = filtered;
+  const safeIdx = items.length
+    ? ((deckState.vocabIndex % items.length) + items.length) % items.length
+    : 0;
   const current = items[safeIdx];
   const masteredCount = week.vocab.filter((v) => progress.masteredVocabIds[v.id]).length;
 
   const markAndAdvance = (mastered: boolean) => {
+    if (!current) return;
     toggleVocabMastered(progress, current.id, mastered);
     onPersist();
     deckState.vocabFlipped = false;
-    deckState.vocabIndex = (safeIdx + 1) % items.length;
+    deckState.vocabIndex =
+      mastered && deckState.vocabFilter === 'unmastered'
+        ? safeIdx % Math.max(1, items.length - 1)
+        : (safeIdx + 1) % items.length;
     host.render();
   };
 
@@ -144,205 +150,218 @@ export function renderVocabModule(
       </div>
 
       ${
-        deckState.vocabMode === 'cards'
-          ? html`
-              <div class="course-flashcard-stage">
-                <div
-                  class="course-flashcard ${deckState.vocabFlipped ? 'flipped' : ''}"
-                  role="button"
-                  tabindex="0"
-                  aria-label="Vänd gloskort"
-                  @pointerdown=${(e: PointerEvent) => {
-                    const cardEl = e.currentTarget as HTMLElement;
-                    bindSwipeableFlashcard(
-                      cardEl,
-                      {
-                        onSwipeLeft: () => {
-                          deckState.vocabFlipped = false;
-                          deckState.vocabIndex = (safeIdx + 1) % items.length;
-                          host.render();
+        !items.length
+          ? html`<div class="course-empty-card" role="status">
+              <p>
+                ${
+                  deckState.vocabFilter === 'unmastered' && week.vocab.length
+                    ? 'Alla veckans glosor är bemästrade.'
+                    : 'Inga glosor matchar det valda filtret.'
+                }
+              </p>
+              <p>Välj ett annat filter för att fortsätta.</p>
+            </div>`
+          : deckState.vocabMode === 'cards'
+            ? html`
+                <div class="course-flashcard-stage">
+                  <div
+                    class="course-flashcard ${deckState.vocabFlipped ? 'flipped' : ''}"
+                    role="button"
+                    tabindex="0"
+                    aria-label="Vänd gloskort"
+                    @pointerdown=${(e: PointerEvent) => {
+                      const cardEl = e.currentTarget as HTMLElement;
+                      bindSwipeableFlashcard(
+                        cardEl,
+                        {
+                          onSwipeLeft: () => {
+                            deckState.vocabFlipped = false;
+                            deckState.vocabIndex = (safeIdx + 1) % items.length;
+                            host.render();
+                          },
+                          onSwipeRight: () => {
+                            deckState.vocabFlipped = false;
+                            deckState.vocabIndex = (safeIdx - 1 + items.length) % items.length;
+                            host.render();
+                          },
                         },
-                        onSwipeRight: () => {
-                          deckState.vocabFlipped = false;
-                          deckState.vocabIndex = (safeIdx - 1 + items.length) % items.length;
-                          host.render();
-                        },
-                      },
-                      e,
-                    );
-                  }}
-                  @click=${(e: MouseEvent) => {
-                    const cardEl = e.currentTarget as HTMLElement;
-                    const suppressUntil = Number(cardEl?.dataset?.suppressClickUntil || 0);
-                    if (suppressUntil > performance.now()) return;
-                    deckState.vocabFlipped = !deckState.vocabFlipped;
-                    host.render();
-                  }}
-                  @keydown=${(e: KeyboardEvent) => {
-                    if (e.key === 'Enter' || e.key === ' ') {
-                      e.preventDefault();
+                        e,
+                      );
+                    }}
+                    @click=${(e: MouseEvent) => {
+                      const cardEl = e.currentTarget as HTMLElement;
+                      const suppressUntil = Number(cardEl?.dataset?.suppressClickUntil || 0);
+                      if (suppressUntil > performance.now()) return;
                       deckState.vocabFlipped = !deckState.vocabFlipped;
                       host.render();
-                    } else if (e.key === 'ArrowRight') {
-                      e.preventDefault();
-                      deckState.vocabFlipped = false;
-                      deckState.vocabIndex = (safeIdx + 1) % items.length;
-                      host.render();
-                    } else if (e.key === 'ArrowLeft') {
-                      e.preventDefault();
-                      deckState.vocabFlipped = false;
-                      deckState.vocabIndex = (safeIdx - 1 + items.length) % items.length;
-                      host.render();
-                    }
-                  }}
-                >
-                  <div class="course-flashcard-top">
-                    <span class="course-card-counter">Kort ${safeIdx + 1} av ${items.length}</span>
-                    <span class="course-cat-tag">${CATEGORY_LABELS[current.category]}</span>
-                    ${
-                      progress.masteredVocabIds[current.id]
-                        ? html`<span class="dojo-mastered-tag">✓ Kan detta</span>`
-                        : ''
-                    }
-                  </div>
-
-                  <div class="course-flashcard-center" lang="ja">
-                    <h2 class="course-flashcard-jp">${current.kanji || current.kana}</h2>
-                    ${
-                      current.kanji && current.kanji !== current.kana
-                        ? html`<p class="course-flashcard-reading">${current.kana}</p>`
-                        : ''
-                    }
-                    ${
-                      host.tts
-                        ? html`<button
-                            type="button"
-                            class="course-tts-btn"
-                            title="Lyssna på uttal"
-                            @click=${(e: Event) => {
-                              e.stopPropagation();
-                              host.speak(current.kana, e.currentTarget as HTMLElement);
-                            }}
-                          >
-                            🔊 Lyssna
-                          </button>`
-                        : ''
-                    }
-                  </div>
-
-                  ${
-                    deckState.vocabFlipped
-                      ? html`
-                          <div class="course-flashcard-answer">
-                            <h3>${current.sv}</h3>
-                            <p class="course-en-sub">${current.en}</p>
-                            ${
-                              current.noteSv
-                                ? html`<p class="course-vocab-note">💡 ${current.noteSv}</p>`
-                                : ''
-                            }
-                            <div class="course-example-box">
-                              <p lang="ja">${current.exampleJp}</p>
-                              <small>${current.exampleSv}</small>
-                            </div>
-                          </div>
-                        `
-                      : html`<p class="course-flip-hint">
-                          Klicka eller tryck mellanslag för att vända kortet ↻ · Svep för att
-                          bläddra ↔
-                        </p>`
-                  }
-                </div>
-
-                <div class="course-flashcard-actions">
-                  <button
-                    type="button"
-                    class="course-btn-secondary"
-                    @click=${() => {
-                      deckState.vocabFlipped = false;
-                      deckState.vocabIndex = (safeIdx - 1 + items.length) % items.length;
-                      host.render();
+                    }}
+                    @keydown=${(e: KeyboardEvent) => {
+                      if (e.key === 'Enter' || e.key === ' ') {
+                        e.preventDefault();
+                        deckState.vocabFlipped = !deckState.vocabFlipped;
+                        host.render();
+                      } else if (e.key === 'ArrowRight') {
+                        e.preventDefault();
+                        deckState.vocabFlipped = false;
+                        deckState.vocabIndex = (safeIdx + 1) % items.length;
+                        host.render();
+                      } else if (e.key === 'ArrowLeft') {
+                        e.preventDefault();
+                        deckState.vocabFlipped = false;
+                        deckState.vocabIndex = (safeIdx - 1 + items.length) % items.length;
+                        host.render();
+                      }
                     }}
                   >
-                    ← Föregående
-                  </button>
-                  <button
-                    type="button"
-                    class="course-btn-retry"
-                    @click=${() => markAndAdvance(false)}
-                  >
-                    Behöver öva mer
-                  </button>
-                  <button
-                    type="button"
-                    class="course-btn-success"
-                    @click=${() => markAndAdvance(true)}
-                  >
-                    ✓ Jag kan detta!
-                  </button>
-                  <button
-                    type="button"
-                    class="course-btn-secondary"
-                    @click=${() => {
-                      deckState.vocabFlipped = false;
-                      deckState.vocabIndex = (safeIdx + 1) % items.length;
-                      host.render();
-                    }}
-                  >
-                    Nästa →
-                  </button>
-                </div>
-              </div>
-            `
-          : html`
-              <div class="course-vocab-list">
-                ${items.map((item) => {
-                  const isDone = Boolean(progress.masteredVocabIds[item.id]);
-                  return html`
-                    <article class="course-vocab-row ${isDone ? 'mastered' : ''}">
-                      <div class="course-vocab-row-jp" lang="ja">
-                        <strong>${item.kanji || item.kana}</strong>
-                        ${
-                          item.kanji && item.kanji !== item.kana
-                            ? html`<span>${item.kana}</span>`
-                            : ''
-                        }
-                        ${
-                          host.tts
-                            ? html`<button
-                                type="button"
-                                class="course-tts-inline"
-                                title="Lyssna"
-                                @click=${(e: Event) =>
-                                  host.speak(item.kana, e.currentTarget as HTMLElement)}
-                              >
-                                🔊
-                              </button>`
-                            : ''
-                        }
-                      </div>
-                      <div class="course-vocab-row-sv">
-                        <span class="course-cat-tag">${CATEGORY_LABELS[item.category]}</span>
-                        <strong>${item.sv}</strong>
-                        ${item.noteSv ? html`<small class="note">💡 ${item.noteSv}</small>` : ''}
-                        <small lang="ja">${item.exampleJp} — ${item.exampleSv}</small>
-                      </div>
-                      <button
-                        type="button"
-                        class="course-mastery-toggle ${isDone ? 'active' : ''}"
-                        @click=${() => {
-                          toggleVocabMastered(progress, item.id);
-                          onPersist();
-                          host.render();
-                        }}
+                    <div class="course-flashcard-top">
+                      <span class="course-card-counter"
+                        >Kort ${safeIdx + 1} av ${items.length}</span
                       >
-                        ${isDone ? '✓ Kan' : 'Markera'}
-                      </button>
-                    </article>
-                  `;
-                })}
-              </div>
-            `
+                      <span class="course-cat-tag">${CATEGORY_LABELS[current.category]}</span>
+                      ${
+                        progress.masteredVocabIds[current.id]
+                          ? html`<span class="dojo-mastered-tag">✓ Kan detta</span>`
+                          : ''
+                      }
+                    </div>
+
+                    <div class="course-flashcard-center" lang="ja">
+                      <h2 class="course-flashcard-jp">${current.kanji || current.kana}</h2>
+                      ${
+                        current.kanji && current.kanji !== current.kana
+                          ? html`<p class="course-flashcard-reading">${current.kana}</p>`
+                          : ''
+                      }
+                      ${
+                        host.tts
+                          ? html`<button
+                              type="button"
+                              class="course-tts-btn"
+                              title="Lyssna på uttal"
+                              @click=${(e: Event) => {
+                                e.stopPropagation();
+                                host.speak(current.kana, e.currentTarget as HTMLElement);
+                              }}
+                            >
+                              🔊 Lyssna
+                            </button>`
+                          : ''
+                      }
+                    </div>
+
+                    ${
+                      deckState.vocabFlipped
+                        ? html`
+                            <div class="course-flashcard-answer">
+                              <h3>${current.sv}</h3>
+                              <p class="course-en-sub">${current.en}</p>
+                              ${
+                                current.noteSv
+                                  ? html`<p class="course-vocab-note">💡 ${current.noteSv}</p>`
+                                  : ''
+                              }
+                              <div class="course-example-box">
+                                <p lang="ja">${current.exampleJp}</p>
+                                <small>${current.exampleSv}</small>
+                              </div>
+                            </div>
+                          `
+                        : html`<p class="course-flip-hint">
+                            Klicka eller tryck mellanslag för att vända kortet ↻ · Svep för att
+                            bläddra ↔
+                          </p>`
+                    }
+                  </div>
+
+                  <div class="course-flashcard-actions">
+                    <button
+                      type="button"
+                      class="course-btn-secondary"
+                      @click=${() => {
+                        deckState.vocabFlipped = false;
+                        deckState.vocabIndex = (safeIdx - 1 + items.length) % items.length;
+                        host.render();
+                      }}
+                    >
+                      ← Föregående
+                    </button>
+                    <button
+                      type="button"
+                      class="course-btn-retry"
+                      @click=${() => markAndAdvance(false)}
+                    >
+                      Behöver öva mer
+                    </button>
+                    <button
+                      type="button"
+                      class="course-btn-success"
+                      @click=${() => markAndAdvance(true)}
+                    >
+                      ✓ Jag kan detta!
+                    </button>
+                    <button
+                      type="button"
+                      class="course-btn-secondary"
+                      @click=${() => {
+                        deckState.vocabFlipped = false;
+                        deckState.vocabIndex = (safeIdx + 1) % items.length;
+                        host.render();
+                      }}
+                    >
+                      Nästa →
+                    </button>
+                  </div>
+                </div>
+              `
+            : html`
+                <div class="course-vocab-list">
+                  ${items.map((item) => {
+                    const isDone = Boolean(progress.masteredVocabIds[item.id]);
+                    return html`
+                      <article class="course-vocab-row ${isDone ? 'mastered' : ''}">
+                        <div class="course-vocab-row-jp" lang="ja">
+                          <strong>${item.kanji || item.kana}</strong>
+                          ${
+                            item.kanji && item.kanji !== item.kana
+                              ? html`<span>${item.kana}</span>`
+                              : ''
+                          }
+                          ${
+                            host.tts
+                              ? html`<button
+                                  type="button"
+                                  class="course-tts-inline"
+                                  title="Lyssna"
+                                  @click=${(e: Event) =>
+                                    host.speak(item.kana, e.currentTarget as HTMLElement)}
+                                >
+                                  🔊
+                                </button>`
+                              : ''
+                          }
+                        </div>
+                        <div class="course-vocab-row-sv">
+                          <span class="course-cat-tag">${CATEGORY_LABELS[item.category]}</span>
+                          <strong>${item.sv}</strong>
+                          ${item.noteSv ? html`<small class="note">💡 ${item.noteSv}</small>` : ''}
+                          <small lang="ja">${item.exampleJp} — ${item.exampleSv}</small>
+                        </div>
+                        <button
+                          type="button"
+                          class="course-mastery-toggle ${isDone ? 'active' : ''}"
+                          @click=${() => {
+                            toggleVocabMastered(progress, item.id);
+                            onPersist();
+                            host.render();
+                          }}
+                        >
+                          ${isDone ? '✓ Kan' : 'Markera'}
+                        </button>
+                      </article>
+                    `;
+                  })}
+                </div>
+              `
       }
     </section>
   `;

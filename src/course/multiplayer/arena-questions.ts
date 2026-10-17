@@ -182,8 +182,7 @@ export function generateArenaQuestionDeck(
   const filtered =
     config.focusMode === 'mix' ? all : all.filter((q) => q.category === config.focusMode);
 
-  const pool = filtered.length >= config.roundCount ? filtered : all;
-  return shuffleArray(pool, rng).slice(0, config.roundCount);
+  return shuffleArray(filtered, rng).slice(0, config.roundCount);
 }
 
 export function calculateArenaPoints(

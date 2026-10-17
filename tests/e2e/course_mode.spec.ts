@@ -1,4 +1,18 @@
 import { test, expect } from '@playwright/test';
+import { buildAllCourseArenaQuestions } from '../../src/course/multiplayer/arena-questions.ts';
+
+test('Arena displays the actual length of a short focused match', async ({ page }) => {
+  const count = buildAllCourseArenaQuestions('week-1').filter(
+    (q) => q.category === 'grammar',
+  ).length;
+  await page.goto('/');
+  await page.locator('[data-course-nav="arena"]').click();
+  await page.getByRole('button', { name: 'Vecka 1 (L6)', exact: true }).click();
+  await page.getByRole('button', { name: '📐 Grammatik', exact: true }).click();
+  await page.getByRole('button', { name: '15 frågor', exact: true }).click();
+  await page.locator('[data-arena-action="create-room"]').click();
+  await expect(page.locator('[data-arena-action="start-match"]')).toContainText(`${count} frågor`);
+});
 
 test('JAPC11 Delkurs 2 standalone app: Vecka för vecka, Te-Form Dojo, Flashcards, and Course Arena work end-to-end', async ({
   page,

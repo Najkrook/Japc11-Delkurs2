@@ -68,7 +68,7 @@ export interface ArenaOpenRoomSummary {
   hostName: string;
   weekFilter: ArenaWeekFilter;
   focusMode: ArenaFocusMode;
-  roundCount: ArenaRoundCount;
+  roundCount: number;
   playerCount: number;
   createdAt: number;
 }

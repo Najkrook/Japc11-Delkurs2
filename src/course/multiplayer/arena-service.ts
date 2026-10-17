@@ -133,7 +133,7 @@ export class CourseArenaManager {
               hostName: r.hostName,
               weekFilter: r.config.weekFilter,
               focusMode: r.config.focusMode,
-              roundCount: r.config.roundCount,
+              roundCount: r.questions.length,
               playerCount: Object.keys(r.players).length,
               createdAt: r.createdAt,
             }))

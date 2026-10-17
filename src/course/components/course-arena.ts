@@ -157,7 +157,8 @@ function renderArenaLobby(
           </div>
 
           <div class="arena-form-group">
-            <span class="arena-label">3. Antal rundor:</span>
+            <span class="arena-label">3. Högst antal rundor:</span>
+            <p>Om urvalet har färre frågor blir matchen kortare. Valt fokus behålls.</p>
             <div class="arena-option-chips" role="group" aria-label="Välj antal rundor">
               ${([5, 10, 15] as ArenaRoundCount[]).map(
                 (cnt) => html`
@@ -311,7 +312,7 @@ function renderArenaWaitingRoom(
           <h1>Väntar på spelare (${players.length} i rummet)</h1>
           <p>
             <strong>Inställningar:</strong> ${WEEK_FILTER_LABELS[room.config.weekFilter]} ·
-            ${FOCUS_MODE_LABELS[room.config.focusMode]} · ${room.config.roundCount} rundor (15s per
+            ${FOCUS_MODE_LABELS[room.config.focusMode]} · ${room.questions.length} rundor (15s per
             fråga).
           </p>
 
@@ -363,7 +364,7 @@ function renderArenaWaitingRoom(
               title=${state.localPlayerUid !== room.hostUid ? 'Endast värden kan styra matchen' : ''}
               @click=${() => courseArenaManager.startMatch()}
             >
-              🔥 Starta matchen nu (${room.config.roundCount} frågor) →
+              🔥 Starta matchen nu (${room.questions.length} frågor) →
             </button>
           </div>
         </div>
