@@ -1,9 +1,7 @@
-import type { AppMode, CourseProgressData, CourseSubView, CourseWeek } from './types.ts';
-
-export const APP_MODE_STORAGE_KEY = 'tentaplugg-app-mode';
+import type { CourseProgressData, CourseSubView, CourseWeek } from './types.ts';
 
 export function courseStorageKey(uid?: string | null): string {
-  return `tentaplugg-course-v1-${uid || 'guest'}`;
+  return `japc11-dk2-course-v1-${uid || 'guest'}`;
 }
 
 export function createFreshCourseProgress(): CourseProgressData {
@@ -24,7 +22,9 @@ export function readCourseProgress(
 ): CourseProgressData {
   if (!storage) return createFreshCourseProgress();
   try {
-    const raw = storage.getItem(courseStorageKey(uid));
+    const raw =
+      storage.getItem(courseStorageKey(uid)) ||
+      storage.getItem(`tentaplugg-course-v1-${uid || 'guest'}`);
     if (!raw) return createFreshCourseProgress();
     const parsed = JSON.parse(raw) as Partial<CourseProgressData>;
     return {
@@ -51,29 +51,6 @@ export function saveCourseProgress(
     storage.setItem(courseStorageKey(uid), JSON.stringify(data));
   } catch {
     // Ignore storage quota errors
-  }
-}
-
-export function readSavedAppMode(storage: Pick<Storage, 'getItem'> | undefined): AppMode | null {
-  if (!storage) return null;
-  try {
-    const val = storage.getItem(APP_MODE_STORAGE_KEY);
-    if (val === 'course' || val === 'tenta') return val;
-    return null;
-  } catch {
-    return null;
-  }
-}
-
-export function writeSavedAppMode(
-  storage: Pick<Storage, 'setItem'> | undefined,
-  mode: AppMode,
-): void {
-  if (!storage) return;
-  try {
-    storage.setItem(APP_MODE_STORAGE_KEY, mode);
-  } catch {
-    // Ignore storage errors
   }
 }
 

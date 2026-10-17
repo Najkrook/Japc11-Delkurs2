@@ -260,9 +260,11 @@ export function renderCourseShell(host: CourseHostContext): CourseTemplate {
               ${courseWeeks.map((w) => {
                 const wSum = getWeekProgressSummary(courseProgress, w);
                 const isActive = w.id === week.id;
-                const shortTitle = w.titleSv.includes('—')
-                  ? w.titleSv.split('—')[1].trim()
-                  : `Lektion ${w.lessonNumber}`;
+                const shortTitle = w.titleSv.includes(':')
+                  ? w.titleSv.split(':')[1].trim()
+                  : w.titleSv.includes('—')
+                    ? w.titleSv.split('—')[1].trim()
+                    : `Lektion ${w.lessonNumber}`;
                 return html`
                   <button
                     type="button"
@@ -385,6 +387,264 @@ export function renderCourseShell(host: CourseHostContext): CourseTemplate {
   `;
 }
 
+interface HeroGroupCard {
+  tone: 'tone-mint' | 'tone-terracotta' | 'tone-sand' | 'tone-sage';
+  metaLabel: string;
+  badgeText: string;
+  badgeKind: 'ok' | 'warn' | 'neutral';
+  fromJp: string;
+  toJp: string;
+  warnArrow?: boolean;
+  romajiLine: string;
+  ruleHtml: CourseTemplate;
+}
+
+function getHeroDojoConfig(week: ReturnType<typeof getCourseWeekById>): {
+  watermark: string;
+  heading: string;
+  description: string;
+  sectionLabel: string;
+  exampleLabel: string;
+  exampleJp: string;
+  exampleSv: string;
+  cards: HeroGroupCard[];
+} {
+  const firstGrammarEx = week.grammar[0]?.examples[0];
+
+  if (week.lessonNumber === 7) {
+    return {
+      watermark: 'て',
+      heading: 'て-form Dojo — Pågående handling & Tillstånd (～ています)',
+      description:
+        'I Lektion 7 använder vi て-formen tillsammans med います för pågående aktiviteter (食べています) och resulterande tillstånd (結婚しています, 知っています) samt klädesverb.',
+      sectionLabel: '4 NYCKELMÖNSTER FÖR VERB I LEKTION 7',
+      exampleLabel: 'Exempelmening ur Lektion 7 (Mönster: ～ています & Klädesverb)',
+      exampleJp: firstGrammarEx ? `「${firstGrammarEx.jp}」` : '「今、友だちを待っています。」',
+      exampleSv: firstGrammarEx
+        ? `Svenska: "${firstGrammarEx.sv}"`
+        : 'Svenska: "Jag väntar på en vän just nu."',
+      cards: [
+        {
+          tone: 'tone-mint',
+          metaLabel: 'Pågående (U-verb)',
+          badgeText: '✓ Aktivitet',
+          badgeKind: 'ok',
+          fromJp: '歌う',
+          toJp: '歌っています',
+          romajiLine: 'utau ➔ utatte imasu ("sjunger")',
+          ruleHtml: html`Regel: <strong>う → って</strong> + います (pågår nu)`,
+        },
+        {
+          tone: 'tone-terracotta',
+          metaLabel: 'Fälla: 知る (U-verb!)',
+          badgeText: 'Varning',
+          badgeKind: 'warn',
+          fromJp: '知る',
+          toJp: '知っています',
+          warnArrow: true,
+          romajiLine: 'shiru ➔ shitte imasu ("vet / känner till")',
+          ruleHtml: html`OBS! Nekande är <strong>知りません</strong> (ej 知っていません)!`,
+        },
+        {
+          tone: 'tone-sand',
+          metaLabel: 'Klädesverb (Överkropp)',
+          badgeText: 'Ru-verb',
+          badgeKind: 'neutral',
+          fromJp: '着る',
+          toJp: '着ています',
+          romajiLine: 'kiru ➔ kite imasu ("har på sig")',
+          ruleHtml: html`Överkropp: <strong>着る</strong> · Underkropp/skor:
+            <strong>履く (履いて)</strong>`,
+        },
+        {
+          tone: 'tone-sage',
+          metaLabel: 'Tillstånd & Boende',
+          badgeText: '★ Resultat',
+          badgeKind: 'ok',
+          fromJp: '住む',
+          toJp: '住んでいます',
+          romajiLine: 'sumu ➔ sunde imasu ("bor i...")',
+          ruleHtml: html`Plats markeras med <strong>に</strong> (ルンドに住んでいます).`,
+        },
+      ],
+    };
+  }
+
+  if (week.lessonNumber === 8) {
+    return {
+      watermark: 'ない',
+      heading: 'て-form & Kortform Dojo — Nutid & Nekande (ない-form)',
+      description:
+        'I Lektion 8 kombinerar vi て-form med japanskans kortform (普通形) i nutid — särskilt nekande ない-form för att uttrycka åsikter (～と思います) och ～ないでください.',
+      sectionLabel: 'DE 4 BÖJNINGSGRUPPERNA I LEKTION 8 (て-FORM & ない-FORM)',
+      exampleLabel: 'Exempelmening ur Lektion 8 (Mönster: [Kortform] + と思います)',
+      exampleJp: firstGrammarEx ? `「${firstGrammarEx.jp}」` : '「明日、雨が降らないと思います。」',
+      exampleSv: firstGrammarEx
+        ? `Svenska: "${firstGrammarEx.sv}"`
+        : 'Svenska: "Jag tror inte att det kommer att regna imorgon."',
+      cards: [
+        {
+          tone: 'tone-mint',
+          metaLabel: 'Ru-verb (る)',
+          badgeText: '✓ Grundregel',
+          badgeKind: 'ok',
+          fromJp: '捨てる',
+          toJp: '捨てて・捨てない',
+          romajiLine: 'suteru ➔ sutete / sutenai ("slänga")',
+          ruleHtml: html`Regel: Byt <strong>る</strong> mot <strong>て</strong> eller
+            <strong>ない</strong>`,
+        },
+        {
+          tone: 'tone-terracotta',
+          metaLabel: 'Fälla: U-verb på う',
+          badgeText: 'う → わない',
+          badgeKind: 'warn',
+          fromJp: '思う',
+          toJp: '思って・思わない',
+          warnArrow: true,
+          romajiLine: 'omou ➔ omotte / omowanai ("tycka/tro")',
+          ruleHtml: html`OBS! Slutar på う → <strong>わない</strong> (ej おもあない)!`,
+        },
+        {
+          tone: 'tone-sand',
+          metaLabel: 'U-verb (-u → -aない)',
+          badgeText: 'Vokalbyte',
+          badgeKind: 'neutral',
+          fromJp: '着く',
+          toJp: '着いて・着かない',
+          romajiLine: 'tsuku ➔ tsuite / tsukanai ("anlända")',
+          ruleHtml: html`く blir <strong>いて</strong> i て-form och <strong>かない</strong> i
+            ない-form`,
+        },
+        {
+          tone: 'tone-sage',
+          metaLabel: 'Undantag: ある & する',
+          badgeText: '★ Centralt',
+          badgeKind: 'ok',
+          fromJp: 'ある',
+          toJp: 'あって・ない',
+          romajiLine: 'aru ➔ nai / suru ➔ shinai / kuru ➔ konai',
+          ruleHtml: html`Nekande kortform av <strong>ある</strong> är bara <strong>ない</strong>!`,
+        },
+      ],
+    };
+  }
+
+  if (week.lessonNumber === 9) {
+    return {
+      watermark: 'た',
+      heading: 'て-form & Dåtid Dojo — Kortform i dåtid (た-form)',
+      description:
+        'Kan du て-formen kan du redan た-formen! I Lektion 9 byter vi bara て/で mot た/だ (買って → 買った, 読んで → 読んだ) för att bilda dåtid i kortform och bisatser.',
+      sectionLabel: 'DE 4 BÖJNINGSGRUPPERNA I LEKTION 9 (て-FORM ➔ た-FORM)',
+      exampleLabel: 'Exempelmening ur Lektion 9 (Mönster: Dåtid i kortform & Bisatser)',
+      exampleJp: firstGrammarEx
+        ? `「${firstGrammarEx.jp}」`
+        : '「昨日の試験は難しくなかったと思います。」',
+      exampleSv: firstGrammarEx
+        ? `Svenska: "${firstGrammarEx.sv}"`
+        : 'Svenska: "Jag tyckte inte att gårdagens prov var svårt."',
+      cards: [
+        {
+          tone: 'tone-mint',
+          metaLabel: 'U-verb: う・つ・る',
+          badgeText: 'って ➔ った',
+          badgeKind: 'ok',
+          fromJp: '踊る',
+          toJp: '踊って・踊った',
+          romajiLine: 'odoru ➔ odotte / odotta ("dansa")',
+          ruleHtml: html`Exakt samma ljudregel: <strong>って</strong> blir <strong>った</strong>!`,
+        },
+        {
+          tone: 'tone-terracotta',
+          metaLabel: 'Nekande dåtid',
+          badgeText: 'ない ➔ なかった',
+          badgeKind: 'warn',
+          fromJp: '買わない',
+          toJp: '買わなかった',
+          warnArrow: true,
+          romajiLine: 'kawanai ➔ kawanakatta ("köpte inte")',
+          ruleHtml: html`Byt sista <strong>い</strong> i ない mot <strong>かった</strong>!`,
+        },
+        {
+          tone: 'tone-sand',
+          metaLabel: 'U-verb: く / ぐ & む / ぶ',
+          badgeText: 'いて ➔ いた',
+          badgeKind: 'neutral',
+          fromJp: '聞く',
+          toJp: '聞いて・聞いた',
+          romajiLine: 'kiku ➔ kiite / kiita ("lyssna/fråga")',
+          ruleHtml: html`<strong>いて → いた</strong> och tonande <strong>んで → んだ</strong>`,
+        },
+        {
+          tone: 'tone-sage',
+          metaLabel: 'Ru-verb i bisats',
+          badgeText: '★ Bisatser',
+          badgeKind: 'ok',
+          fromJp: '覚える',
+          toJp: '覚えて・覚えた',
+          romajiLine: 'oboeru ➔ oboete / oboeta ("memorera")',
+          ruleHtml: html`Används framför substantiv: <strong>今日覚えた単語</strong>`,
+        },
+      ],
+    };
+  }
+
+  return {
+    watermark: 'て',
+    heading: 'て-form Dojo — Böjningsregler & Snabbträning',
+    description:
+      'Te-formen är nyckeln till att koppla ihop meningar, be om tillåtelse (〜てもいいですか) och uttrycka pågående handlingar (〜ています). Träna de fyra huvudsakliga böjningsmönstren steg för steg.',
+    sectionLabel: `DE 4 BÖJNINGSGRUPPERNA I LEKTION ${week.lessonNumber}`,
+    exampleLabel: 'Exempelmening ur kapitlet (Mönster: Handling A + Handling B)',
+    exampleJp: '「図書館に行って、本を借ります。」',
+    exampleSv: 'Svenska: "Jag går till biblioteket och (sedan) lånar en bok."',
+    cards: [
+      {
+        tone: 'tone-mint',
+        metaLabel: 'Ru-verb (る)',
+        badgeText: '✓ Grundregel',
+        badgeKind: 'ok',
+        fromJp: '食べる',
+        toJp: '食べて',
+        romajiLine: 'taberu ➔ tabete ("att äta")',
+        ruleHtml: html`Regel: Byt ut <strong>る</strong> direkt mot <strong>て</strong>`,
+      },
+      {
+        tone: 'tone-terracotta',
+        metaLabel: 'Undantag: 行く',
+        badgeText: 'Varning',
+        badgeKind: 'warn',
+        fromJp: '行く',
+        toJp: '行って',
+        warnArrow: true,
+        romajiLine: 'iku ➔ itte ("att gå / åka")',
+        ruleHtml: html`OBS! Blir <strong>ej iite</strong>. Dubbelkonsonant <strong>って</strong>!`,
+      },
+      {
+        tone: 'tone-sand',
+        metaLabel: 'U-verb: む / ぶ / ぬ',
+        badgeText: 'Assimilation',
+        badgeKind: 'neutral',
+        fromJp: '飲む',
+        toJp: '飲んで',
+        romajiLine: 'nomu ➔ nonde ("att dricka")',
+        ruleHtml: html`Regel: <strong>む / ぶ / ぬ</strong> blir tonande <strong>んで</strong>`,
+      },
+      {
+        tone: 'tone-sage',
+        metaLabel: 'Oregelbundna verb',
+        badgeText: '★ Centralt',
+        badgeKind: 'ok',
+        fromJp: 'する',
+        toJp: 'して',
+        romajiLine: 'suru ➔ shite / くる ➔ きて',
+        ruleHtml: html`Måste memoreras utantill inför tentan.`,
+      },
+    ],
+  };
+}
+
 function renderWeekBentoHub(
   week: ReturnType<typeof getCourseWeekById>,
   summary: ReturnType<typeof getWeekProgressSummary>,
@@ -395,6 +655,13 @@ function renderWeekBentoHub(
   const nextQueue = week.vocab.slice(1, 4);
   const topKanji = week.kanji.slice(0, 4);
   const firstKanji = week.kanji[0];
+  const heroConfig = getHeroDojoConfig(week);
+
+  const teFormCount = week.quiz.filter((q) => q.category === 'te-form').length;
+  const grammarCount = week.quiz.filter((q) => q.category === 'grammar').length;
+  const vocabKanjiCount = week.quiz.filter(
+    (q) => q.category === 'vocab' || q.category === 'kanji',
+  ).length;
 
   return html`
     <!-- ================= TOP EDITORIAL HEADER & STUDY STATS BAR ================= -->
@@ -473,7 +740,7 @@ function renderWeekBentoHub(
 
     <!-- ================= HERO BANNER: て-form Dojo (Alternativ 2 Layout + Mashup Light Warm Palette) ================= -->
     <section class="course-dojo-hero-banner" aria-label="Dagens fokus: て-form Dojo">
-      <div class="dojo-hero-watermark" lang="ja" aria-hidden="true">て</div>
+      <div class="dojo-hero-watermark" lang="ja" aria-hidden="true">${heroConfig.watermark}</div>
 
       <div class="dojo-hero-top">
         <div class="dojo-hero-copy">
@@ -484,12 +751,8 @@ function renderWeekBentoHub(
               verb)
             </span>
           </div>
-          <h2>て-form Dojo — Böjningsregler & Snabbträning</h2>
-          <p>
-            Te-formen är nyckeln till att koppla ihop meningar, be om tillåtelse (〜てもいいですか)
-            och uttrycka pågående handlingar (〜ています). Träna de fyra huvudsakliga
-            böjningsmönstren steg för steg.
-          </p>
+          <h2>${heroConfig.heading}</h2>
+          <p>${heroConfig.description}</p>
         </div>
 
         <div class="dojo-hero-actions">
@@ -513,7 +776,7 @@ function renderWeekBentoHub(
       <!-- The 4 Conjugation Groups Grid inside the Hero Banner -->
       <div class="dojo-groups-section">
         <div class="dojo-groups-head">
-          <span>DE 4 BÖJNINGSGRUPPERNA I LEKTION ${week.lessonNumber}</span>
+          <span>${heroConfig.sectionLabel}</span>
           <button
             type="button"
             class="dojo-schema-link"
@@ -524,55 +787,23 @@ function renderWeekBentoHub(
         </div>
 
         <div class="dojo-four-groups-grid">
-          <!-- Group 1: Ru-verb -->
-          <div class="dojo-group-card tone-mint">
-            <div class="group-card-meta">
-              <span>Ru-verb (る)</span>
-              <span class="group-badge ok">✓ Grundregel</span>
-            </div>
-            <div class="group-card-jp" lang="ja">食べる <span class="arrow">➔</span> 食べて</div>
-            <div class="group-card-romaji">taberu ➔ tabete ("att äta")</div>
-            <div class="group-card-rule">
-              Regel: Byt ut <strong>る</strong> direkt mot <strong>て</strong>
-            </div>
-          </div>
-
-          <!-- Group 2: Undantag 行く -->
-          <div class="dojo-group-card tone-terracotta">
-            <div class="group-card-meta">
-              <span>Undantag: 行く</span>
-              <span class="group-badge warn">Varning</span>
-            </div>
-            <div class="group-card-jp" lang="ja">行く <span class="arrow warn">➔</span> 行って</div>
-            <div class="group-card-romaji">iku ➔ itte ("att gå / åka")</div>
-            <div class="group-card-rule">
-              OBS! Blir <strong>ej iite</strong>. Dubbelkonsonant <strong>って</strong>!
-            </div>
-          </div>
-
-          <!-- Group 3: U-verb -->
-          <div class="dojo-group-card tone-sand">
-            <div class="group-card-meta">
-              <span>U-verb: む / ぶ / ぬ</span>
-              <span class="group-badge neutral">Assimilation</span>
-            </div>
-            <div class="group-card-jp" lang="ja">飲む <span class="arrow">➔</span> 飲んで</div>
-            <div class="group-card-romaji">nomu ➔ nonde ("att dricka")</div>
-            <div class="group-card-rule">
-              Regel: <strong>む / ぶ / ぬ</strong> blir tonande <strong>んで</strong>
-            </div>
-          </div>
-
-          <!-- Group 4: Oregelbundna -->
-          <div class="dojo-group-card tone-sage">
-            <div class="group-card-meta">
-              <span>Oregelbundna verb</span>
-              <span class="group-badge ok">★ Centralt</span>
-            </div>
-            <div class="group-card-jp" lang="ja">する <span class="arrow">➔</span> して</div>
-            <div class="group-card-romaji">suru ➔ shite / くる ➔ きて</div>
-            <div class="group-card-rule">Måste memoreras utantill inför tentan.</div>
-          </div>
+          ${heroConfig.cards.map(
+            (card) => html`
+              <div class="dojo-group-card ${card.tone}">
+                <div class="group-card-meta">
+                  <span>${card.metaLabel}</span>
+                  <span class="group-badge ${card.badgeKind}">${card.badgeText}</span>
+                </div>
+                <div class="group-card-jp" lang="ja">
+                  ${card.fromJp}
+                  <span class="arrow ${card.warnArrow ? 'warn' : ''}">➔</span>
+                  ${card.toJp}
+                </div>
+                <div class="group-card-romaji">${card.romajiLine}</div>
+                <div class="group-card-rule">${card.ruleHtml}</div>
+              </div>
+            `,
+          )}
         </div>
       </div>
 
@@ -581,9 +812,9 @@ function renderWeekBentoHub(
         <div class="example-strip-left">
           <span class="example-bulb">💡</span>
           <div>
-            <small>Exempelmening ur kapitlet (Mönster: Handling A + Handling B)</small>
-            <strong lang="ja">「図書館に行って、本を借ります。」</strong>
-            <span>Svenska: "Jag går till biblioteket och (sedan) lånar en bok."</span>
+            <small>${heroConfig.exampleLabel}</small>
+            <strong lang="ja">${heroConfig.exampleJp}</strong>
+            <span>${heroConfig.exampleSv}</span>
           </div>
         </div>
         <button
@@ -763,15 +994,15 @@ function renderWeekBentoHub(
             <ul class="exam-breakdown-list">
               <li>
                 <span>⚡ て-form & verbkonjugation</span>
-                <strong>4 frågor</strong>
+                <strong>${teFormCount} frågor</strong>
               </li>
               <li>
                 <span>📐 Grammatik & partiklar</span>
-                <strong>4 frågor</strong>
+                <strong>${grammarCount} frågor</strong>
               </li>
               <li>
                 <span>字 Ordförråd & Kanji</span>
-                <strong>${Math.max(2, week.quiz.length - 8)} frågor</strong>
+                <strong>${vocabKanjiCount} frågor</strong>
               </li>
             </ul>
           </div>

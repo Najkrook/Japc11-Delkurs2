@@ -1,7 +1,5 @@
 import type { TemplateResult } from 'lit-html';
 
-export type AppMode = 'course' | 'tenta';
-
 export type CourseSubView = 'hub' | 'vocab' | 'grammar' | 'dojo' | 'kanji' | 'quiz' | 'arena';
 
 export type VerbGroup = 'u-verb' | 'ru-verb' | 'irregular';

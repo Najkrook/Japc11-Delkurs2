@@ -260,6 +260,18 @@ export function renderTeFormDojo(
           <div class="dojo-verb-sub">
             <span>ます-form: <strong lang="ja">${current.politeMasu}</strong></span>
             <span>Betydelse: <strong>${current.sv}</strong></span>
+            ${
+              current.naiFormKana
+                ? html`<span
+                    >ない-form (L8): <strong lang="ja">${current.naiFormKana}</strong></span
+                  >`
+                : ''
+            }
+            ${
+              current.taFormKana
+                ? html`<span>た-form (L9): <strong lang="ja">${current.taFormKana}</strong></span>`
+                : ''
+            }
           </div>
         </div>
 
