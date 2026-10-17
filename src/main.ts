@@ -1,4 +1,5 @@
 import './course/course.css';
+import { courseArenaManager } from './course/multiplayer/arena-service.ts';
 import { render } from 'lit-html';
 import { login, logout, watchUser } from './cloud.ts';
 import { speak as speakJp, stopSpeech, ttsSupported } from './speech.ts';
@@ -93,6 +94,7 @@ export function draw(): void {
 watchUser((u) => {
   stopSpeech();
   currentUser = u ? { uid: u.uid, displayName: u.displayName, email: u.email } : null;
+  courseArenaManager.bindHost(currentUser, () => draw());
   statusText = u ? `Inloggad som ${u.displayName || u.email || 'student'}` : 'Lokalt sparad';
   syncCourseProgressForUser(u?.uid || null, () => draw());
   draw();

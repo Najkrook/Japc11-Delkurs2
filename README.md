@@ -18,4 +18,26 @@ npm run typecheck  # Kontrollera TypeScript-typer
 npm run build      # Bygg produktionspaket
 npm test           # Kör enhetstester (node --test)
 npm run test:e2e   # Kör Playwright E2E-tester
+npm run test:rules # Kör Firestore-regler och samtidiga klienter i lokal emulator
 ```
+
+Regeltesterna kräver Java 21 och Firebase CLI (`firebase-tools`); CI installerar dessa.
+Testkommandot använder endast demo-projektet `demo-japc11-delkurs2`.
+
+Inloggade arenarum sparas med Firestore-transaktioner. Gästrum är lokala för samma
+webbläsare och ursprung och använder Web Locks för att samordna flikar. Dessa rum
+lagras separat från molnrum. Ett misslyckat molnanrop visas som fel och skapar inte
+en separat lokal kopia av matchen.
+
+Matchens värd styr botar, start och rundbyten. Spelare får ändra sitt namn, lämna
+rummet och skicka ett eget svar per runda. Det är fortfarande en studiearena där
+värden och klienten har tillgång till frågornas facit, inte en serverstyrd tävling
+med skydd mot alla former av fusk.
+
+Progressionssynkning väljer den senaste kompletta versionen, inklusive
+avmarkeringar. Samtidiga offlineändringar på flera enheter slås inte ihop per ord.
+
+Vid publicering måste frontend och `firestore.rules` uppdateras tillsammans.
+Gamla klienter som skriver hela rum kan nekas av de nya reglerna. Avsluta pågående
+matcher och ladda om klienterna vid uppdateringen. Äldre lokala arenarum migreras
+inte till den nya separata gästlagringen; kursprogressionens lagringsnycklar är oförändrade.

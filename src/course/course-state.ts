@@ -176,3 +176,19 @@ export function recordWeekQuizScore(
     };
   }
 }
+
+// The newest complete snapshot wins, including explicit removals from its maps.
+export function selectLatestCourseProgress(
+  local: CourseProgressData,
+  cloud: CourseProgressData,
+): CourseProgressData {
+  const selected = (cloud.updatedAt || 0) >= (local.updatedAt || 0) ? cloud : local;
+  return structuredClone({
+    ...createFreshCourseProgress(),
+    ...selected,
+    masteredVocabIds: selected.masteredVocabIds || {},
+    masteredKanjiIds: selected.masteredKanjiIds || {},
+    masteredDojoIds: selected.masteredDojoIds || {},
+    quizBestResults: selected.quizBestResults || {},
+  });
+}

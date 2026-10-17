@@ -30,20 +30,23 @@ export function renderCourseArenaModule(
   courseArenaManager.bindHost(host.user, () => host.render());
   const state = courseArenaManager.getState();
   const { room } = state;
+  const error = state.errorMessage
+    ? html`<p role="alert" class="arena-error">${state.errorMessage}</p>`
+    : '';
 
   if (!room) {
     return renderArenaLobby(state, host, onBackToHub);
   }
 
   if (room.status === 'waiting') {
-    return renderArenaWaitingRoom(state, host);
+    return html`${error}${renderArenaWaitingRoom(state, host)}`;
   }
 
   if (room.status === 'finished') {
-    return renderArenaPodium(state, host);
+    return html`${error}${renderArenaPodium(state, host)}`;
   }
 
-  return renderArenaLiveRound(state, host);
+  return html`${error}${renderArenaLiveRound(state, host)}`;
 }
 
 function renderArenaLobby(
@@ -184,8 +187,8 @@ function renderArenaLobby(
               class="course-btn-secondary"
               data-arena-action="quick-bot-match"
               @click=${async () => {
-                await courseArenaManager.createRoom(true);
-                await courseArenaManager.startMatch();
+                const created = await courseArenaManager.createRoom(true);
+                if (created) await courseArenaManager.startMatch();
               }}
             >
               🌸 Snabbduell mot Sakura-bot →
@@ -338,6 +341,7 @@ function renderArenaWaitingRoom(
                     type="button"
                     class="arena-bot-toggle ${active ? 'active' : ''}"
                     data-bot-toggle=${bot.id}
+                    ?disabled=${state.localPlayerUid !== room.hostUid}
                     @click=${() => courseArenaManager.toggleBot(bot.id)}
                   >
                     <span>${bot.avatar} <strong>${bot.name}</strong></span>
@@ -355,6 +359,8 @@ function renderArenaWaitingRoom(
               type="button"
               class="course-btn-primary arena-start-btn"
               data-arena-action="start-match"
+              ?disabled=${state.localPlayerUid !== room.hostUid}
+              title=${state.localPlayerUid !== room.hostUid ? 'Endast värden kan styra matchen' : ''}
               @click=${() => courseArenaManager.startMatch()}
             >
               🔥 Starta matchen nu (${room.config.roundCount} frågor) →
@@ -506,6 +512,8 @@ function renderArenaLiveRound(
                     type="button"
                     class="course-btn-primary"
                     data-arena-action="next-round"
+                    ?disabled=${state.localPlayerUid !== room.hostUid}
+                    title=${state.localPlayerUid !== room.hostUid ? 'Endast värden kan styra matchen' : ''}
                     @click=${() => courseArenaManager.nextRound()}
                   >
                     ${roundIdx < totalRounds - 1 ? 'Nästa runda →' : 'Visa prispallen 🏆'}
@@ -560,6 +568,8 @@ function renderArenaPodium(
             type="button"
             class="course-btn-primary"
             data-arena-action="rematch"
+            ?disabled=${state.localPlayerUid !== room.hostUid}
+            title=${state.localPlayerUid !== room.hostUid ? 'Endast värden kan styra matchen' : ''}
             @click=${() => courseArenaManager.startMatch()}
           >
             🔄 Spela igen (Nya frågor)

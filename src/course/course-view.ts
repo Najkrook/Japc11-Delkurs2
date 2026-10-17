@@ -8,6 +8,7 @@ import type {
 import { courseWeeks, getCourseWeekById } from './data/index.ts';
 import {
   getWeekProgressSummary,
+  selectLatestCourseProgress,
   readCourseProgress,
   saveCourseProgress,
   setCourseActiveWeek,
@@ -37,6 +38,9 @@ export function syncCourseProgressForUser(
   const normalizedUid = uid || null;
   if (activeUid !== normalizedUid) {
     activeUid = normalizedUid;
+    resetDojoUiState();
+    resetDeckUiState();
+    resetWeekQuizState();
     courseProgress = readCourseProgress(
       typeof localStorage !== 'undefined' ? localStorage : undefined,
       activeUid,
@@ -46,26 +50,7 @@ export function syncCourseProgressForUser(
       void loadCloudCourseProgress(uidToLoad).then((cloudData) => {
         if (!cloudData || activeUid !== uidToLoad) return;
         if ((cloudData.updatedAt || 0) >= (courseProgress.updatedAt || 0)) {
-          courseProgress = {
-            ...courseProgress,
-            ...cloudData,
-            masteredVocabIds: {
-              ...courseProgress.masteredVocabIds,
-              ...(cloudData.masteredVocabIds || {}),
-            },
-            masteredKanjiIds: {
-              ...courseProgress.masteredKanjiIds,
-              ...(cloudData.masteredKanjiIds || {}),
-            },
-            masteredDojoIds: {
-              ...courseProgress.masteredDojoIds,
-              ...(cloudData.masteredDojoIds || {}),
-            },
-            quizBestResults: {
-              ...courseProgress.quizBestResults,
-              ...(cloudData.quizBestResults || {}),
-            },
-          };
+          courseProgress = selectLatestCourseProgress(courseProgress, cloudData);
           saveCourseProgress(
             typeof localStorage !== 'undefined' ? localStorage : undefined,
             activeUid,
