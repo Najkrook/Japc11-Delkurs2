@@ -1,0 +1,211 @@
+import { html } from 'lit-html';
+import type {
+  CourseHostContext,
+  CourseProgressData,
+  CourseTemplate,
+  CourseWeek,
+} from '../types.ts';
+import { recordWeekQuizScore } from '../course-state.ts';
+
+interface QuizUiState {
+  weekId: string;
+  index: number;
+  answers: Record<string, string>;
+  finished: boolean;
+}
+
+const quizState: QuizUiState = {
+  weekId: '',
+  index: 0,
+  answers: {},
+  finished: false,
+};
+
+export function resetWeekQuizState(weekId = ''): void {
+  quizState.weekId = weekId;
+  quizState.index = 0;
+  quizState.answers = {};
+  quizState.finished = false;
+}
+
+const QUIZ_CAT_LABELS: Record<string, string> = {
+  'te-form': 'て-form',
+  grammar: 'Grammatik',
+  vocab: 'Ordförråd',
+  kanji: 'Kanji',
+};
+
+export function renderWeekQuizModule(
+  week: CourseWeek,
+  progress: CourseProgressData,
+  host: CourseHostContext,
+  onPersist: () => void,
+  onBackToHub: () => void,
+): CourseTemplate {
+  if (quizState.weekId !== week.id) {
+    resetWeekQuizState(week.id);
+  }
+
+  const questions = week.quiz;
+  if (!questions.length) {
+    return html`<div class="course-empty-card">
+      <h2>Inga testfrågor i denna vecka än.</h2>
+      <button class="course-btn-primary" @click=${onBackToHub}>Tillbaka</button>
+    </div>`;
+  }
+
+  const total = questions.length;
+  const score = questions.filter((q) => quizState.answers[q.id] === q.answer).length;
+
+  if (quizState.finished) {
+    const pct = Math.round((score / total) * 100);
+    return html`
+      <section class="course-module-section" aria-label="Resultat för veckans minitest">
+        <div class="course-quiz-result-card">
+          <span class="course-eyebrow"
+            >VECKANS MIXPASS AVKLARAT · LEKTION ${week.lessonNumber}</span
+          >
+          <h1>${pct >= 80 ? '🎉 Strålande jobbat!' : '💪 Bra kämpat!'}</h1>
+          <div class="course-quiz-score-circle">
+            <strong>${score} / ${total}</strong>
+            <span>rätt (${pct}%)</span>
+          </div>
+          <p>
+            ${
+              pct === 100
+                ? 'Full pott! Du har stenkoll på veckans moment.'
+                : 'Kika igenom förklaringarna nedan för de frågor du vill repetera.'
+            }
+          </p>
+
+          <div class="course-quiz-review-list">
+            ${questions.map((q, i) => {
+              const userAns = quizState.answers[q.id];
+              const ok = userAns === q.answer;
+              return html`
+                <div class="course-quiz-review-item ${ok ? 'ok' : 'err'}">
+                  <div class="course-quiz-review-head">
+                    <span>#${i + 1} · ${QUIZ_CAT_LABELS[q.category]}</span>
+                    <strong>${ok ? '✓ Rätt' : '✗ Fel'}</strong>
+                  </div>
+                  <p class="prompt">${q.prompt}</p>
+                  <p class="ans">
+                    Ditt svar: <b>${userAns || '—'}</b>
+                    ${!ok ? html` · Rätt svar: <b class="correct-text">${q.answer}</b>` : ''}
+                  </p>
+                  <small>${q.explanationSv}</small>
+                </div>
+              `;
+            })}
+          </div>
+
+          <div class="course-quiz-result-actions">
+            <button
+              type="button"
+              class="course-btn-secondary"
+              @click=${() => {
+                resetWeekQuizState(week.id);
+                host.render();
+              }}
+            >
+              🔄 Gör om testet
+            </button>
+            <button type="button" class="course-btn-primary" @click=${onBackToHub}>
+              Tillbaka till veckoöversikten →
+            </button>
+          </div>
+        </div>
+      </section>
+    `;
+  }
+
+  const safeIdx = Math.min(quizState.index, total - 1);
+  const current = questions[safeIdx];
+  const chosen = quizState.answers[current.id] ?? null;
+
+  const chooseOption = (choice: string) => {
+    if (chosen !== null) return;
+    quizState.answers[current.id] = choice;
+    host.render();
+  };
+
+  const advance = () => {
+    if (safeIdx < total - 1) {
+      quizState.index = safeIdx + 1;
+    } else {
+      quizState.finished = true;
+      const finalScore = questions.filter((q) => quizState.answers[q.id] === q.answer).length;
+      recordWeekQuizScore(progress, week.id, finalScore, total);
+      onPersist();
+    }
+    host.render();
+  };
+
+  return html`
+    <section class="course-module-section" aria-label="Veckans Mixpass">
+      <div class="course-module-topbar">
+        <button class="course-back-btn" @click=${onBackToHub}>← Avbryt och gå tillbaka</button>
+        <span class="course-quiz-progress-label">
+          Fråga ${safeIdx + 1} av ${total} · Lektion ${week.lessonNumber}
+        </span>
+      </div>
+
+      <div class="course-quiz-progress-bar">
+        <span style="width: ${((safeIdx + 1) / total) * 100}%"></span>
+      </div>
+
+      <div class="dojo-arena-card course-quiz-card">
+        <div class="dojo-arena-meta">
+          <span class="dojo-step-counter">Fråga ${safeIdx + 1} / ${total}</span>
+          <span class="course-cat-tag">${QUIZ_CAT_LABELS[current.category]}</span>
+        </div>
+
+        <h1 class="course-quiz-prompt">${current.prompt}</h1>
+
+        <div class="dojo-choices-grid" role="group" aria-label="Svarsalternativ">
+          ${current.choices.map((choice) => {
+            const isSelected = chosen === choice;
+            const isCorrect = choice === current.answer;
+            let stateClass = '';
+            if (chosen !== null) {
+              if (isCorrect) stateClass = 'correct';
+              else if (isSelected) stateClass = 'wrong';
+            }
+            return html`
+              <button
+                type="button"
+                class="dojo-choice-btn ${stateClass}"
+                ?disabled=${chosen !== null}
+                @click=${() => chooseOption(choice)}
+              >
+                <span>${choice}</span>
+              </button>
+            `;
+          })}
+        </div>
+
+        ${
+          chosen !== null
+            ? html`
+                <div
+                  class="dojo-feedback-box ${chosen === current.answer ? 'ok' : 'err'}"
+                  role="status"
+                >
+                  <strong>
+                    ${chosen === current.answer ? '✨ Rätt svar!' : `💡 Rätt svar: ${current.answer}`}
+                  </strong>
+                  <p>${current.explanationSv}</p>
+                </div>
+                <div class="dojo-footer-nav">
+                  <span></span>
+                  <button type="button" class="course-btn-primary" @click=${advance}>
+                    ${safeIdx < total - 1 ? 'Nästa fråga →' : 'Visa resultat 🏁'}
+                  </button>
+                </div>
+              `
+            : ''
+        }
+      </div>
+    </section>
+  `;
+}

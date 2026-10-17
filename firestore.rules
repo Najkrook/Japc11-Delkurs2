@@ -1,0 +1,265 @@
+rules_version = '2';
+service cloud.firestore {
+  match /databases/{database}/documents {
+    match /users/{userId}/multiplayerClock/{sampleId} {
+      allow read, delete: if request.auth != null && request.auth.uid == userId;
+      allow create: if request.auth != null && request.auth.uid == userId
+        && request.resource.data.keys().hasOnly(['time'])
+        && request.resource.data.time == request.time;
+    }
+    match /users/{userId}/progress/{document} {
+      allow read, delete: if request.auth != null && request.auth.uid == userId;
+      allow create, update: if request.auth != null && request.auth.uid == userId
+        && document == 'state'
+        && request.resource.data.keys().hasOnly(['payload', 'updatedAt'])
+        && request.resource.data.payload is string
+        && request.resource.data.payload.size() < 500000
+        && request.resource.data.updatedAt is int;
+    }
+
+    match /leaderboard/{userId} {
+      allow read: if true;
+      // Initial registration: default base stats (elo 1200, 0 wins/losses)
+      allow create: if request.auth != null && request.auth.uid == userId
+        && request.resource.data.elo == 1200
+        && request.resource.data.wins == 0
+        && request.resource.data.losses == 0
+        && request.resource.data.draws == 0
+        && request.resource.data.matchesPlayed == 0
+        && request.resource.data.uid == userId;
+
+      // Update: must be verified against a finished match in lobbies, or cosmetic profile update
+      allow update: if request.auth != null && (
+        (request.auth.uid == userId && isSelfProfileUpdate()) ||
+        isValidMatchLeaderboardUpdate(userId)
+      );
+    }
+
+    function isSelfProfileUpdate() {
+      return request.resource.data.elo == resource.data.elo
+        && request.resource.data.wins == resource.data.wins
+        && request.resource.data.losses == resource.data.losses
+        && request.resource.data.draws == resource.data.draws
+        && request.resource.data.matchesPlayed == resource.data.matchesPlayed;
+    }
+
+    function isValidMatchLeaderboardUpdate(userId) {
+      let matchId = request.resource.data.lastMatchId;
+      let matchData = getAfter(/databases/$(database)/documents/lobbies/$(matchId)).data;
+      let isHost = matchData.host.uid == userId;
+      let isGuest = matchData.get('guest', null) != null && matchData.guest.uid == userId;
+      let isPlayerInMap = matchData.get('players', null) != null && userId in matchData.players;
+
+      let callerIsParticipant = request.auth.uid == userId ||
+        (matchData.get('players', null) != null && request.auth.uid in matchData.players) ||
+        (matchData.get('guest', null) != null && request.auth.uid == matchData.guest.uid) ||
+        matchData.host.uid == request.auth.uid;
+
+      let isFinished = matchData.status == 'finished';
+      let eloDiff = matchData.game.eloChanges[userId];
+      let expectedElo = (resource.data.elo + eloDiff < 100) ? 100 : resource.data.elo + eloDiff;
+      let freshMatch = resource.data.get('lastMatchId', '') != matchId;
+
+      return callerIsParticipant
+        && (isHost || isGuest || isPlayerInMap)
+        && isFinished
+        && request.resource.data.elo == expectedElo
+        && request.resource.data.matchesPlayed == resource.data.matchesPlayed + 1
+        && freshMatch;
+    }
+
+    match /lobbies/{lobbyId} {
+      allow read: if request.auth != null;
+      allow create: if request.auth != null
+        && request.resource.data.protocolVersion == 3
+        && request.resource.data.gameRevision == 0
+        && request.resource.data.start == {'version': 0, 'phase': 'waiting'}
+        && request.resource.data.host.uid == request.auth.uid
+        && request.resource.data.status == 'waiting'
+        && request.resource.data.get('playerCount', 1) <= 10;
+
+      allow update: if request.auth != null && compatibleGameWrite() && validStartWrite() && (
+        // Host can update their lobby
+        request.auth.uid == resource.data.host.uid ||
+        // Guest can update if already in the lobby
+        (resource.data.get('guest', null) != null && request.auth.uid == resource.data.guest.uid) ||
+        // Player in players map can update
+        (resource.data.get('players', null) != null && request.auth.uid in resource.data.players) ||
+        // A new user can join as guest if slot is open
+        (resource.data.get('guest', null) == null && request.resource.data.get('guest', null) != null
+          && request.resource.data.guest.uid == request.auth.uid
+          && request.resource.data.host.uid == resource.data.host.uid) ||
+        // A new user can join the players map if under capacity (up to 10 players)
+        (resource.data.status == 'waiting'
+          && request.resource.data.get('playerCount', 0) <= 10
+          && resource.data.get('playerCount', 0) < 10
+          && request.auth.uid in request.resource.data.players
+          && (!(resource.data.get('players', null) != null) || !(request.auth.uid in resource.data.players))
+          && request.resource.data.host.uid == resource.data.host.uid)
+      );
+
+      allow delete: if request.auth != null
+        && resource.data.host.uid == request.auth.uid;
+
+      // Older clients preserve unknown fields when spreading game state. Require
+      // a fresh server transform as well as the protocol on every game write.
+      function compatibleGameWrite() {
+        return resource.data.get('protocolVersion', 0) == 3
+          && request.resource.data.protocolVersion == 3
+          && (
+            (!request.resource.data.diff(resource.data).affectedKeys()
+              .hasAny(['game', 'status', 'gameRevision', 'gameUpdatedAt'])) || (
+              resource.data.status != 'finished'
+              && request.resource.data.gameUpdatedAt == request.time
+              && (request.resource.data.game == null || request.resource.data.game.protocolVersion == 3)
+            )
+          );
+      }
+
+      // Startup has a separate transition contract. Only an owner may add their
+      // acknowledgement, and it is bound to both server time and live session.
+      function validStartWrite() {
+        let old = resource.data.start;
+        let next = request.resource.data.start;
+        let changed = request.resource.data.diff(resource.data).affectedKeys();
+        return next == old ? (
+          (old.phase == 'waiting' && request.resource.data.status == 'waiting' && request.resource.data.game == null) ||
+          (old.phase == 'confirmed' && request.resource.data.game.startVersion == old.version) ||
+          (!changed.hasAny(['game', 'status', 'players', 'host', 'guest']))
+        ) : (
+          request.resource.data.gameRevision == resource.data.gameRevision + 1 && (
+            old.phase == 'waiting' ? beginStart(old, next) :
+            next.phase == 'waiting' ? cancelStart(old, next) :
+            next.phase == old.phase ? (old.phase == 'preparing'
+              ? acknowledgeStart(old, next, 'prepared', 'preparing')
+              : acknowledgeStart(old, next, 'entered', 'countdown')) :
+            next.phase == 'countdown' ? scheduleStart(old, next) : confirmStart(old, next)
+          )
+        );
+      }
+      function beginStart(old, next) {
+        return old.phase == 'waiting' && next.phase == 'preparing'
+          && request.auth.uid == resource.data.host.uid
+          && next.version == old.version + 1 && next.createdAt == request.time
+          && next.prepared == {} && next.entered == {}
+          && next.sessions.keys().hasAll(request.resource.data.game.playerUids)
+          && next.sessions.size() == request.resource.data.game.playerUids.size()
+          && next.sessions.size() >= 2 && next.sessions.size() <= 10
+          && request.resource.data.status == 'preparing'
+          && request.resource.data.game.status == 'preparing'
+          && request.resource.data.game.startVersion == next.version
+          && request.resource.data.game.currentRoundIndex == 0
+          && request.resource.data.game.roundStartTime == null;
+      }
+      function acknowledgeStart(old, next, field, phase) {
+        let uid = request.auth.uid;
+        let ack = next[field].get(uid, {});
+        let presence = get(/databases/$(database)/documents/lobbies/$(lobbyId)/presence/$(uid)).data;
+        return old.phase == phase && next.phase == phase && uid in old.sessions
+          && next.diff(old).affectedKeys().hasOnly([field])
+          && next[field].diff(old[field]).affectedKeys().hasOnly([uid])
+          && !(uid in old[field])
+          && ack.keys().hasOnly(['sessionId', 'at', 'uncertainty'])
+          && ack.sessionId == old.sessions[uid] && ack.sessionId == presence.sessionId
+          && ack.at == request.time && ack.uncertainty >= 0 && ack.uncertainty <= 250
+          && request.time < presence.seenAt + duration.value(45, 's')
+          && request.time < old.createdAt + duration.value(30, 's')
+          && (field == 'prepared' || request.time.toMillis() < resource.data.game.roundStartTime)
+          && request.resource.data.diff(resource.data).affectedKeys().hasOnly(['start', 'gameRevision', 'gameUpdatedAt']);
+      }
+      function scheduleStart(old, next) {
+        return old.phase == 'preparing' && next.phase == 'countdown'
+          && next.diff(old).affectedKeys().hasOnly(['phase'])
+          && old.prepared.keys().hasAll(old.sessions.keys())
+          && request.time < old.createdAt + duration.value(30, 's')
+          && request.resource.data.game.diff(resource.data.game).affectedKeys().hasOnly(['status', 'roundStartTime'])
+          && request.resource.data.game.status == 'playing' && request.resource.data.status == 'playing'
+          && request.resource.data.game.roundStartTime > request.time.toMillis()
+          && request.resource.data.game.roundStartTime <= request.time.toMillis() + 3250
+          && request.resource.data.diff(resource.data).affectedKeys().hasOnly(['start', 'status', 'game', 'gameRevision', 'gameUpdatedAt']);
+      }
+      function confirmStart(old, next) {
+        return old.phase == 'countdown' && next.phase == 'confirmed'
+          && next.diff(old).affectedKeys().hasOnly(['phase'])
+          && old.entered.keys().hasAll(old.sessions.keys())
+          && request.resource.data.diff(resource.data).affectedKeys().hasOnly(['start', 'gameRevision', 'gameUpdatedAt']);
+      }
+      function cancelStart(old, next) {
+        return old.phase in ['preparing', 'countdown'] && next.phase == 'waiting'
+          && next.diff(old).affectedKeys().hasOnly(['phase', 'reason'])
+          && request.resource.data.status == 'waiting' && request.resource.data.game == null
+          && (request.resource.data.players.keys() == resource.data.players.keys()
+            || request.resource.data.players.keys() == resource.data.players.keys().removeAll([request.auth.uid]))
+          && request.resource.data.diff(resource.data).affectedKeys().hasOnly(['start', 'status', 'game', 'players', 'guest', 'playerCount', 'gameRevision', 'gameUpdatedAt']);
+      }
+
+      match /presence/{userId} {
+        allow read: if request.auth != null;
+        allow create, update: if request.auth != null && request.auth.uid == userId
+          && request.resource.data.keys().hasOnly(['uid', 'sessionId', 'seenAt'])
+          && request.resource.data.uid == userId
+          && request.resource.data.sessionId is string
+          && request.resource.data.sessionId.size() > 0
+          && request.resource.data.sessionId.size() <= 128
+          && request.resource.data.seenAt == request.time
+          && presenceAllowed();
+
+        function presenceAllowed() {
+          let lobby = get(/databases/$(database)/documents/lobbies/$(lobbyId)).data;
+          return userId in lobby.players && (
+            lobby.status == 'waiting' || (
+              lobby.status != 'finished'
+              && !(userId in lobby.game.get('forfeitedUids', []))
+              && (lobby.start.phase == 'confirmed' || request.resource.data.sessionId == resource.data.sessionId)
+              && request.time < resource.data.seenAt + duration.value(45, 's')
+            )
+          );
+        }
+      }
+
+      match /answers/{answerId} {
+        allow read: if request.auth != null;
+        allow create: if request.auth != null && validReceipt();
+        // An exact retransmission is harmless; neither choice nor time can change.
+        allow update: if request.auth != null
+          && resource.data.uid == request.auth.uid
+          && resource.data.protocolVersion == 3
+          && request.resource.data == resource.data;
+
+        function validReceipt() {
+          let lobby = get(/databases/$(database)/documents/lobbies/$(lobbyId)).data;
+          let r = request.resource.data;
+          let game = lobby.game;
+          // Before reduction, allow candidate receipts up to the latest possible
+          // window. Reduction rejects candidates at/after the true first+8s cutoff.
+          let upperBound = game.firstAnswerAt == null
+            ? game.roundStartTime + 68000 : game.firstAnswerAt + 8000;
+          return lobby.protocolVersion == 3 && game.protocolVersion == 3
+            && lobby.status == 'playing' && game.status == 'playing'
+            && r.keys().hasOnly(['protocolVersion', 'startVersion', 'uid', 'roundIndex', 'answer', 'attemptId', 'receivedAt'])
+            && r.protocolVersion == 3 && r.startVersion == game.startVersion
+            && lobby.start.phase == 'confirmed'
+            && r.uid == request.auth.uid && r.uid in game.playerUids
+            && !(r.uid in game.get('forfeitedUids', []))
+            && r.roundIndex is int && r.roundIndex == game.currentRoundIndex
+            && answerId == (game.startVersion > 1 ? string(game.startVersion) + '_' : '') + string(r.roundIndex) + '_' + r.uid
+            && r.answer is string && r.answer.size() <= 2000
+            && r.attemptId is string && r.attemptId.size() > 0 && r.attemptId.size() <= 128
+            && r.receivedAt == request.time
+            && request.time.toMillis() >= game.roundStartTime
+            && request.time.toMillis() < upperBound;
+        }
+      }
+    }
+
+    match /courseRooms/{roomId} {
+      allow read: if request.auth != null;
+      allow create, update: if request.auth != null
+        && request.resource.data.roomId == roomId
+        && request.resource.data.roomCode is string
+        && request.resource.data.status in ['waiting', 'question', 'reveal', 'finished'];
+      allow delete: if request.auth != null
+        && resource.data.hostUid == request.auth.uid;
+    }
+  }
+}

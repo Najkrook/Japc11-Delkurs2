@@ -1,0 +1,11 @@
+node_modules/
+dist/
+tmp/
+firebase-debug.log
+*-debug.log
+.firebase/
+.env.local
+test-results/
+playwright-report/
+*.log
+Material/vocabulary.pdf
