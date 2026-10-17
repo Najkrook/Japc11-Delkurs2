@@ -22,6 +22,7 @@ import {
 } from './components/flashcard-deck.ts';
 import { renderWeekQuizModule, resetWeekQuizState } from './components/week-quiz.ts';
 import { renderCourseArenaModule } from './components/course-arena.ts';
+import { loadCloudCourseProgress, saveCloudCourseProgress } from '../cloud.ts';
 
 let activeUid: string | null = null;
 let courseProgress: CourseProgressData = readCourseProgress(
@@ -29,7 +30,10 @@ let courseProgress: CourseProgressData = readCourseProgress(
   null,
 );
 
-export function syncCourseProgressForUser(uid?: string | null): CourseProgressData {
+export function syncCourseProgressForUser(
+  uid?: string | null,
+  onCloudLoaded?: () => void,
+): CourseProgressData {
   const normalizedUid = uid || null;
   if (activeUid !== normalizedUid) {
     activeUid = normalizedUid;
@@ -37,6 +41,42 @@ export function syncCourseProgressForUser(uid?: string | null): CourseProgressDa
       typeof localStorage !== 'undefined' ? localStorage : undefined,
       activeUid,
     );
+    if (activeUid) {
+      const uidToLoad = activeUid;
+      void loadCloudCourseProgress(uidToLoad).then((cloudData) => {
+        if (!cloudData || activeUid !== uidToLoad) return;
+        if ((cloudData.updatedAt || 0) >= (courseProgress.updatedAt || 0)) {
+          courseProgress = {
+            ...courseProgress,
+            ...cloudData,
+            masteredVocabIds: {
+              ...courseProgress.masteredVocabIds,
+              ...(cloudData.masteredVocabIds || {}),
+            },
+            masteredKanjiIds: {
+              ...courseProgress.masteredKanjiIds,
+              ...(cloudData.masteredKanjiIds || {}),
+            },
+            masteredDojoIds: {
+              ...courseProgress.masteredDojoIds,
+              ...(cloudData.masteredDojoIds || {}),
+            },
+            quizBestResults: {
+              ...courseProgress.quizBestResults,
+              ...(cloudData.quizBestResults || {}),
+            },
+          };
+          saveCourseProgress(
+            typeof localStorage !== 'undefined' ? localStorage : undefined,
+            activeUid,
+            courseProgress,
+          );
+          onCloudLoaded?.();
+        } else {
+          void saveCloudCourseProgress(uidToLoad, courseProgress);
+        }
+      });
+    }
   }
   return courseProgress;
 }
@@ -51,6 +91,9 @@ function persistCourse(): void {
     activeUid,
     courseProgress,
   );
+  if (activeUid) {
+    void saveCloudCourseProgress(activeUid, courseProgress);
+  }
 }
 
 export function selectCourseWeek(weekId: string, host?: CourseHostContext): void {

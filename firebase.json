@@ -1,8 +1,13 @@
 {
   "hosting": {
-    "site": "japc11-tentaplugg",
     "public": "dist",
     "ignore": ["firebase.json", "**/.*", "**/node_modules/**"],
+    "rewrites": [
+      {
+        "source": "**",
+        "destination": "/index.html"
+      }
+    ],
     "headers": [
       {
         "source": "**",
@@ -20,14 +25,15 @@
     ]
   },
   "firestore": {
+    "database": "(default)",
+    "location": "eur3",
     "rules": "firestore.rules"
   },
   "auth": {
     "providers": {
       "googleSignIn": {
-        "oAuthBrandDisplayName": "TentaPlugg Japanska",
-        "supportEmail": "wedbck@gmail.com",
-        "authorizedRedirectUris": ["https://tentaplugg-japanska-2026.web.app/__/auth/handler"]
+        "oAuthBrandDisplayName": "JAPC11 Delkurs 2",
+        "supportEmail": "wedbck@gmail.com"
       }
     }
   },

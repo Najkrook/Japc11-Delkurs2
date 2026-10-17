@@ -9,19 +9,22 @@ import {
   connectAuthEmulator,
   type User,
 } from 'firebase/auth';
-import { getFirestore, connectFirestoreEmulator } from 'firebase/firestore';
+import { getFirestore, connectFirestoreEmulator, doc, getDoc, setDoc } from 'firebase/firestore';
+import type { CourseProgressData } from './course/types.ts';
 
-export const PROJECT_ID = 'tentaplugg-japanska-2026';
-export const AUTH_DOMAIN = `${PROJECT_ID}.web.app`;
+export const PROJECT_ID = 'japc11-delkurs2';
+export const AUTH_DOMAIN = 'japc11-delkurs2.firebaseapp.com';
 
 const metaEnv = (import.meta as unknown as { env?: Record<string, string> }).env;
 const emulated = metaEnv?.MODE === 'test' && metaEnv?.VITE_FIREBASE_EMULATORS === 'true';
 
 const app = initializeApp({
-  projectId: emulated ? 'demo-tentaplugg' : PROJECT_ID,
-  appId: '1:475360574850:web:8ada8aea9c6a8b8555239b',
-  apiKey: emulated ? 'fake-api-key' : 'AIzaSyCB22oJUwzWpZi-c8oVXyONqeK1E5Nspao',
+  projectId: emulated ? 'demo-japc11-delkurs2' : PROJECT_ID,
+  appId: '1:588751498049:web:b51c11f79f5782bd358fc0',
+  apiKey: emulated ? 'fake-api-key' : 'AIzaSyBzS4HEwIHZ09gdfwkS_qpi7KFiuA8MB7s',
   authDomain: AUTH_DOMAIN,
+  storageBucket: 'japc11-delkurs2.firebasestorage.app',
+  messagingSenderId: '588751498049',
 });
 
 export const auth = getAuth(app);
@@ -47,3 +50,31 @@ export async function login(): Promise<unknown> {
 
 export const logout = (): Promise<void> => signOut(auth);
 export const watchUser = (cb: (user: User | null) => void) => onAuthStateChanged(auth, cb);
+
+export async function saveCloudCourseProgress(
+  uid: string,
+  progress: CourseProgressData,
+): Promise<void> {
+  try {
+    const ref = doc(db, 'users', uid, 'progress', 'course');
+    await setDoc(ref, {
+      payload: JSON.stringify(progress),
+      updatedAt: progress.updatedAt || Date.now(),
+    });
+  } catch {
+    // Offline or unauthenticated fallback stays in localStorage
+  }
+}
+
+export async function loadCloudCourseProgress(uid: string): Promise<CourseProgressData | null> {
+  try {
+    const ref = doc(db, 'users', uid, 'progress', 'course');
+    const snap = await getDoc(ref);
+    if (!snap.exists()) return null;
+    const data = snap.data() as { payload?: string };
+    if (!data?.payload) return null;
+    return JSON.parse(data.payload) as CourseProgressData;
+  } catch {
+    return null;
+  }
+}

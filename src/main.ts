@@ -94,7 +94,7 @@ watchUser((u) => {
   stopSpeech();
   currentUser = u ? { uid: u.uid, displayName: u.displayName, email: u.email } : null;
   statusText = u ? `Inloggad som ${u.displayName || u.email || 'student'}` : 'Lokalt sparad';
-  syncCourseProgressForUser(u?.uid || null);
+  syncCourseProgressForUser(u?.uid || null, () => draw());
   draw();
 });
 
