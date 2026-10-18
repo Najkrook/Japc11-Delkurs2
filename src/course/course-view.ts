@@ -133,18 +133,10 @@ export function renderCourseShell(host: CourseHostContext): CourseTemplate {
         </div>
       </header>
 
-      <!-- ================= MAIN WORKSPACE WITH LEFT SIDEBAR (Alternativ 2) ================= -->
+      <!-- ================= MAIN WORKSPACE WITH LEFT SIDEBAR ================= -->
       <div class="course-workspace-grid">
         <aside class="course-sidebar" aria-label="Kursmeny och veckoplan">
           <div class="course-sidebar-top">
-            <div class="course-sidebar-brand">
-              <div class="course-sidebar-crest" lang="ja">語</div>
-              <div>
-                <strong>JAPC11 · Delkurs 2</strong>
-                <span>Genki I · Lektion 6–9</span>
-              </div>
-            </div>
-
             <!-- View Switcher Pill Tray (Veckoöversikt vs Kurs-Arena) -->
             <div
               class="course-mode-switcher"
@@ -216,36 +208,30 @@ export function renderCourseShell(host: CourseHostContext): CourseTemplate {
 
           <!-- Bottom Sticky Section: Multiplayer Arena & Quick Links -->
           <div class="course-sidebar-bottom">
-            <div class="course-sidebar-arena-card">
-              <div class="sidebar-arena-meta">
-                <span class="live-pill">
-                  <span class="live-dot"></span>
-                  Live Utmaning
-                </span>
-                <span class="bot-count">3 studie-bots redo</span>
-              </div>
-              <h3>⚔️ Kurs-Arena (Multiplayer)</h3>
-              <p>Tävla i snabb verbböjning & glosor (Lektion 6–9) i realtid.</p>
-              <button
-                type="button"
-                class="course-sidebar-arena-btn"
-                @click=${() => selectCourseSubView('arena', host)}
-              >
-                Gå med i Arenan →
-              </button>
-            </div>
+            <button
+              type="button"
+              class="course-sidebar-arena-pill ${subView === 'arena' ? 'active' : ''}"
+              @click=${() => selectCourseSubView('arena', host)}
+            >
+              <span class="arena-pill-icon">⚔️</span>
+              <span class="arena-pill-text">
+                <strong>Kurs-Arena</strong>
+                <small>Multiplayer · 3 bots redo</small>
+              </span>
+              <span class="arena-live-dot" title="Live"></span>
+            </button>
 
             <div class="course-sidebar-links">
               <button
                 type="button"
-                class="course-sidebar-link"
+                class="course-sidebar-link ${subView === 'grammar' ? 'active' : ''}"
                 @click=${() => selectCourseSubView('grammar', host)}
               >
-                📖 Ordbok & Grammatikreferens
+                📖 Ordbok & Grammatik
               </button>
               <button
                 type="button"
-                class="course-sidebar-link"
+                class="course-sidebar-link ${subView === 'quiz' ? 'active' : ''}"
                 @click=${() => selectCourseSubView('quiz', host)}
               >
                 🏁 Veckotest & Tentafokus
@@ -302,86 +288,17 @@ export function renderCourseShell(host: CourseHostContext): CourseTemplate {
   `;
 }
 
-interface HeroGroupCard {
-  tone: 'tone-mint' | 'tone-terracotta' | 'tone-sand' | 'tone-sage';
-  metaLabel: string;
-  badgeText: string;
-  badgeKind: 'ok' | 'warn' | 'neutral';
-  fromJp: string;
-  toJp: string;
-  warnArrow?: boolean;
-  romajiLine: string;
-  ruleHtml: CourseTemplate;
-}
-
 function getHeroDojoConfig(week: ReturnType<typeof getCourseWeekById>): {
   watermark: string;
   heading: string;
   description: string;
-  sectionLabel: string;
-  exampleLabel: string;
-  exampleJp: string;
-  exampleSv: string;
-  cards: HeroGroupCard[];
 } {
-  const firstGrammarEx = week.grammar[0]?.examples[0];
-
   if (week.lessonNumber === 7) {
     return {
       watermark: 'て',
       heading: 'て-form Dojo — Pågående handling & Tillstånd (～ています)',
       description:
         'I Lektion 7 använder vi て-formen tillsammans med います för pågående aktiviteter (食べています) och resulterande tillstånd (結婚しています, 知っています) samt klädesverb.',
-      sectionLabel: '4 NYCKELMÖNSTER FÖR VERB I LEKTION 7',
-      exampleLabel: 'Exempelmening ur Lektion 7 (Mönster: ～ています & Klädesverb)',
-      exampleJp: firstGrammarEx ? `「${firstGrammarEx.jp}」` : '「今、友だちを待っています。」',
-      exampleSv: firstGrammarEx
-        ? `Svenska: "${firstGrammarEx.sv}"`
-        : 'Svenska: "Jag väntar på en vän just nu."',
-      cards: [
-        {
-          tone: 'tone-mint',
-          metaLabel: 'Pågående (U-verb)',
-          badgeText: '✓ Aktivitet',
-          badgeKind: 'ok',
-          fromJp: '歌う',
-          toJp: '歌っています',
-          romajiLine: 'utau ➔ utatte imasu ("sjunger")',
-          ruleHtml: html`Regel: <strong>う → って</strong> + います (pågår nu)`,
-        },
-        {
-          tone: 'tone-terracotta',
-          metaLabel: 'Fälla: 知る (U-verb!)',
-          badgeText: 'Varning',
-          badgeKind: 'warn',
-          fromJp: '知る',
-          toJp: '知っています',
-          warnArrow: true,
-          romajiLine: 'shiru ➔ shitte imasu ("vet / känner till")',
-          ruleHtml: html`OBS! Nekande är <strong>知りません</strong> (ej 知っていません)!`,
-        },
-        {
-          tone: 'tone-sand',
-          metaLabel: 'Klädesverb (Överkropp)',
-          badgeText: 'Ru-verb',
-          badgeKind: 'neutral',
-          fromJp: '着る',
-          toJp: '着ています',
-          romajiLine: 'kiru ➔ kite imasu ("har på sig")',
-          ruleHtml: html`Överkropp: <strong>着る</strong> · Underkropp/skor:
-            <strong>履く (履いて)</strong>`,
-        },
-        {
-          tone: 'tone-sage',
-          metaLabel: 'Tillstånd & Boende',
-          badgeText: '★ Resultat',
-          badgeKind: 'ok',
-          fromJp: '住む',
-          toJp: '住んでいます',
-          romajiLine: 'sumu ➔ sunde imasu ("bor i...")',
-          ruleHtml: html`Plats markeras med <strong>に</strong> (ルンドに住んでいます).`,
-        },
-      ],
     };
   }
 
@@ -391,57 +308,6 @@ function getHeroDojoConfig(week: ReturnType<typeof getCourseWeekById>): {
       heading: 'て-form & Kortform Dojo — Nutid & Nekande (ない-form)',
       description:
         'I Lektion 8 kombinerar vi て-form med japanskans kortform (普通形) i nutid — särskilt nekande ない-form för att uttrycka åsikter (～と思います) och ～ないでください.',
-      sectionLabel: 'DE 4 BÖJNINGSGRUPPERNA I LEKTION 8 (て-FORM & ない-FORM)',
-      exampleLabel: 'Exempelmening ur Lektion 8 (Mönster: [Kortform] + と思います)',
-      exampleJp: firstGrammarEx ? `「${firstGrammarEx.jp}」` : '「明日、雨が降らないと思います。」',
-      exampleSv: firstGrammarEx
-        ? `Svenska: "${firstGrammarEx.sv}"`
-        : 'Svenska: "Jag tror inte att det kommer att regna imorgon."',
-      cards: [
-        {
-          tone: 'tone-mint',
-          metaLabel: 'Ru-verb (る)',
-          badgeText: '✓ Grundregel',
-          badgeKind: 'ok',
-          fromJp: '捨てる',
-          toJp: '捨てて・捨てない',
-          romajiLine: 'suteru ➔ sutete / sutenai ("slänga")',
-          ruleHtml: html`Regel: Byt <strong>る</strong> mot <strong>て</strong> eller
-            <strong>ない</strong>`,
-        },
-        {
-          tone: 'tone-terracotta',
-          metaLabel: 'Fälla: U-verb på う',
-          badgeText: 'う → わない',
-          badgeKind: 'warn',
-          fromJp: '思う',
-          toJp: '思って・思わない',
-          warnArrow: true,
-          romajiLine: 'omou ➔ omotte / omowanai ("tycka/tro")',
-          ruleHtml: html`OBS! Slutar på う → <strong>わない</strong> (ej おもあない)!`,
-        },
-        {
-          tone: 'tone-sand',
-          metaLabel: 'U-verb (-u → -aない)',
-          badgeText: 'Vokalbyte',
-          badgeKind: 'neutral',
-          fromJp: '着く',
-          toJp: '着いて・着かない',
-          romajiLine: 'tsuku ➔ tsuite / tsukanai ("anlända")',
-          ruleHtml: html`く blir <strong>いて</strong> i て-form och <strong>かない</strong> i
-            ない-form`,
-        },
-        {
-          tone: 'tone-sage',
-          metaLabel: 'Undantag: ある & する',
-          badgeText: '★ Centralt',
-          badgeKind: 'ok',
-          fromJp: 'ある',
-          toJp: 'あって・ない',
-          romajiLine: 'aru ➔ nai / suru ➔ shinai / kuru ➔ konai',
-          ruleHtml: html`Nekande kortform av <strong>ある</strong> är bara <strong>ない</strong>!`,
-        },
-      ],
     };
   }
 
@@ -450,58 +316,7 @@ function getHeroDojoConfig(week: ReturnType<typeof getCourseWeekById>): {
       watermark: 'た',
       heading: 'て-form & Dåtid Dojo — Kortform i dåtid (た-form)',
       description:
-        'Kan du て-formen kan du redan た-formen! I Lektion 9 byter vi bara て/で mot た/だ (買って → 買った, 読んで → 読んだ) för att bilda dåtid i kortform och bisatser.',
-      sectionLabel: 'DE 4 BÖJNINGSGRUPPERNA I LEKTION 9 (て-FORM ➔ た-FORM)',
-      exampleLabel: 'Exempelmening ur Lektion 9 (Mönster: Dåtid i kortform & Bisatser)',
-      exampleJp: firstGrammarEx
-        ? `「${firstGrammarEx.jp}」`
-        : '「昨日の試験は難しくなかったと思います。」',
-      exampleSv: firstGrammarEx
-        ? `Svenska: "${firstGrammarEx.sv}"`
-        : 'Svenska: "Jag tyckte inte att gårdagens prov var svårt."',
-      cards: [
-        {
-          tone: 'tone-mint',
-          metaLabel: 'U-verb: う・つ・る',
-          badgeText: 'って ➔ った',
-          badgeKind: 'ok',
-          fromJp: '踊る',
-          toJp: '踊って・踊った',
-          romajiLine: 'odoru ➔ odotte / odotta ("dansa")',
-          ruleHtml: html`Exakt samma ljudregel: <strong>って</strong> blir <strong>った</strong>!`,
-        },
-        {
-          tone: 'tone-terracotta',
-          metaLabel: 'Nekande dåtid',
-          badgeText: 'ない ➔ なかった',
-          badgeKind: 'warn',
-          fromJp: '買わない',
-          toJp: '買わなかった',
-          warnArrow: true,
-          romajiLine: 'kawanai ➔ kawanakatta ("köpte inte")',
-          ruleHtml: html`Byt sista <strong>い</strong> i ない mot <strong>かった</strong>!`,
-        },
-        {
-          tone: 'tone-sand',
-          metaLabel: 'U-verb: く / ぐ & む / ぶ',
-          badgeText: 'いて ➔ いた',
-          badgeKind: 'neutral',
-          fromJp: '聞く',
-          toJp: '聞いて・聞いた',
-          romajiLine: 'kiku ➔ kiite / kiita ("lyssna/fråga")',
-          ruleHtml: html`<strong>いて → いた</strong> och tonande <strong>んで → んだ</strong>`,
-        },
-        {
-          tone: 'tone-sage',
-          metaLabel: 'Ru-verb i bisats',
-          badgeText: '★ Bisatser',
-          badgeKind: 'ok',
-          fromJp: '覚える',
-          toJp: '覚えて・覚えた',
-          romajiLine: 'oboeru ➔ oboete / oboeta ("memorera")',
-          ruleHtml: html`Används framför substantiv: <strong>今日覚えた単語</strong>`,
-        },
-      ],
+        'Kan du て-formen kan du redan た-formen! I Lektion 9 byter vi bara て/de mot た/だ (買って → 買った, 読んで → 読んだ) för att bilda dåtid i kortform och bisatser.',
     };
   }
 
@@ -510,53 +325,6 @@ function getHeroDojoConfig(week: ReturnType<typeof getCourseWeekById>): {
     heading: 'て-form Dojo — Böjningsregler & Snabbträning',
     description:
       'Te-formen är nyckeln till att koppla ihop meningar, be om tillåtelse (〜てもいいですか) och uttrycka pågående handlingar (〜ています). Träna de fyra huvudsakliga böjningsmönstren steg för steg.',
-    sectionLabel: `DE 4 BÖJNINGSGRUPPERNA I LEKTION ${week.lessonNumber}`,
-    exampleLabel: 'Exempelmening ur kapitlet (Mönster: Handling A + Handling B)',
-    exampleJp: '「図書館に行って、本を借ります。」',
-    exampleSv: 'Svenska: "Jag går till biblioteket och (sedan) lånar en bok."',
-    cards: [
-      {
-        tone: 'tone-mint',
-        metaLabel: 'Ru-verb (る)',
-        badgeText: '✓ Grundregel',
-        badgeKind: 'ok',
-        fromJp: '食べる',
-        toJp: '食べて',
-        romajiLine: 'taberu ➔ tabete ("att äta")',
-        ruleHtml: html`Regel: Byt ut <strong>る</strong> direkt mot <strong>て</strong>`,
-      },
-      {
-        tone: 'tone-terracotta',
-        metaLabel: 'Undantag: 行く',
-        badgeText: 'Varning',
-        badgeKind: 'warn',
-        fromJp: '行く',
-        toJp: '行って',
-        warnArrow: true,
-        romajiLine: 'iku ➔ itte ("att gå / åka")',
-        ruleHtml: html`OBS! Blir <strong>ej iite</strong>. Dubbelkonsonant <strong>って</strong>!`,
-      },
-      {
-        tone: 'tone-sand',
-        metaLabel: 'U-verb: む / ぶ / ぬ',
-        badgeText: 'Assimilation',
-        badgeKind: 'neutral',
-        fromJp: '飲む',
-        toJp: '飲んで',
-        romajiLine: 'nomu ➔ nonde ("att dricka")',
-        ruleHtml: html`Regel: <strong>む / ぶ / ぬ</strong> blir tonande <strong>んで</strong>`,
-      },
-      {
-        tone: 'tone-sage',
-        metaLabel: 'Oregelbundna verb',
-        badgeText: '★ Centralt',
-        badgeKind: 'ok',
-        fromJp: 'する',
-        toJp: 'して',
-        romajiLine: 'suru ➔ shite / くる ➔ きて',
-        ruleHtml: html`Måste memoreras utantill inför tentan.`,
-      },
-    ],
   };
 }
 
@@ -566,19 +334,14 @@ function renderWeekBentoHub(
   host: CourseHostContext,
 ): CourseTemplate {
   const previewVocab = week.vocab[0];
-  const nextQueue = week.vocab.slice(1, 4);
   const topKanji = week.kanji.slice(0, 4);
-  const firstKanji = week.kanji[0];
   const heroConfig = getHeroDojoConfig(week);
 
-  const teFormCount = week.quiz.filter((q) => q.category === 'te-form').length;
-  const grammarCount = week.quiz.filter((q) => q.category === 'grammar').length;
-  const vocabKanjiCount = week.quiz.filter(
-    (q) => q.category === 'vocab' || q.category === 'kanji',
-  ).length;
+  const vocabDonePct = Math.round((summary.vocabDone / Math.max(1, summary.vocabTotal)) * 100);
+  const dojoDonePct = Math.round((summary.dojoDone / Math.max(1, summary.dojoTotal)) * 100);
 
   return html`
-    <!-- ================= TOP EDITORIAL HEADER & STUDY STATS BAR ================= -->
+    <!-- ================= EDITORIAL HEADER & METRICS STRIP ================= -->
     <section class="course-editorial-header">
       <div class="course-breadcrumb-row">
         <div class="course-breadcrumbs">
@@ -589,7 +352,7 @@ function renderWeekBentoHub(
           <strong class="crumb-current">Genki I Kapitel ${week.lessonNumber}</strong>
           ${
             week.isPreview
-              ? html`<span class="course-badge-preview">Förhandsvisning + Basövningar</span>`
+              ? html`<span class="course-badge-preview">Förhandsvisning</span>`
               : ''
           }
         </div>
@@ -606,7 +369,7 @@ function renderWeekBentoHub(
                     @click=${(e: Event) =>
                       host.speak(previewVocab.kana, e.currentTarget as HTMLElement)}
                   >
-                    🔊 Uttal: PÅ
+                    🔊 Uttal
                   </button>
                 `
               : ''
@@ -617,52 +380,54 @@ function renderWeekBentoHub(
       <h1 class="course-editorial-title" tabindex="-1">${week.titleSv}</h1>
       <p class="course-hero-desc">${week.themeDescriptionSv}</p>
 
-      <!-- 3-Column Study Summary Stats Bar (Alternativ 2) -->
+      <!-- Unified Apple-style Study Metrics Strip -->
       <div class="course-stats-bar">
         <div class="course-stat-cell">
-          <div class="stat-icon sage">📚</div>
-          <div>
-            <span class="stat-label">Bemästrade glosor</span>
+          <div class="stat-meta">
+            <span class="stat-label">Glosor</span>
             <strong class="stat-value">
-              ${summary.vocabDone} / ${summary.vocabTotal} st
-              <small
-                >(${Math.round((summary.vocabDone / Math.max(1, summary.vocabTotal)) * 100)}%)</small
-              >
+              ${summary.vocabDone} <span class="stat-denom">/ ${summary.vocabTotal}</span>
             </strong>
+          </div>
+          <div class="stat-bar-track">
+            <div class="stat-bar-fill" style="width: ${vocabDonePct}%"></div>
           </div>
         </div>
 
         <div class="course-stat-cell">
-          <div class="stat-icon terracotta">🔥</div>
-          <div>
-            <span class="stat-label">Verb & て-form Dojo</span>
-            <strong class="stat-value terracotta-text">
-              ${summary.dojoDone} / ${summary.dojoTotal} verb klara
+          <div class="stat-meta">
+            <span class="stat-label">て-form & Verb</span>
+            <strong class="stat-value">
+              ${summary.dojoDone} <span class="stat-denom">/ ${summary.dojoTotal}</span>
             </strong>
+          </div>
+          <div class="stat-bar-track">
+            <div class="stat-bar-fill accent" style="width: ${dojoDonePct}%"></div>
           </div>
         </div>
 
         <div class="course-stat-cell">
-          <div class="stat-icon sage">✓</div>
-          <div>
-            <span class="stat-label">Total veckoprogression</span>
-            <strong class="stat-value ring-value">${summary.overallPercent}% genomfört</strong>
+          <div class="stat-meta">
+            <span class="stat-label">Veckoprogression</span>
+            <strong class="stat-value ring-value">${summary.overallPercent}%</strong>
+          </div>
+          <div class="stat-bar-track">
+            <div class="stat-bar-fill success" style="width: ${summary.overallPercent}%"></div>
           </div>
         </div>
       </div>
     </section>
 
-    <!-- ================= HERO BANNER: て-form Dojo (Alternativ 2 Layout + Mashup Light Warm Palette) ================= -->
+    <!-- ================= HERO BANNER: FOCUS MISSION ================= -->
     <section class="course-dojo-hero-banner" aria-label="Dagens fokus: て-form Dojo">
       <div class="dojo-hero-watermark" lang="ja" aria-hidden="true">${heroConfig.watermark}</div>
 
-      <div class="dojo-hero-top">
+      <div class="dojo-hero-content">
         <div class="dojo-hero-copy">
           <div class="dojo-hero-badges">
             <span class="badge-dagens-fokus">DAGENS FOKUS</span>
             <span class="badge-sub">
-              Genki I Lektion ${week.lessonNumber} · Verbkonjugation (${week.conjugations.length}
-              verb)
+              Genki I Lektion ${week.lessonNumber} · Verbkonjugation (${week.conjugations.length} verb)
             </span>
           </div>
           <h2>${heroConfig.heading}</h2>
@@ -682,62 +447,9 @@ function renderWeekBentoHub(
             class="course-btn-sage-outline"
             @click=${() => selectCourseSubView('grammar', host)}
           >
-            📖 Grammatikförklaring
+            📖 Grammatikregler
           </button>
         </div>
-      </div>
-
-      <!-- The 4 Conjugation Groups Grid inside the Hero Banner -->
-      <div class="dojo-groups-section">
-        <div class="dojo-groups-head">
-          <span>${heroConfig.sectionLabel}</span>
-          <button
-            type="button"
-            class="dojo-schema-link"
-            @click=${() => selectCourseSubView('dojo', host)}
-          >
-            Visa komplett böjningsschema →
-          </button>
-        </div>
-
-        <div class="dojo-four-groups-grid">
-          ${heroConfig.cards.map(
-            (card) => html`
-              <div class="dojo-group-card ${card.tone}">
-                <div class="group-card-meta">
-                  <span>${card.metaLabel}</span>
-                  <span class="group-badge ${card.badgeKind}">${card.badgeText}</span>
-                </div>
-                <div class="group-card-jp" lang="ja">
-                  ${card.fromJp}
-                  <span class="arrow ${card.warnArrow ? 'warn' : ''}">➔</span>
-                  ${card.toJp}
-                </div>
-                <div class="group-card-romaji">${card.romajiLine}</div>
-                <div class="group-card-rule">${card.ruleHtml}</div>
-              </div>
-            `,
-          )}
-        </div>
-      </div>
-
-      <!-- Example Sentence Callout Strip -->
-      <div class="dojo-hero-example-strip">
-        <div class="example-strip-left">
-          <span class="example-bulb">💡</span>
-          <div>
-            <small>${heroConfig.exampleLabel}</small>
-            <strong lang="ja">${heroConfig.exampleJp}</strong>
-            <span>${heroConfig.exampleSv}</span>
-          </div>
-        </div>
-        <button
-          type="button"
-          class="dojo-example-btn"
-          @click=${() => selectCourseSubView('grammar', host)}
-        >
-          Interaktiv grammatikförklaring →
-        </button>
       </div>
     </section>
 
@@ -798,11 +510,11 @@ function renderWeekBentoHub(
         : ''
     }
 
-    <!-- ================= 3-COLUMN BENTO GRID: Veckans glosor, Kanji-kort, Veckotest ================= -->
+    <!-- ================= 3-COLUMN STUDY MODULES ================= -->
     <section class="course-three-col-grid" aria-label="Veckans tre studiemoduler">
       <!-- COLUMN 1: VECKANS GLOSOR -->
       <article class="course-bento-card bento-vocab">
-        <div>
+        <div class="bento-card-main">
           <div class="bento-col-header">
             <div class="bento-col-title">
               <span class="col-icon">🎴</span>
@@ -851,23 +563,6 @@ function renderWeekBentoHub(
                 `
               : ''
           }
-
-          <div class="bento-queue-box">
-            <span class="queue-heading">FLER NYCKELORD I VECKANS LISTA</span>
-            <ul class="bento-queue-list">
-              ${nextQueue.map(
-                (item) => html`
-                  <li>
-                    <div class="q-left">
-                      <strong lang="ja">${item.kanji || item.kana}</strong>
-                      <span>${item.kana} · ${item.sv.split(';')[0]}</span>
-                    </div>
-                    <small>${item.category}</small>
-                  </li>
-                `,
-              )}
-            </ul>
-          </div>
         </div>
 
         <div class="bento-card-actions ${summary.mistakeVocabCount > 0 ? 'split' : ''}">
@@ -897,7 +592,7 @@ function renderWeekBentoHub(
 
       <!-- COLUMN 2: KANJI-KORT -->
       <article class="course-bento-card bento-kanji">
-        <div>
+        <div class="bento-card-main">
           <div class="bento-col-header">
             <div class="bento-col-title">
               <span class="col-icon">🖌️</span>
@@ -920,32 +615,6 @@ function renderWeekBentoHub(
               `,
             )}
           </div>
-
-          ${
-            firstKanji
-              ? html`
-                  <div class="bento-mnemonic-box">
-                    <strong
-                      >💡 Mnemoteknik för ${firstKanji.kanji} (${firstKanji.meaningSv})</strong
-                    >
-                    <p>${firstKanji.mnemonicSv}</p>
-                    ${
-                      firstKanji.compounds[0]
-                        ? html`
-                            <div class="mnemonic-compound">
-                              <span>Vanligt ord:</span>
-                              <code lang="ja">
-                                ${firstKanji.compounds[0].word} (${firstKanji.compounds[0].reading}
-                                · ${firstKanji.compounds[0].sv})
-                              </code>
-                            </div>
-                          `
-                        : ''
-                    }
-                  </div>
-                `
-              : ''
-          }
         </div>
 
         <div class="bento-card-actions">
@@ -961,7 +630,7 @@ function renderWeekBentoHub(
 
       <!-- COLUMN 3: VECKOTEST (TENTAFOKUS) -->
       <article class="course-bento-card bento-quiz">
-        <div>
+        <div class="bento-card-main">
           <div class="bento-col-header">
             <div class="bento-col-title">
               <span class="col-icon">🏁</span>
@@ -983,31 +652,16 @@ function renderWeekBentoHub(
               förklaring efter varje fråga.
             </p>
 
-            <ul class="exam-breakdown-list">
-              <li>
-                <span>⚡ て-form & verbkonjugation</span>
-                <strong>${teFormCount} frågor</strong>
-              </li>
-              <li>
-                <span>📐 Grammatik & partiklar</span>
-                <strong>${grammarCount} frågor</strong>
-              </li>
-              <li>
-                <span>字 Ordförråd & Kanji</span>
-                <strong>${vocabKanjiCount} frågor</strong>
-              </li>
-            </ul>
-          </div>
-
-          <div class="bento-exam-status">
-            <span>Status:</span>
-            <strong>
-              ${
-                summary.quizScore !== null
-                  ? `Bästa resultat: ${summary.quizScore} / ${summary.quizTotal} rätt`
-                  : 'Redo att genomföras'
-              }
-            </strong>
+            <div class="bento-exam-status">
+              <span>Status:</span>
+              <strong>
+                ${
+                  summary.quizScore !== null
+                    ? `Bästa resultat: ${summary.quizScore} / ${summary.quizTotal} rätt`
+                    : 'Redo att genomföras'
+                }
+              </strong>
+            </div>
           </div>
         </div>
 
@@ -1021,47 +675,6 @@ function renderWeekBentoHub(
           </button>
         </div>
       </article>
-    </section>
-
-    <!-- ================= COMPACT GRAMMAR QUICK-RULE SECTION (Alternativ 2 Bottom Reference) ================= -->
-    <section class="course-grammar-quickref" aria-label="Veckans grammatiköversikt">
-      <div class="quickref-header">
-        <div>
-          <span class="course-eyebrow">REFERENS · LATHUND INFÖR TENTA</span>
-          <h2>Viktiga grammatikmönster i Genki Kapitel ${week.lessonNumber}</h2>
-        </div>
-        <button
-          type="button"
-          class="course-btn-secondary"
-          @click=${() => selectCourseSubView('grammar', host)}
-        >
-          Öppna komplett grammatikguide (${week.grammar.length}) →
-        </button>
-      </div>
-
-      <div class="quickref-grid">
-        ${week.grammar.slice(0, 3).map(
-          (g) => html`
-            <div class="quickref-card">
-              <div class="quickref-card-head">
-                <span class="quickref-pill" lang="ja">${g.patternJp.split('｜')[0]}</span>
-                <strong>${g.title}</strong>
-              </div>
-              <p>${g.summarySv}</p>
-              ${
-                g.examples[0]
-                  ? html`
-                      <div class="quickref-example" lang="ja">
-                        <strong>${g.examples[0].jp}</strong>
-                        <small>${g.examples[0].sv}</small>
-                      </div>
-                    `
-                  : ''
-              }
-            </div>
-          `,
-        )}
-      </div>
     </section>
   `;
 }
