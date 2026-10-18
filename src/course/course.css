@@ -438,6 +438,20 @@
   transition: width 220ms ease;
 }
 
+.week-tab-pct.extra-tag {
+  background: var(--c-indigo-soft);
+  color: var(--c-indigo-mid);
+  font-size: 11px;
+  font-weight: 700;
+  letter-spacing: 0.04em;
+  padding: 2px 7px;
+  border-radius: 999px;
+}
+
+.course-extra-tab .week-tab-indicator {
+  font-size: 13px;
+}
+
 /* Sidebar Bottom Arena Pill (Clean Apple macOS style) */
 .course-sidebar-bottom {
   display: flex;
@@ -2235,6 +2249,475 @@
   justify-content: center;
   gap: 12px;
   flex-wrap: wrap;
+}
+
+/* ================= EXTRA STUDIER (ANKI & FÖRDJUPNING) ================= */
+.extra-studies-section {
+  display: flex;
+  flex-direction: column;
+  gap: 20px;
+}
+
+.extra-studies-live-pill {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  background: var(--c-indigo-soft);
+  color: var(--c-indigo-mid);
+  font-size: 12px;
+  font-weight: 700;
+  padding: 5px 12px;
+  border-radius: 999px;
+  border: 1px solid rgba(43, 91, 70, 0.16);
+}
+
+.extra-studies-hero {
+  background: var(--c-surface);
+  border: 1px solid var(--c-line);
+  border-radius: 20px;
+  padding: 24px 28px;
+}
+
+.extra-studies-grid {
+  display: grid;
+  grid-template-columns: 1fr 340px;
+  gap: 20px;
+  align-items: start;
+}
+
+@media (max-width: 980px) {
+  .extra-studies-grid {
+    grid-template-columns: 1fr;
+  }
+}
+
+.extra-card-deck-preview {
+  background: var(--c-surface);
+  border: 1px solid var(--c-line);
+  border-radius: 20px;
+  padding: 24px 26px;
+  display: flex;
+  flex-direction: column;
+  gap: 18px;
+  box-shadow: var(--c-shadow);
+}
+
+.extra-deck-head {
+  display: flex;
+  justify-content: space-between;
+  align-items: flex-start;
+  gap: 12px;
+  flex-wrap: wrap;
+}
+
+.extra-eyebrow {
+  display: block;
+  font-size: 11px;
+  font-weight: 800;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  color: var(--c-indigo-mid);
+  margin-bottom: 2px;
+}
+
+.extra-deck-head h2 {
+  font-size: 20px;
+  font-weight: 700;
+  color: var(--c-ink);
+  margin: 0;
+}
+
+.extra-deck-stats {
+  display: flex;
+  gap: 8px;
+  flex-wrap: wrap;
+}
+
+/* Anki Flashcard Stage */
+.anki-stage-card {
+  min-height: 220px;
+  background: #faf8f5;
+  border: 1.5px solid var(--c-line);
+  border-radius: 16px;
+  padding: 20px 24px;
+  display: flex;
+  flex-direction: column;
+  justify-content: space-between;
+  cursor: pointer;
+  transition: transform 140ms ease, box-shadow 140ms ease, border-color 140ms ease;
+  user-select: none;
+}
+
+.anki-stage-card:hover {
+  border-color: var(--c-indigo-mid);
+  box-shadow: 0 6px 18px rgba(20, 63, 46, 0.07);
+}
+
+.anki-stage-card:focus-visible {
+  outline: 2px solid var(--c-indigo-mid);
+  outline-offset: 2px;
+}
+
+.anki-stage-card.flipped {
+  background: var(--c-surface);
+  border-color: rgba(43, 91, 70, 0.3);
+}
+
+.anki-card-badge-row {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  gap: 10px;
+}
+
+.anki-deck-chip {
+  font-size: 11.5px;
+  font-weight: 700;
+  color: var(--c-muted);
+  background: var(--c-surface);
+  border: 1px solid var(--c-line);
+  padding: 3px 9px;
+  border-radius: 999px;
+}
+
+.anki-card-main-content {
+  text-align: center;
+  padding: 16px 0;
+}
+
+.anki-reading {
+  display: block;
+  font-size: 14px;
+  color: var(--c-muted);
+  margin-bottom: 4px;
+}
+
+.anki-front-text {
+  display: block;
+  font-size: 32px;
+  font-weight: 700;
+  color: var(--c-indigo);
+  letter-spacing: 0.02em;
+}
+
+.anki-front-sub {
+  display: block;
+  font-size: 12.5px;
+  color: var(--c-muted);
+  margin-top: 6px;
+}
+
+.anki-card-prompt-hint {
+  text-align: center;
+  font-size: 12px;
+  color: var(--c-muted);
+  padding-top: 8px;
+}
+
+.anki-card-answer-revealed {
+  text-align: center;
+  padding-top: 6px;
+  animation: appleMaterialize 180ms ease both;
+}
+
+.anki-reveal-divider {
+  border: 0;
+  border-top: 1px dashed var(--c-line);
+  margin: 12px auto;
+  max-width: 140px;
+}
+
+.anki-back-text {
+  font-size: 16px;
+  font-weight: 600;
+  color: var(--c-ink);
+  margin: 0 0 6px 0;
+}
+
+.anki-note-text {
+  display: block;
+  font-size: 12px;
+  color: var(--c-muted);
+}
+
+/* Anki Rating Tray */
+.anki-rating-tray {
+  display: grid;
+  grid-template-columns: repeat(4, 1fr);
+  gap: 10px;
+}
+
+@media (max-width: 600px) {
+  .anki-rating-tray {
+    grid-template-columns: 1fr 1fr;
+  }
+}
+
+.anki-rate-btn {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 2px;
+  padding: 10px 8px;
+  border-radius: 12px;
+  border: 1px solid var(--c-line);
+  background: var(--c-surface);
+  cursor: pointer;
+  transition: transform 80ms ease, background 120ms ease, border-color 120ms ease;
+}
+
+.anki-rate-btn:hover {
+  transform: translateY(-1px);
+}
+
+.anki-rate-btn:active {
+  transform: translateY(1px);
+}
+
+.rate-interval {
+  font-size: 11px;
+  font-weight: 600;
+  color: var(--c-muted);
+}
+
+.rate-label {
+  font-size: 13.5px;
+  font-weight: 700;
+}
+
+.anki-rate-btn.rate-again {
+  border-color: #f3c1b8;
+  background: #fdf5f3;
+}
+.anki-rate-btn.rate-again .rate-label {
+  color: var(--c-danger);
+}
+.anki-rate-btn.rate-again:hover {
+  background: #fde8e4;
+}
+
+.anki-rate-btn.rate-hard {
+  border-color: #ebd6af;
+  background: #fdf8ee;
+}
+.anki-rate-btn.rate-hard .rate-label {
+  color: #8c581c;
+}
+.anki-rate-btn.rate-hard:hover {
+  background: #f8eccf;
+}
+
+.anki-rate-btn.rate-good {
+  border-color: #c5ddd0;
+  background: #f0f7f3;
+}
+.anki-rate-btn.rate-good .rate-label {
+  color: var(--c-indigo-mid);
+}
+.anki-rate-btn.rate-good:hover {
+  background: #e2f0e8;
+}
+
+.anki-rate-btn.rate-easy {
+  border-color: #bcd4e6;
+  background: #f0f5fa;
+}
+.anki-rate-btn.rate-easy .rate-label {
+  color: #2b5580;
+}
+.anki-rate-btn.rate-easy:hover {
+  background: #e1edf7;
+}
+
+.anki-show-answer-btn {
+  grid-column: 1 / -1;
+  padding: 13px 20px;
+  font-size: 15px;
+}
+
+/* Extra Studies Side Column */
+.extra-studies-sidebar-col {
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+}
+
+.extra-box-card {
+  background: var(--c-surface);
+  border: 1px solid var(--c-line);
+  border-radius: 18px;
+  padding: 18px 20px;
+}
+
+.extra-box-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  gap: 8px;
+  margin-bottom: 12px;
+}
+
+.extra-box-header h3 {
+  font-size: 14.5px;
+  font-weight: 700;
+  color: var(--c-ink);
+  margin: 0;
+}
+
+.extra-tag-pill {
+  font-size: 11px;
+  font-weight: 700;
+  padding: 2px 8px;
+  border-radius: 999px;
+  background: var(--c-indigo-soft);
+  color: var(--c-indigo-mid);
+}
+
+.extra-tag-pill.future {
+  background: #fcf6ec;
+  color: #8c581c;
+}
+
+.anki-deck-list {
+  list-style: none;
+  padding: 0;
+  margin: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.anki-deck-item {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  padding: 9px 10px;
+  border-radius: 10px;
+  border: 1px solid var(--c-line);
+  background: var(--c-surface);
+  transition: all 120ms ease;
+}
+
+.anki-deck-item.active {
+  border-color: var(--c-indigo-mid);
+  background: var(--c-indigo-soft);
+}
+
+.deck-item-icon {
+  font-size: 18px;
+  flex-shrink: 0;
+}
+
+.deck-item-info {
+  flex: 1;
+  min-width: 0;
+}
+
+.deck-item-info strong {
+  display: block;
+  font-size: 12.5px;
+  color: var(--c-ink);
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.deck-item-info small {
+  display: block;
+  font-size: 11px;
+  color: var(--c-muted);
+}
+
+.deck-status-dot {
+  width: 7px;
+  height: 7px;
+  border-radius: 50%;
+  background: var(--c-line);
+}
+
+.deck-status-dot.active {
+  background: var(--c-indigo-mid);
+}
+
+.import-desc {
+  font-size: 12.5px;
+  color: var(--c-muted);
+  line-height: 1.45;
+  margin: 0 0 12px 0;
+}
+
+.anki-import-form {
+  margin-top: 12px;
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+  animation: appleMaterialize 180ms ease both;
+}
+
+.anki-input-label {
+  font-size: 12px;
+  font-weight: 600;
+  color: var(--c-muted);
+}
+
+.anki-textarea {
+  width: 100%;
+  box-sizing: border-box;
+  padding: 8px 10px;
+  border-radius: 10px;
+  border: 1px solid var(--c-line);
+  background: #faf8f5;
+  font-family: inherit;
+  font-size: 12.5px;
+  resize: vertical;
+}
+
+.anki-textarea:focus {
+  outline: 2px solid var(--c-indigo-mid);
+  outline-offset: 1px;
+}
+
+.extra-quick-links {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.extra-quick-link-btn {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  padding: 8px 10px;
+  border-radius: 10px;
+  border: 1px solid transparent;
+  background: transparent;
+  cursor: pointer;
+  text-align: left;
+  transition: all 120ms ease;
+  width: 100%;
+  box-sizing: border-box;
+}
+
+.extra-quick-link-btn:hover {
+  background: #faf8f5;
+  border-color: var(--c-line);
+}
+
+.extra-quick-link-btn div {
+  flex: 1;
+  min-width: 0;
+}
+
+.extra-quick-link-btn strong {
+  display: block;
+  font-size: 12.5px;
+  color: var(--c-indigo);
+}
+
+.extra-quick-link-btn small {
+  display: block;
+  font-size: 11px;
+  color: var(--c-muted);
 }
 
 /* Footer */

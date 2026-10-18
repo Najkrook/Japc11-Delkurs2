@@ -54,5 +54,16 @@ test('JAPC11 Delkurs 2 standalone app: Vecka för vecka, Te-Form Dojo, Flashcard
   await expect(page.locator('.arena-question-card')).toBeVisible();
   await page.locator('.arena-choice-btn').first().click();
 
+  // 4. Open Extra studier from sidebar, flip card, rate, and return to hub
+  await page.locator('[data-course-nav="extra"]').click();
+  await expect(page.locator('main h1')).toContainText('Extra studier · Anki & Kortlekar');
+  const ankiCard = page.locator('.anki-stage-card');
+  await expect(ankiCard).toBeVisible();
+  await ankiCard.click();
+  await expect(page.locator('.anki-card-answer-revealed')).toBeVisible();
+  await page.locator('.anki-rate-btn.rate-good').click();
+  await page.getByRole('button', { name: '← Tillbaka till studieplanen' }).click();
+  await expect(page.locator('main h1')).toContainText('Vecka 1 · Lektion 6');
+
   expect(errors).toEqual([]);
 });

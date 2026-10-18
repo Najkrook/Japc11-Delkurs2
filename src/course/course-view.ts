@@ -12,6 +12,7 @@ import {
 } from './components/flashcard-deck.ts';
 import { renderWeekQuizModule } from './components/week-quiz.ts';
 import { renderCourseArenaModule } from './components/course-arena.ts';
+import { renderExtraStudiesModule } from './components/extra-studies.ts';
 import { courseProgressPersistence } from '../cloud.ts';
 
 export const courseProgress = createCourseProgress(courseProgressPersistence, studyDrills.reset);
@@ -96,6 +97,14 @@ export function renderCourseShell(host: CourseHostContext): CourseTemplate {
               @click=${() => selectCourseSubView('quiz', host)}
             >
               Tentafokus
+            </button>
+            <button
+              type="button"
+              class="course-top-link ${subView === 'extra' ? 'active' : ''}"
+              data-course-nav="extra-top"
+              @click=${() => selectCourseSubView('extra', host)}
+            >
+              Extra studier
             </button>
             <button
               type="button"
@@ -186,7 +195,7 @@ export function renderCourseShell(host: CourseHostContext): CourseTemplate {
             <div class="course-week-ribbon" role="tablist" aria-label="Välj kursvecka">
               ${courseWeeks.map((w) => {
                 const wSum = getWeekProgressSummary(progress, w);
-                const isActive = w.id === week.id;
+                const isActive = subView !== 'extra' && subView !== 'arena' && w.id === week.id;
                 const shortTitle = w.titleSv.includes(':')
                   ? w.titleSv.split(':')[1].trim()
                   : w.titleSv.includes('—')
@@ -200,7 +209,7 @@ export function renderCourseShell(host: CourseHostContext): CourseTemplate {
                     class="course-week-tab ${isActive ? 'active' : ''} ${w.isPreview ? 'preview' : ''}"
                     @click=${() => {
                       selectCourseWeek(w.id, host);
-                      if (subView === 'arena') selectCourseSubView('hub', host);
+                      if (subView === 'arena' || subView === 'extra') selectCourseSubView('hub', host);
                     }}
                   >
                     <div class="week-tab-row">
@@ -223,6 +232,32 @@ export function renderCourseShell(host: CourseHostContext): CourseTemplate {
                   </button>
                 `;
               })}
+            </div>
+
+            <!-- Extra studier Section -->
+            <div class="course-sidebar-section-label">EXTRA STUDIER</div>
+            <div class="course-week-ribbon" role="tablist" aria-label="Extra studier">
+              <button
+                type="button"
+                role="tab"
+                data-course-nav="extra"
+                aria-selected=${subView === 'extra' ? 'true' : 'false'}
+                class="course-week-tab course-extra-tab ${subView === 'extra' ? 'active' : ''}"
+                @click=${() => selectCourseSubView('extra', host)}
+              >
+                <div class="week-tab-row">
+                  <span class="week-tab-indicator ${subView === 'extra' ? 'active' : ''}">
+                    ${subView === 'extra' ? '◉' : '🎴'}
+                  </span>
+                  <div class="week-tab-body">
+                    <div class="week-tab-head">
+                      <strong class="week-tab-title">Extra studier</strong>
+                      <span class="week-tab-pct extra-tag">Anki</span>
+                    </div>
+                    <span class="week-tab-sub">Öva Anki-kortlekar</span>
+                  </div>
+                </div>
+              </button>
             </div>
           </div>
 
@@ -279,7 +314,9 @@ export function renderCourseShell(host: CourseHostContext): CourseTemplate {
                       ? renderKanjiModule(week, progress, host, courseProgress.update, goHub)
                       : subView === 'arena'
                         ? renderCourseArenaModule(host, goHub)
-                        : renderWeekQuizModule(week, progress, host, courseProgress.update, goHub)
+                        : subView === 'extra'
+                          ? renderExtraStudiesModule(host, goHub)
+                          : renderWeekQuizModule(week, progress, host, courseProgress.update, goHub)
           }
         </main>
       </div>
@@ -287,6 +324,13 @@ export function renderCourseShell(host: CourseHostContext): CourseTemplate {
       <footer class="course-footer">
         <span>${host.status} · JAPC11 Delkurs 2 (Genki I Lektion 6–9)</span>
         <div class="course-footer-links">
+          <button
+            type="button"
+            class="course-text-link"
+            @click=${() => selectCourseSubView('extra', host)}
+          >
+            Extra studier (Anki)
+          </button>
           <button
             type="button"
             class="course-text-link"
