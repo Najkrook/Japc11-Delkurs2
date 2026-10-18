@@ -437,7 +437,7 @@ function renderWeekBentoHub(
         <div class="dojo-hero-actions">
           <button
             type="button"
-            class="course-btn-terracotta"
+            class="course-btn-primary"
             @click=${() => selectCourseSubView('dojo', host)}
           >
             ⚡ Starta て-form Dojo
@@ -522,7 +522,7 @@ function renderWeekBentoHub(
             </div>
             <div class="bento-header-badges">
               ${summary.mistakeVocabCount > 0
-                ? html`<span class="bento-stat-pill terracotta-pill"
+                ? html`<span class="bento-stat-pill weak-pill"
                     >⚠️ ${summary.mistakeVocabCount} svaga</span
                   >`
                 : ''}
@@ -636,7 +636,7 @@ function renderWeekBentoHub(
               <span class="col-icon">🏁</span>
               <h2>Veckotest</h2>
             </div>
-            <span class="bento-stat-pill terracotta-pill">
+            <span class="bento-stat-pill exam-pill">
               Tentafokus · L${week.lessonNumber}
             </span>
           </div>
@@ -668,7 +668,7 @@ function renderWeekBentoHub(
         <div class="bento-card-actions">
           <button
             type="button"
-            class="course-btn-terracotta full-width"
+            class="course-btn-primary full-width"
             @click=${() => selectCourseSubView('quiz', host)}
           >
             ▶ Starta veckans minitest (${week.quiz.length} frågor)

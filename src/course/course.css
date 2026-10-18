@@ -1,6 +1,6 @@
 /* ==========================================================================
    KURSPLUGG (COURSE MODE) — Stitch Mashup Palette + Alternativ 2 Layout
-   (Warm Washi Paper #FBF9F4 · Kyoto Sage #2B5B46 · Warm Terracotta #B84A32)
+   (Warm Washi Paper #FBF9F4 · Kyoto Sage #2B5B46 · Warm Amber/Bronze #8A581E)
    ========================================================================== */
 
 .course-app-shell {
@@ -11,16 +11,16 @@
   --c-indigo: #143f2e;
   --c-indigo-mid: #2b5b46;
   --c-indigo-soft: #e7f2ec;
-  --c-vermilion: #a8442a;
-  --c-vermilion-hover: #8c351e;
-  --c-vermilion-soft: #fdf2ee;
+  --c-vermilion: #965638;
+  --c-vermilion-hover: #7d442a;
+  --c-vermilion-soft: #fcf5ee;
   --c-ink: #1b1d1a;
   --c-muted: #525b55;
   --c-line: #e2ded4;
   --c-success: #1b6e44;
   --c-success-bg: #e8f7ef;
-  --c-danger: #a62929;
-  --c-danger-bg: #fef0f0;
+  --c-danger: #b33636;
+  --c-danger-bg: #fef2f2;
   --c-shadow: 0 10px 28px rgba(24, 38, 30, 0.045), inset 0 1px 0 rgba(255, 255, 255, 0.85);
   --c-topbar-glass: rgba(251, 249, 244, 0.88);
   --c-ribbon-glass: rgba(245, 242, 235, 0.9);
@@ -167,19 +167,26 @@
 }
 
 .course-top-link.arena-nav-pill {
-  background: var(--c-vermilion-soft);
-  color: var(--c-vermilion);
-  border: 1px solid #f2cfc4;
+  background: #fcf6ec;
+  color: #8c581c;
+  border: 1px solid #ecdac2;
   border-radius: 999px;
   padding: 5px 13px;
   margin-left: 6px;
+  font-weight: 700;
+  transition: all 140ms ease;
 }
 
-.course-top-link.arena-nav-pill.active,
 .course-top-link.arena-nav-pill:hover {
-  background: var(--c-vermilion);
+  background: #f6ecdc;
+  color: #6d4211;
+  border-color: #dfc29c;
+}
+
+.course-top-link.arena-nav-pill.active {
+  background: #8c581c;
   color: #ffffff;
-  border-color: var(--c-vermilion);
+  border-color: #8c581c;
 }
 
 .course-topbar-right {
@@ -333,7 +340,7 @@
 }
 
 .week-tab-indicator.active {
-  color: var(--c-vermilion);
+  color: var(--c-indigo-mid);
 }
 
 .week-tab-body {
@@ -404,18 +411,18 @@
   align-items: center;
   gap: 10px;
   padding: 10px 12px;
-  background: var(--c-vermilion-soft);
-  border: 1px solid #f0cbc0;
+  background: #fcf6ec;
+  border: 1px solid #ecdac2;
   border-radius: 12px;
   cursor: pointer;
   text-align: left;
-  transition: all 120ms ease;
+  transition: all 140ms ease;
   box-sizing: border-box;
 }
 
 .course-sidebar-arena-pill:hover {
-  background: #fae4dc;
-  border-color: #e2ab9b;
+  background: #f6ecdc;
+  border-color: #dfc29c;
 }
 
 .course-sidebar-arena-pill:active {
@@ -423,8 +430,8 @@
 }
 
 .course-sidebar-arena-pill.active {
-  background: var(--c-vermilion);
-  border-color: var(--c-vermilion);
+  background: #8c581c;
+  border-color: #8c581c;
 }
 
 .course-sidebar-arena-pill.active .arena-pill-text strong,
@@ -446,7 +453,7 @@
   display: block;
   font-size: 13px;
   font-weight: 700;
-  color: var(--c-vermilion);
+  color: #8c581c;
 }
 
 .arena-pill-text small {
@@ -644,7 +651,7 @@
 }
 
 .stat-bar-fill.accent {
-  background: var(--c-vermilion);
+  background: var(--c-indigo-mid);
 }
 
 .stat-bar-fill.success {
@@ -657,7 +664,7 @@
   overflow: hidden;
   background: var(--c-surface);
   border: 1px solid var(--c-line);
-  border-left: 4px solid var(--c-vermilion);
+  border-left: 4px solid var(--c-indigo-mid);
   border-radius: 20px;
   padding: 24px 28px;
   margin-bottom: 24px;
@@ -700,13 +707,16 @@
 }
 
 .badge-dagens-fokus {
-  background: var(--c-vermilion);
+  background: var(--c-indigo-mid);
   color: #ffffff;
   font-size: 11px;
   font-weight: 800;
-  letter-spacing: 0.07em;
-  padding: 3px 10px;
+  letter-spacing: 0.08em;
+  padding: 4px 11px;
   border-radius: 999px;
+  box-shadow: 0 1px 4px rgba(20, 63, 46, 0.16);
+  display: inline-flex;
+  align-items: center;
 }
 
 .badge-sub {
@@ -739,7 +749,7 @@
 }
 
 .course-btn-terracotta {
-  background: var(--c-vermilion);
+  background: var(--c-indigo-mid);
   color: #ffffff;
   border: none;
   border-radius: 999px;
@@ -747,12 +757,13 @@
   font-size: 13.5px;
   font-weight: 700;
   cursor: pointer;
-  box-shadow: 0 3px 10px rgba(168, 68, 42, 0.18);
-  transition: transform 80ms ease, background 120ms ease;
+  box-shadow: 0 3px 12px rgba(20, 63, 46, 0.2);
+  transition: transform 80ms ease, background 120ms ease, box-shadow 120ms ease;
 }
 
 .course-btn-terracotta:hover {
-  background: var(--c-vermilion-hover);
+  background: var(--c-indigo);
+  box-shadow: 0 4px 16px rgba(20, 63, 46, 0.28);
 }
 
 .course-btn-terracotta:active {
@@ -851,20 +862,20 @@
 
 .misstagsbank-icon {
   font-size: 24px;
-  background: var(--c-vermilion-soft);
+  background: #fdf8ee;
   width: 44px;
   height: 44px;
   display: grid;
   place-items: center;
   border-radius: 12px;
-  border: 1px solid rgba(168, 68, 42, 0.2);
+  border: 1px solid #ebd6af;
   flex-shrink: 0;
 }
 
 .misstagsbank-left strong {
   display: block;
   font-size: 15px;
-  color: var(--c-vermilion);
+  color: #965b1c;
   margin-bottom: 2px;
 }
 
@@ -883,7 +894,7 @@
 }
 
 .course-btn-mistakes {
-  background: var(--c-vermilion);
+  background: #965b1c;
   color: #ffffff;
   border: none;
   border-radius: 999px;
@@ -896,7 +907,7 @@
 }
 
 .course-btn-mistakes:hover {
-  background: var(--c-vermilion-hover);
+  background: #7a4812;
 }
 
 .course-btn-mistakes:active {
@@ -905,12 +916,12 @@
 
 .course-btn-mistakes.secondary {
   background: var(--c-surface);
-  color: var(--c-vermilion);
-  border: 1.5px solid var(--c-vermilion);
+  color: #965b1c;
+  border: 1.5px solid #965b1c;
 }
 
 .course-btn-mistakes.secondary:hover {
-  background: var(--c-vermilion-soft);
+  background: #fdf8ee;
 }
 
 .bento-card-actions.split {
@@ -920,9 +931,9 @@
 }
 
 .course-btn-mistakes-mini {
-  background: var(--c-vermilion-soft);
-  color: var(--c-vermilion);
-  border: 1px solid rgba(168, 68, 42, 0.35);
+  background: #fdf8ee;
+  color: #965b1c;
+  border: 1px solid #ebd6af;
   border-radius: 999px;
   padding: 10px 14px;
   font-size: 13px;
@@ -936,7 +947,7 @@
 }
 
 .course-btn-mistakes-mini:hover {
-  background: var(--c-vermilion);
+  background: #965b1c;
   color: #ffffff;
 }
 
@@ -966,9 +977,17 @@
   border-radius: 999px;
 }
 
-.bento-stat-pill.terracotta-pill {
-  background: var(--c-vermilion-soft);
-  color: var(--c-vermilion);
+.bento-stat-pill.terracotta-pill,
+.bento-stat-pill.exam-pill {
+  background: var(--c-indigo-soft);
+  color: var(--c-indigo-mid);
+  border: 1px solid #c5ddd0;
+}
+
+.bento-stat-pill.weak-pill {
+  background: #fdf8ee;
+  color: #965b1c;
+  border: 1px solid #ebd6af;
 }
 
 /* Column 1: Mini Flashcard & Queue */
@@ -1194,7 +1213,9 @@
 }
 
 .exam-tag {
-  color: var(--c-vermilion);
+  color: var(--c-indigo-mid);
+  font-weight: 700;
+  letter-spacing: 0.02em;
 }
 
 .exam-time {
@@ -1399,7 +1420,7 @@
   font-weight: 700;
   letter-spacing: 0.08em;
   text-transform: uppercase;
-  color: var(--c-vermilion);
+  color: var(--c-indigo-mid);
 }
 
 /* Interactive Sub-Modules (Dojo, Flashcards, Kanji, Quiz) */
@@ -1529,8 +1550,8 @@
 }
 
 .dojo-rule-chip.highlight {
-  background: var(--c-vermilion-soft);
-  border-color: #f3c1b8;
+  background: var(--c-indigo-soft);
+  border-color: #c2dbcd;
 }
 
 .dojo-rule-chip strong {
@@ -1766,15 +1787,15 @@
 }
 
 .course-filter-chip.chip-mistakes {
-  background: var(--c-vermilion-soft);
-  color: var(--c-vermilion);
-  border-color: rgba(168, 68, 42, 0.3);
+  background: #fdf8ee;
+  color: #965b1c;
+  border-color: #ebd6af;
 }
 
 .course-filter-chip.chip-mistakes.active {
-  background: var(--c-vermilion);
+  background: #965b1c;
   color: #ffffff;
-  border-color: var(--c-vermilion);
+  border-color: #965b1c;
 }
 
 .course-flashcard-stage {
@@ -1893,8 +1914,8 @@
 }
 
 .course-vocab-row.weak {
-  border-left: 4px solid var(--c-vermilion);
-  background: linear-gradient(90deg, var(--c-vermilion-soft) 0%, var(--c-surface) 22%);
+  border-left: 4px solid #b87333;
+  background: linear-gradient(90deg, #fdf8ee 0%, var(--c-surface) 22%);
 }
 
 .row-tags-line {
@@ -1925,14 +1946,14 @@
 }
 
 .course-weak-toggle:hover {
-  border-color: var(--c-vermilion);
-  color: var(--c-vermilion);
+  border-color: #965b1c;
+  color: #965b1c;
 }
 
 .course-weak-toggle.active {
-  background: var(--c-vermilion-soft);
-  color: var(--c-vermilion);
-  border-color: var(--c-vermilion);
+  background: #fdf8ee;
+  color: #965b1c;
+  border-color: #ebd6af;
 }
 
 .course-vocab-row-jp strong {
@@ -2110,7 +2131,7 @@
 .course-quiz-progress-bar span {
   display: block;
   height: 100%;
-  background: var(--c-vermilion);
+  background: var(--c-indigo-mid);
 }
 
 .course-quiz-prompt {
