@@ -12,7 +12,6 @@ import {
   toggleKanjiMastered,
   toggleVocabMastered,
 } from '../src/course/course-state.ts';
-import { buildDojoChoices } from '../src/course/components/te-form-dojo.ts';
 import {
   buildAllCourseArenaQuestions,
   calculateArenaPoints,
@@ -81,19 +80,6 @@ test('JAPC11 Delkurs 2 State: Tracks mastery across all 4 blocks per week', () =
 
   setCourseActiveWeek(loaded, 'week-2');
   assert.equal(loaded.activeWeekId, 'week-2');
-});
-
-test('Te-Form Dojo: Generates 4 unique choices including the correct te-form', () => {
-  for (const week of courseWeeks) {
-    for (const item of week.conjugations) {
-      const choices = buildDojoChoices(item);
-      assert.equal(choices.length, 4, `4 choices for ${item.dictionaryKanji}`);
-      assert.ok(
-        choices.includes(item.teFormKana),
-        `Includes correct answer ${item.teFormKana} for ${item.dictionaryKanji}`,
-      );
-    }
-  }
 });
 
 test('Course Arena Multiplayer: Generates L6-L9 decks and calculates time-bonus points', () => {

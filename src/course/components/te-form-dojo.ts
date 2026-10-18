@@ -4,68 +4,16 @@ import type {
   CourseProgressData,
   CourseTemplate,
   CourseWeek,
-  VerbConjugationItem,
 } from '../types.ts';
+import { studyDrills } from '../study-drills.ts';
 import { courseWeeks } from '../data/index.ts';
 import type { UpdateCourseProgress } from '../course-progress.ts';
 
-interface DojoUiState {
-  weekFilter: string; // 'current' | 'all'
-  index: number;
-  selectedAnswer: string | null;
-  typedAnswer: string;
-  inputMode: 'choices' | 'write';
-  revealed: boolean;
-  isCorrect: boolean | null;
-  showRuleSheet: boolean;
-}
-
-const dojoState: DojoUiState = {
-  weekFilter: 'current',
-  index: 0,
-  selectedAnswer: null,
-  typedAnswer: '',
+const dojoDrill = studyDrills.dojo;
+const preferences: { inputMode: 'choices' | 'write'; showRuleSheet: boolean } = {
   inputMode: 'choices',
-  revealed: false,
-  isCorrect: null,
   showRuleSheet: true,
 };
-
-export function resetDojoUiState(): void {
-  dojoState.index = 0;
-  dojoState.selectedAnswer = null;
-  dojoState.typedAnswer = '';
-  dojoState.revealed = false;
-  dojoState.isCorrect = null;
-}
-
-function normalizeJp(str: string): string {
-  return str.trim().replace(/\s+/g, '');
-}
-
-export function buildDojoChoices(item: VerbConjugationItem): string[] {
-  const stemKana = item.dictionaryKana.slice(0, -1);
-  const candidates = new Set<string>([item.teFormKana]);
-
-  const distractors = [
-    `${stemKana}って`,
-    `${stemKana}んで`,
-    `${stemKana}いて`,
-    `${stemKana}いで`,
-    `${stemKana}して`,
-    `${stemKana}て`,
-    `${item.dictionaryKana}て`,
-  ];
-
-  for (const d of distractors) {
-    if (candidates.size >= 4) break;
-    if (d !== item.teFormKana && d.length >= 2) {
-      candidates.add(d);
-    }
-  }
-
-  return Array.from(candidates).sort((a, b) => a.localeCompare(b, 'ja'));
-}
 
 export function renderTeFormDojo(
   week: CourseWeek,
@@ -74,39 +22,24 @@ export function renderTeFormDojo(
   updateProgress: UpdateCourseProgress,
   onBackToHub: () => void,
 ): CourseTemplate {
-  const pool: VerbConjugationItem[] =
-    dojoState.weekFilter === 'all' ? courseWeeks.flatMap((w) => w.conjugations) : week.conjugations;
+  const state = dojoDrill.read(week, courseWeeks, progress);
+  const { current, index: safeIndex, choices, masteredCount, total } = state;
 
-  if (pool.length === 0) {
+  if (!current) {
     return html`<div class="course-empty-card">
       <h2>Inga böjningsövningar i detta urval.</h2>
       <button class="course-btn-primary" @click=${onBackToHub}>Tillbaka till veckan</button>
     </div>`;
   }
 
-  const safeIndex = ((dojoState.index % pool.length) + pool.length) % pool.length;
-  const current = pool[safeIndex];
-  const choices = buildDojoChoices(current);
-  const masteredCount = pool.filter((c) => progress.masteredDojoIds[c.id]).length;
-
   const submitAnswer = (val: string) => {
-    const clean = normalizeJp(val);
-    if (!clean) return;
-    const ok =
-      clean === normalizeJp(current.teFormKana) || clean === normalizeJp(current.teFormKanji);
-    dojoState.selectedAnswer = val;
-    dojoState.revealed = true;
-    dojoState.isCorrect = ok;
-    updateProgress({ type: 'mastery', kind: 'dojo', id: current.id, mastered: ok });
+    const command = dojoDrill.submit(val);
+    if (command) updateProgress(command);
     host.render();
   };
 
   const goNext = (delta: number) => {
-    dojoState.index = (safeIndex + delta + pool.length) % pool.length;
-    dojoState.selectedAnswer = null;
-    dojoState.typedAnswer = '';
-    dojoState.revealed = false;
-    dojoState.isCorrect = null;
+    dojoDrill.move(delta);
     host.render();
   };
 
@@ -127,10 +60,9 @@ export function renderTeFormDojo(
           <div class="course-pill-switch" role="group" aria-label="Urval i Dojo">
             <button
               type="button"
-              class=${dojoState.weekFilter === 'current' ? 'active' : ''}
+              class=${state.weekFilter === 'current' ? 'active' : ''}
               @click=${() => {
-                dojoState.weekFilter = 'current';
-                resetDojoUiState();
+                dojoDrill.selectFilter('current');
                 host.render();
               }}
             >
@@ -138,10 +70,9 @@ export function renderTeFormDojo(
             </button>
             <button
               type="button"
-              class=${dojoState.weekFilter === 'all' ? 'active' : ''}
+              class=${state.weekFilter === 'all' ? 'active' : ''}
               @click=${() => {
-                dojoState.weekFilter = 'all';
-                resetDojoUiState();
+                dojoDrill.selectFilter('all');
                 host.render();
               }}
             >
@@ -151,9 +82,9 @@ export function renderTeFormDojo(
           <div class="course-pill-switch" role="group" aria-label="Svarsläge">
             <button
               type="button"
-              class=${dojoState.inputMode === 'choices' ? 'active' : ''}
+              class=${preferences.inputMode === 'choices' ? 'active' : ''}
               @click=${() => {
-                dojoState.inputMode = 'choices';
+                preferences.inputMode = 'choices';
                 host.render();
               }}
             >
@@ -161,9 +92,9 @@ export function renderTeFormDojo(
             </button>
             <button
               type="button"
-              class=${dojoState.inputMode === 'write' ? 'active' : ''}
+              class=${preferences.inputMode === 'write' ? 'active' : ''}
               @click=${() => {
-                dojoState.inputMode = 'write';
+                preferences.inputMode = 'write';
                 host.render();
               }}
             >
@@ -183,21 +114,21 @@ export function renderTeFormDojo(
           </p>
         </div>
         <div class="dojo-score-pill">
-          <strong>${masteredCount} / ${pool.length}</strong>
+          <strong>${masteredCount} / ${total}</strong>
           <span>bemästrade verb</span>
         </div>
       </div>
 
-      <details class="dojo-cheatsheet" ?open=${dojoState.showRuleSheet}>
+      <details class="dojo-cheatsheet" ?open=${preferences.showRuleSheet}>
         <summary
           @click=${(e: Event) => {
             e.preventDefault();
-            dojoState.showRuleSheet = !dojoState.showRuleSheet;
+            preferences.showRuleSheet = !preferences.showRuleSheet;
             host.render();
           }}
         >
           <span>🎵 Minnesschema: Alla て-form-regler på 10 sekunder</span>
-          <small>${dojoState.showRuleSheet ? 'Dölj' : 'Visa'}</small>
+          <small>${preferences.showRuleSheet ? 'Dölj' : 'Visa'}</small>
         </summary>
         <div class="dojo-rules-grid">
           <div class="dojo-rule-chip">
@@ -229,7 +160,7 @@ export function renderTeFormDojo(
 
       <div class="dojo-arena-card">
         <div class="dojo-arena-meta">
-          <span class="dojo-step-counter">Verb ${safeIndex + 1} av ${pool.length}</span>
+          <span class="dojo-step-counter">Verb ${safeIndex + 1} av ${total}</span>
           <span class="dojo-verb-group-badge ${current.group}">${groupBadgeLabel}</span>
           ${
             progress.masteredDojoIds[current.id]
@@ -275,29 +206,25 @@ export function renderTeFormDojo(
         </div>
 
         ${
-          dojoState.inputMode === 'choices'
+          preferences.inputMode === 'choices'
             ? html`<div class="dojo-choices-grid" role="group" aria-label="Välj rätt て-form">
                 ${choices.map((choice) => {
-                  const isSelected = dojoState.selectedAnswer === choice;
+                  const isSelected = state.selectedAnswer === choice;
                   const isAnswer = choice === current.teFormKana;
                   let stateClass = '';
-                  if (dojoState.revealed) {
+                  if (state.revealed) {
                     if (isAnswer) stateClass = 'correct';
                     else if (isSelected) stateClass = 'wrong';
                   }
                   return html`<button
                     type="button"
                     class="dojo-choice-btn ${stateClass}"
-                    ?disabled=${dojoState.revealed}
+                    ?disabled=${state.revealed}
                     lang="ja"
                     @click=${() => submitAnswer(choice)}
                   >
                     <span class="dojo-choice-kana">${choice}</span>
-                    ${
-                      dojoState.revealed && isAnswer
-                        ? html`<small>${current.teFormKanji}</small>`
-                        : ''
-                    }
+                    ${state.revealed && isAnswer ? html`<small>${current.teFormKanji}</small>` : ''}
                   </button>`;
                 })}
               </div>`
@@ -305,11 +232,9 @@ export function renderTeFormDojo(
                 class="dojo-write-form"
                 @submit=${(e: Event) => {
                   e.preventDefault();
-                  if (!dojoState.revealed) {
-                    submitAnswer(dojoState.typedAnswer);
-                  } else {
-                    goNext(1);
-                  }
+                  const command = dojoDrill.submitInput();
+                  if (command) updateProgress(command);
+                  host.render();
                 }}
               >
                 <label for="dojo-input" class="sr-only">Skriv て-form på japanska</label>
@@ -319,14 +244,14 @@ export function renderTeFormDojo(
                   lang="ja"
                   class="dojo-text-input"
                   placeholder="Skriv て-form i kana eller kanji (t.ex. ${current.teFormKana})..."
-                  .value=${dojoState.typedAnswer}
-                  ?disabled=${dojoState.revealed}
+                  .value=${state.typedAnswer}
+                  ?disabled=${state.revealed}
                   @input=${(e: Event) => {
-                    dojoState.typedAnswer = (e.target as HTMLInputElement).value;
+                    dojoDrill.setInput((e.target as HTMLInputElement).value);
                   }}
                 />
                 ${
-                  !dojoState.revealed
+                  !state.revealed
                     ? html`<button type="submit" class="course-btn-primary">
                         Kontrollera て-form
                       </button>`
@@ -335,14 +260,11 @@ export function renderTeFormDojo(
               </form>`
         }
         ${
-          dojoState.revealed
-            ? html`<div
-                class="dojo-feedback-box ${dojoState.isCorrect ? 'ok' : 'err'}"
-                role="status"
-              >
+          state.revealed
+            ? html`<div class="dojo-feedback-box ${state.isCorrect ? 'ok' : 'err'}" role="status">
                 <div class="dojo-feedback-header">
                   <strong>
-                    ${dojoState.isCorrect ? '✨ Helt rätt!' : '💡 Inte riktigt — se ljudregeln:'}
+                    ${state.isCorrect ? '✨ Helt rätt!' : '💡 Inte riktigt — se ljudregeln:'}
                   </strong>
                   <span class="dojo-rule-pill">${current.ruleLabelSv}</span>
                 </div>

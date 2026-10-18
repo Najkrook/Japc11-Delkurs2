@@ -5,28 +5,10 @@ import type {
   CourseTemplate,
   CourseWeek,
 } from '../types.ts';
+import { studyDrills } from '../study-drills.ts';
 import type { UpdateCourseProgress } from '../course-progress.ts';
 
-interface QuizUiState {
-  weekId: string;
-  index: number;
-  answers: Record<string, string>;
-  finished: boolean;
-}
-
-const quizState: QuizUiState = {
-  weekId: '',
-  index: 0,
-  answers: {},
-  finished: false,
-};
-
-export function resetWeekQuizState(weekId = ''): void {
-  quizState.weekId = weekId;
-  quizState.index = 0;
-  quizState.answers = {};
-  quizState.finished = false;
-}
+const quizDrill = studyDrills.quiz;
 
 const QUIZ_CAT_LABELS: Record<string, string> = {
   'te-form': 'て-form',
@@ -42,11 +24,8 @@ export function renderWeekQuizModule(
   updateProgress: UpdateCourseProgress,
   onBackToHub: () => void,
 ): CourseTemplate {
-  if (quizState.weekId !== week.id) {
-    resetWeekQuizState(week.id);
-  }
-
-  const questions = week.quiz;
+  const state = quizDrill.read(week);
+  const { questions, total, score } = state;
   if (!questions.length) {
     return html`<div class="course-empty-card">
       <h2>Inga testfrågor i denna vecka än.</h2>
@@ -54,10 +33,7 @@ export function renderWeekQuizModule(
     </div>`;
   }
 
-  const total = questions.length;
-  const score = questions.filter((q) => quizState.answers[q.id] === q.answer).length;
-
-  if (quizState.finished) {
+  if (state.finished) {
     const pct = Math.round((score / total) * 100);
     return html`
       <section class="course-module-section" aria-label="Resultat för veckans minitest">
@@ -80,7 +56,7 @@ export function renderWeekQuizModule(
 
           <div class="course-quiz-review-list">
             ${questions.map((q, i) => {
-              const userAns = quizState.answers[q.id];
+              const userAns = state.answers[q.id];
               const ok = userAns === q.answer;
               return html`
                 <div class="course-quiz-review-item ${ok ? 'ok' : 'err'}">
@@ -104,7 +80,7 @@ export function renderWeekQuizModule(
               type="button"
               class="course-btn-secondary"
               @click=${() => {
-                resetWeekQuizState(week.id);
+                quizDrill.reset(week.id);
                 host.render();
               }}
             >
@@ -119,24 +95,16 @@ export function renderWeekQuizModule(
     `;
   }
 
-  const safeIdx = Math.min(quizState.index, total - 1);
-  const current = questions[safeIdx];
-  const chosen = quizState.answers[current.id] ?? null;
+  const { index: safeIdx, current, chosen } = state;
 
   const chooseOption = (choice: string) => {
-    if (chosen !== null) return;
-    quizState.answers[current.id] = choice;
+    quizDrill.choose(choice);
     host.render();
   };
 
   const advance = () => {
-    if (safeIdx < total - 1) {
-      quizState.index = safeIdx + 1;
-    } else {
-      quizState.finished = true;
-      const finalScore = questions.filter((q) => quizState.answers[q.id] === q.answer).length;
-      updateProgress({ type: 'quiz', weekId: week.id, score: finalScore, total });
-    }
+    const command = quizDrill.advance();
+    if (command) updateProgress(command);
     host.render();
   };
 

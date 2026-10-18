@@ -6,32 +6,11 @@ import type {
   CourseWeek,
 } from '../types.ts';
 import type { UpdateCourseProgress } from '../course-progress.ts';
+import { studyDrills } from '../study-drills.ts';
 import { bindSwipeableFlashcard } from '../apple-physics.ts';
 
-interface DeckUiState {
-  vocabMode: 'cards' | 'list';
-  vocabIndex: number;
-  vocabFlipped: boolean;
-  vocabFilter: string;
-  kanjiIndex: number;
-  kanjiFlipped: boolean;
-}
-
-const deckState: DeckUiState = {
-  vocabMode: 'cards',
-  vocabIndex: 0,
-  vocabFlipped: false,
-  vocabFilter: 'all',
-  kanjiIndex: 0,
-  kanjiFlipped: false,
-};
-
-export function resetDeckUiState(): void {
-  deckState.vocabIndex = 0;
-  deckState.vocabFlipped = false;
-  deckState.kanjiIndex = 0;
-  deckState.kanjiFlipped = false;
-}
+let vocabMode: 'cards' | 'list' = 'cards';
+const vocabDrill = studyDrills.vocab;
 
 const CATEGORY_LABELS: Record<string, string> = {
   'verb-u': 'U-verb',
@@ -49,28 +28,12 @@ export function renderVocabModule(
   updateProgress: UpdateCourseProgress,
   onBackToHub: () => void,
 ): CourseTemplate {
-  const filtered =
-    deckState.vocabFilter === 'all'
-      ? week.vocab
-      : deckState.vocabFilter === 'unmastered'
-        ? week.vocab.filter((v) => !progress.masteredVocabIds[v.id])
-        : week.vocab.filter((v) => v.category === deckState.vocabFilter);
-
-  const items = filtered;
-  const safeIdx = items.length
-    ? ((deckState.vocabIndex % items.length) + items.length) % items.length
-    : 0;
-  const current = items[safeIdx];
-  const masteredCount = week.vocab.filter((v) => progress.masteredVocabIds[v.id]).length;
+  const state = vocabDrill.read(week, progress);
+  const { items, current, index: safeIdx, masteredCount } = state;
 
   const markAndAdvance = (mastered: boolean) => {
-    if (!current) return;
-    updateProgress({ type: 'mastery', kind: 'vocab', id: current.id, mastered });
-    deckState.vocabFlipped = false;
-    deckState.vocabIndex =
-      mastered && deckState.vocabFilter === 'unmastered'
-        ? safeIdx % Math.max(1, items.length - 1)
-        : (safeIdx + 1) % items.length;
+    const command = vocabDrill.markAndAdvance(mastered);
+    if (command) updateProgress(command);
     host.render();
   };
 
@@ -84,9 +47,9 @@ export function renderVocabModule(
           <div class="course-pill-switch" role="group" aria-label="Visningsläge för glosor">
             <button
               type="button"
-              class=${deckState.vocabMode === 'cards' ? 'active' : ''}
+              class=${vocabMode === 'cards' ? 'active' : ''}
               @click=${() => {
-                deckState.vocabMode = 'cards';
+                vocabMode = 'cards';
                 host.render();
               }}
             >
@@ -94,9 +57,9 @@ export function renderVocabModule(
             </button>
             <button
               type="button"
-              class=${deckState.vocabMode === 'list' ? 'active' : ''}
+              class=${vocabMode === 'list' ? 'active' : ''}
               @click=${() => {
-                deckState.vocabMode = 'list';
+                vocabMode = 'list';
                 host.render();
               }}
             >
@@ -121,10 +84,7 @@ export function renderVocabModule(
       <div class="course-filter-bar" role="group" aria-label="Filtrera ordklass">
         ${[
           ['all', `Alla (${week.vocab.length})`],
-          [
-            'unmastered',
-            `Kvar att lära (${week.vocab.filter((v) => !progress.masteredVocabIds[v.id]).length})`,
-          ],
+          ['unmastered', `Kvar att lära (${state.remainingCount})`],
           ['verb-u', 'U-verb'],
           ['verb-ru', 'Ru-verb'],
           ['adjective', 'Adjektiv'],
@@ -134,11 +94,9 @@ export function renderVocabModule(
           ([key, label]) => html`
             <button
               type="button"
-              class="course-filter-chip ${deckState.vocabFilter === key ? 'active' : ''}"
+              class="course-filter-chip ${state.filter === key ? 'active' : ''}"
               @click=${() => {
-                deckState.vocabFilter = key;
-                deckState.vocabIndex = 0;
-                deckState.vocabFlipped = false;
+                vocabDrill.selectFilter(key);
                 host.render();
               }}
             >
@@ -153,18 +111,18 @@ export function renderVocabModule(
           ? html`<div class="course-empty-card" role="status">
               <p>
                 ${
-                  deckState.vocabFilter === 'unmastered' && week.vocab.length
+                  state.filter === 'unmastered' && week.vocab.length
                     ? 'Alla veckans glosor är bemästrade.'
                     : 'Inga glosor matchar det valda filtret.'
                 }
               </p>
               <p>Välj ett annat filter för att fortsätta.</p>
             </div>`
-          : deckState.vocabMode === 'cards'
+          : vocabMode === 'cards'
             ? html`
                 <div class="course-flashcard-stage">
                   <div
-                    class="course-flashcard ${deckState.vocabFlipped ? 'flipped' : ''}"
+                    class="course-flashcard ${state.flipped ? 'flipped' : ''}"
                     role="button"
                     tabindex="0"
                     aria-label="Vänd gloskort"
@@ -174,13 +132,11 @@ export function renderVocabModule(
                         cardEl,
                         {
                           onSwipeLeft: () => {
-                            deckState.vocabFlipped = false;
-                            deckState.vocabIndex = (safeIdx + 1) % items.length;
+                            vocabDrill.move(1);
                             host.render();
                           },
                           onSwipeRight: () => {
-                            deckState.vocabFlipped = false;
-                            deckState.vocabIndex = (safeIdx - 1 + items.length) % items.length;
+                            vocabDrill.move(-1);
                             host.render();
                           },
                         },
@@ -191,23 +147,21 @@ export function renderVocabModule(
                       const cardEl = e.currentTarget as HTMLElement;
                       const suppressUntil = Number(cardEl?.dataset?.suppressClickUntil || 0);
                       if (suppressUntil > performance.now()) return;
-                      deckState.vocabFlipped = !deckState.vocabFlipped;
+                      vocabDrill.flip();
                       host.render();
                     }}
                     @keydown=${(e: KeyboardEvent) => {
                       if (e.key === 'Enter' || e.key === ' ') {
                         e.preventDefault();
-                        deckState.vocabFlipped = !deckState.vocabFlipped;
+                        vocabDrill.flip();
                         host.render();
                       } else if (e.key === 'ArrowRight') {
                         e.preventDefault();
-                        deckState.vocabFlipped = false;
-                        deckState.vocabIndex = (safeIdx + 1) % items.length;
+                        vocabDrill.move(1);
                         host.render();
                       } else if (e.key === 'ArrowLeft') {
                         e.preventDefault();
-                        deckState.vocabFlipped = false;
-                        deckState.vocabIndex = (safeIdx - 1 + items.length) % items.length;
+                        vocabDrill.move(-1);
                         host.render();
                       }
                     }}
@@ -249,7 +203,7 @@ export function renderVocabModule(
                     </div>
 
                     ${
-                      deckState.vocabFlipped
+                      state.flipped
                         ? html`
                             <div class="course-flashcard-answer">
                               <h3>${current.sv}</h3>
@@ -277,8 +231,7 @@ export function renderVocabModule(
                       type="button"
                       class="course-btn-secondary"
                       @click=${() => {
-                        deckState.vocabFlipped = false;
-                        deckState.vocabIndex = (safeIdx - 1 + items.length) % items.length;
+                        vocabDrill.move(-1);
                         host.render();
                       }}
                     >
@@ -302,8 +255,7 @@ export function renderVocabModule(
                       type="button"
                       class="course-btn-secondary"
                       @click=${() => {
-                        deckState.vocabFlipped = false;
-                        deckState.vocabIndex = (safeIdx + 1) % items.length;
+                        vocabDrill.move(1);
                         host.render();
                       }}
                     >
@@ -349,12 +301,8 @@ export function renderVocabModule(
                           type="button"
                           class="course-mastery-toggle ${isDone ? 'active' : ''}"
                           @click=${() => {
-                            updateProgress({
-                              type: 'mastery',
-                              kind: 'vocab',
-                              id: item.id,
-                              mastered: !progress.masteredVocabIds[item.id],
-                            });
+                            const command = vocabDrill.toggleMastered(item.id);
+                            if (command) updateProgress(command);
                             host.render();
                           }}
                         >

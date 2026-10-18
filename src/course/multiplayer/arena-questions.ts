@@ -1,5 +1,5 @@
 import { courseWeeks } from '../data/index.ts';
-import { buildDojoChoices } from '../components/te-form-dojo.ts';
+import { buildDojoChoices } from '../study-drills.ts';
 import type { ArenaQuestion, ArenaRoomConfig, ArenaWeekFilter } from './arena-types.ts';
 import type { CourseWeek } from '../types.ts';
 

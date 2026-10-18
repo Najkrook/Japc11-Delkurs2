@@ -2,23 +2,19 @@ import { html } from 'lit-html';
 import type { CourseHostContext, CourseSubView, CourseTemplate } from './types.ts';
 import { courseWeeks, getCourseWeekById } from './data/index.ts';
 import { getWeekProgressSummary } from './course-state.ts';
+import { studyDrills } from './study-drills.ts';
 import { createCourseProgress } from './course-progress.ts';
-import { renderTeFormDojo, resetDojoUiState } from './components/te-form-dojo.ts';
+import { renderTeFormDojo } from './components/te-form-dojo.ts';
 import {
   renderGrammarModule,
   renderKanjiModule,
   renderVocabModule,
-  resetDeckUiState,
 } from './components/flashcard-deck.ts';
-import { renderWeekQuizModule, resetWeekQuizState } from './components/week-quiz.ts';
+import { renderWeekQuizModule } from './components/week-quiz.ts';
 import { renderCourseArenaModule } from './components/course-arena.ts';
 import { courseProgressPersistence } from '../cloud.ts';
 
-export const courseProgress = createCourseProgress(courseProgressPersistence, (weekId) => {
-  resetDojoUiState();
-  resetDeckUiState();
-  resetWeekQuizState(weekId);
-});
+export const courseProgress = createCourseProgress(courseProgressPersistence, studyDrills.reset);
 
 export function selectCourseWeek(weekId: string, host?: CourseHostContext): void {
   courseProgress.update({ type: 'week', weekId });
