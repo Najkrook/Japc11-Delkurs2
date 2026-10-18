@@ -53,7 +53,7 @@ export function renderVocabModule(
                 host.render();
               }}
             >
-              🎴 Flashcards
+              Flashcards
             </button>
             <button
               type="button"
@@ -63,7 +63,7 @@ export function renderVocabModule(
                 host.render();
               }}
             >
-              📋 Hela ordlistan (${week.vocab.length})
+              Hela ordlistan (${week.vocab.length})
             </button>
           </div>
         </div>
@@ -466,7 +466,7 @@ export function renderGrammarModule(
         <button class="course-back-btn" @click=${onBackToHub}>
           ← Tillbaka till ${week.titleSv.split(':')[0]}
         </button>
-        <button class="course-btn-primary" @click=${onOpenDojo}>🥋 Öppna て-form Dojo →</button>
+        <button class="course-btn-primary" @click=${onOpenDojo}>Öppna て-form Dojo →</button>
       </div>
 
       <div class="dojo-header-banner">

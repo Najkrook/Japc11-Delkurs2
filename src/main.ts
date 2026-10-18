@@ -18,7 +18,12 @@ function readTheme(): 'classic' | 'sakura' {
 }
 
 let currentTheme: 'classic' | 'sakura' = readTheme();
-let currentUser: { uid: string; displayName?: string | null; email?: string | null } | null = null;
+let currentUser: {
+  uid: string;
+  displayName?: string | null;
+  email?: string | null;
+  photoURL?: string | null;
+} | null = null;
 let authBusy = false;
 let statusText = 'Lokalt sparad';
 
@@ -96,7 +101,14 @@ courseArenaManager.bindHost(null, draw);
 
 watchUser((u) => {
   stopSpeech();
-  currentUser = u ? { uid: u.uid, displayName: u.displayName, email: u.email } : null;
+  currentUser = u
+    ? {
+        uid: u.uid,
+        displayName: u.displayName,
+        email: u.email,
+        photoURL: u.photoURL,
+      }
+    : null;
   courseArenaManager.bindHost(currentUser, draw);
   statusText = u ? `Inloggad som ${u.displayName || u.email || 'student'}` : 'Lokalt sparad';
   void courseProgress.useUser(u?.uid || null);

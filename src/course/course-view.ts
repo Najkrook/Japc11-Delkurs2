@@ -103,7 +103,7 @@ export function renderCourseShell(host: CourseHostContext): CourseTemplate {
               data-course-nav="arena"
               @click=${() => selectCourseSubView('arena', host)}
             >
-              ⚔️ Kurs-Arena
+              Kurs-Arena
             </button>
           </nav>
 
@@ -123,11 +123,31 @@ export function renderCourseShell(host: CourseHostContext): CourseTemplate {
 
             <button
               type="button"
-              class="course-account-btn"
+              class="course-account-btn ${host.user ? 'logged-in' : ''} ${host.user?.photoURL ? 'has-avatar' : ''}"
               ?disabled=${host.authBusy}
               @click=${host.account}
+              title=${host.user
+                ? `Inloggad som ${host.user.displayName || host.user.email || 'användare'} · Klicka för att logga ut`
+                : 'Logga in med Google'}
             >
-              ${host.user ? `👤 ${host.user.displayName || 'Konto'}` : 'Logga in'}
+              ${host.user
+                ? html`
+                    ${host.user.photoURL
+                      ? html`<img
+                          class="course-account-avatar"
+                          src=${host.user.photoURL}
+                          alt=""
+                          referrerpolicy="no-referrer"
+                          loading="lazy"
+                        />`
+                      : html`<span class="course-account-fallback-avatar">
+                          ${host.user.displayName
+                            ? host.user.displayName.trim().charAt(0).toUpperCase()
+                            : '👤'}
+                        </span>`}
+                    <span class="course-account-name">${host.user.displayName || 'Konto'}</span>
+                  `
+                : 'Logga in'}
             </button>
           </div>
         </div>
@@ -156,7 +176,7 @@ export function renderCourseShell(host: CourseHostContext): CourseTemplate {
                 class="mode-switch-pill ${subView === 'arena' ? 'active' : ''}"
                 @click=${() => selectCourseSubView('arena', host)}
               >
-                ⚔️ Arena
+                Arena
               </button>
             </div>
 
@@ -213,7 +233,6 @@ export function renderCourseShell(host: CourseHostContext): CourseTemplate {
               class="course-sidebar-arena-pill ${subView === 'arena' ? 'active' : ''}"
               @click=${() => selectCourseSubView('arena', host)}
             >
-              <span class="arena-pill-icon">⚔️</span>
               <span class="arena-pill-text">
                 <strong>Kurs-Arena</strong>
                 <small>Multiplayer · 3 bots redo</small>
@@ -227,14 +246,14 @@ export function renderCourseShell(host: CourseHostContext): CourseTemplate {
                 class="course-sidebar-link ${subView === 'grammar' ? 'active' : ''}"
                 @click=${() => selectCourseSubView('grammar', host)}
               >
-                📖 Ordbok & Grammatik
+                Ordbok & Grammatik
               </button>
               <button
                 type="button"
                 class="course-sidebar-link ${subView === 'quiz' ? 'active' : ''}"
                 @click=${() => selectCourseSubView('quiz', host)}
               >
-                🏁 Veckotest & Tentafokus
+                Veckotest & Tentafokus
               </button>
             </div>
           </div>
@@ -273,14 +292,14 @@ export function renderCourseShell(host: CourseHostContext): CourseTemplate {
             class="course-text-link"
             @click=${() => selectCourseSubView('arena', host)}
           >
-            ⚔️ Kurs-Arena (Multiplayer L6–L9)
+            Kurs-Arena (Multiplayer L6–L9)
           </button>
           <button
             type="button"
             class="course-text-link"
             @click=${() => selectCourseSubView('dojo', host)}
           >
-            🥋 て-form Dojo
+            て-form Dojo
           </button>
         </div>
       </footer>
@@ -369,7 +388,7 @@ function renderWeekBentoHub(
                     @click=${(e: Event) =>
                       host.speak(previewVocab.kana, e.currentTarget as HTMLElement)}
                   >
-                    🔊 Uttal
+                    Uttal
                   </button>
                 `
               : ''
@@ -440,14 +459,14 @@ function renderWeekBentoHub(
             class="course-btn-primary"
             @click=${() => selectCourseSubView('dojo', host)}
           >
-            ⚡ Starta て-form Dojo
+            Starta て-form Dojo
           </button>
           <button
             type="button"
             class="course-btn-sage-outline"
             @click=${() => selectCourseSubView('grammar', host)}
           >
-            📖 Grammatikregler
+            Grammatikregler
           </button>
         </div>
       </div>
@@ -517,7 +536,6 @@ function renderWeekBentoHub(
         <div class="bento-card-main">
           <div class="bento-col-header">
             <div class="bento-col-title">
-              <span class="col-icon">🎴</span>
               <h2>Veckans glosor</h2>
             </div>
             <div class="bento-header-badges">
@@ -554,7 +572,7 @@ function renderWeekBentoHub(
                               @click=${(e: Event) =>
                                 host.speak(previewVocab.kana, e.currentTarget as HTMLElement)}
                             >
-                              🔊 Lyssna på uttal
+                              Lyssna på uttal
                             </button>
                           `
                         : ''
@@ -595,7 +613,6 @@ function renderWeekBentoHub(
         <div class="bento-card-main">
           <div class="bento-col-header">
             <div class="bento-col-title">
-              <span class="col-icon">🖌️</span>
               <h2>Kanji-kort</h2>
             </div>
             <span class="bento-stat-pill">
@@ -633,7 +650,6 @@ function renderWeekBentoHub(
         <div class="bento-card-main">
           <div class="bento-col-header">
             <div class="bento-col-title">
-              <span class="col-icon">🏁</span>
               <h2>Veckotest</h2>
             </div>
             <span class="bento-stat-pill exam-pill">
@@ -644,7 +660,7 @@ function renderWeekBentoHub(
           <div class="bento-exam-summary">
             <div class="exam-summary-top">
               <span class="exam-tag">Diagnostiskt delprov</span>
-              <span class="exam-time">⏱️ ${week.quiz.length} frågor</span>
+              <span class="exam-time">${week.quiz.length} frågor</span>
             </div>
             <h3>Lektion ${week.lessonNumber} Veckokontroll</h3>
             <p>
@@ -671,7 +687,7 @@ function renderWeekBentoHub(
             class="course-btn-primary full-width"
             @click=${() => selectCourseSubView('quiz', host)}
           >
-            ▶ Starta veckans minitest (${week.quiz.length} frågor)
+            Starta veckans minitest (${week.quiz.length} frågor) →
           </button>
         </div>
       </article>

@@ -8,7 +8,7 @@ test('Arena displays the actual length of a short focused match', async ({ page 
   await page.goto('/');
   await page.locator('[data-course-nav="arena"]').click();
   await page.getByRole('button', { name: 'Vecka 1 (L6)', exact: true }).click();
-  await page.getByRole('button', { name: '📐 Grammatik', exact: true }).click();
+  await page.getByRole('button', { name: 'Grammatik', exact: true }).click();
   await page.getByRole('button', { name: '15 frågor', exact: true }).click();
   await page.locator('[data-arena-action="create-room"]').click();
   await expect(page.locator('[data-arena-action="start-match"]')).toContainText(`${count} frågor`);

@@ -207,6 +207,48 @@
   font-weight: 600;
   cursor: pointer;
   box-shadow: 0 1px 2px rgba(0, 0, 0, 0.03);
+  transition: all 140ms ease;
+}
+
+.course-account-btn {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.course-account-btn.has-avatar {
+  padding: 4px 13px 4px 5px;
+}
+
+.course-account-avatar {
+  width: 24px;
+  height: 24px;
+  border-radius: 50%;
+  object-fit: cover;
+  flex-shrink: 0;
+  display: block;
+  box-shadow: 0 0 0 1px rgba(0, 0, 0, 0.08);
+}
+
+.course-account-fallback-avatar {
+  width: 22px;
+  height: 22px;
+  border-radius: 50%;
+  background: var(--c-indigo-soft);
+  color: var(--c-indigo);
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 11px;
+  font-weight: 700;
+  flex-shrink: 0;
+}
+
+.course-account-name {
+  max-width: 140px;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
 }
 
 .course-icon-btn:hover,

@@ -16,11 +16,11 @@ const WEEK_FILTER_LABELS: Record<ArenaWeekFilter, string> = {
 };
 
 const FOCUS_MODE_LABELS: Record<ArenaFocusMode, string> = {
-  mix: '🔥 Alla moment (Mix)',
-  'te-form': '🥋 て-form & Böjning',
-  vocab: '🎴 Glosor',
-  kanji: '字 Kanji',
-  grammar: '📐 Grammatik',
+  mix: 'Alla moment (Mix)',
+  'te-form': 'て-form & Böjning',
+  vocab: 'Glosor',
+  kanji: 'Kanji',
+  grammar: 'Grammatik',
 };
 
 export function renderCourseArenaModule(
@@ -62,7 +62,7 @@ function renderArenaLobby(
           ← Tillbaka till veckoöversikten
         </button>
         <span class="arena-isolated-badge">
-          ⚡ Lektion 6–9 · Kurs-Arena
+          Lektion 6–9 · Kurs-Arena
         </span>
       </div>
 
@@ -135,11 +135,11 @@ function renderArenaLobby(
             <div class="arena-segmented-control" role="group" aria-label="Välj fokusområde">
               ${(
                 [
-                  ['mix', '🔥 Mix'],
-                  ['te-form', '🥋 て-form'],
-                  ['vocab', '🎴 Glosor'],
-                  ['kanji', '字 Kanji'],
-                  ['grammar', '📐 Grammatik'],
+                  ['mix', 'Mix'],
+                  ['te-form', 'て-form'],
+                  ['vocab', 'Glosor'],
+                  ['kanji', 'Kanji'],
+                  ['grammar', 'Grammatik'],
                 ] as Array<[ArenaFocusMode, string]>
               ).map(
                 ([val, label]) => html`
@@ -179,7 +179,7 @@ function renderArenaLobby(
               data-arena-action="create-room"
               @click=${() => courseArenaManager.createRoom(false)}
             >
-              🔑 Skapa rum med rumskod
+              Skapa rum med rumskod
             </button>
             <button
               type="button"
@@ -190,7 +190,7 @@ function renderArenaLobby(
                 if (created) await courseArenaManager.startMatch();
               }}
             >
-              🌸 Snabbduell mot Sakura-bot →
+              Snabbduell mot Sakura-bot →
             </button>
           </div>
         </article>
@@ -305,7 +305,7 @@ function renderArenaWaitingRoom(
               host.announce(`Rumskod ${room.roomCode} kopierad!`);
             }}
           >
-            📋 Kopiera kod
+            Kopiera kod
           </button>
         </div>
 
@@ -325,7 +325,7 @@ function renderArenaWaitingRoom(
                   <div>
                     <strong>${p.name}</strong>
                     <small
-                      >${p.uid === room.hostUid ? '👑 Värd' : p.isBot ? '🤖 Studie-bot' : 'Spelare'}</small
+                      >${p.uid === room.hostUid ? 'Värd' : p.isBot ? 'Studie-bot' : 'Spelare'}</small
                     >
                   </div>
                 </div>
@@ -334,7 +334,7 @@ function renderArenaWaitingRoom(
           </div>
 
           <div class="arena-bots-selector">
-            <h3>🤖 Vill du lägga till Studie-botar i matchen?</h3>
+            <h3>Vill du lägga till studie-botar i matchen?</h3>
             <div class="arena-bots-row">
               ${ARENA_BOT_PRESETS.map((bot) => {
                 const active = Boolean(room.players[bot.id]);
@@ -365,7 +365,7 @@ function renderArenaWaitingRoom(
               title=${state.localPlayerUid !== room.hostUid ? 'Endast värden kan styra matchen' : ''}
               @click=${() => courseArenaManager.startMatch()}
             >
-              🔥 Starta matchen nu (${room.questions.length} frågor) →
+              Starta matchen nu (${room.questions.length} frågor) →
             </button>
           </div>
         </div>
