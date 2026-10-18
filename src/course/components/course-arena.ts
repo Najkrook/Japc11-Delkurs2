@@ -62,17 +62,16 @@ function renderArenaLobby(
           ← Tillbaka till veckoöversikten
         </button>
         <span class="arena-isolated-badge">
-          ⚡ Fristående Kurs-Multiplayer · Endast Lektion 6–9
+          ⚡ Lektion 6–9 · Kurs-Arena
         </span>
       </div>
 
       <div class="dojo-header-banner arena-hero-banner">
         <div>
-          <span class="course-eyebrow">LIVE KURS-ARENA · KAHOOT / QUIZKAMPEN-LÄGE</span>
+          <span class="course-eyebrow">KURS-ARENA · MULTIPLAYER</span>
           <h1>Tävla i det nya kursmaterialet</h1>
           <p>
-            Skapa ett rum med 4-siffrig rumskod, välj exakt vilken vecka och vilket moment ni vill
-            tävla i, eller utmana en Studie-bot direkt!
+            Utmana kursare i realtid med 4-siffrig rumskod, eller kör en snabbduell mot en studie-bot.
           </p>
         </div>
       </div>
@@ -87,18 +86,19 @@ function renderArenaLobby(
         <!-- LEFT: CREATE ROOM -->
         <article class="arena-card arena-create-card">
           <div class="bento-card-top">
-            <span class="bento-step-num">SKAPA RUM ELLER SNABBMATCH</span>
-            <span class="bento-stat-pill">15s per fråga + tidsbonus</span>
+            <span class="bento-step-num">SKAPA MATCH</span>
+            <span class="bento-stat-pill">15s per fråga</span>
           </div>
-          <h2>🚀 Starta ett nytt rum</h2>
+          <h2>Starta ett rum</h2>
 
           <div class="arena-form-group">
             <label for="arena-player-name">Ditt visningsnamn</label>
             <input
               id="arena-player-name"
               type="text"
-              class="arena-input"
+              class="arena-input arena-apple-input"
               maxlength="24"
+              placeholder="Ditt namn..."
               .value=${localPlayerName}
               @input=${(e: Event) =>
                 courseArenaManager.setPlayerName((e.target as HTMLInputElement).value)}
@@ -106,8 +106,8 @@ function renderArenaLobby(
           </div>
 
           <div class="arena-form-group">
-            <span class="arena-label">1. Välj kursvecka:</span>
-            <div class="arena-option-chips" role="group" aria-label="Välj kursvecka">
+            <span class="arena-label">Kursvecka</span>
+            <div class="arena-segmented-control" role="group" aria-label="Välj kursvecka">
               ${(
                 [
                   ['week-1', 'Vecka 1 (L6)'],
@@ -120,7 +120,7 @@ function renderArenaLobby(
                 ([val, label]) => html`
                   <button
                     type="button"
-                    class="course-filter-chip ${draftConfig.weekFilter === val ? 'active' : ''}"
+                    class="arena-segment-btn course-filter-chip ${draftConfig.weekFilter === val ? 'active' : ''}"
                     @click=${() => courseArenaManager.updateDraftConfig({ weekFilter: val })}
                   >
                     ${label}
@@ -131,8 +131,8 @@ function renderArenaLobby(
           </div>
 
           <div class="arena-form-group">
-            <span class="arena-label">2. Välj fokusområde:</span>
-            <div class="arena-option-chips" role="group" aria-label="Välj fokusområde">
+            <span class="arena-label">Fokusområde</span>
+            <div class="arena-segmented-control" role="group" aria-label="Välj fokusområde">
               ${(
                 [
                   ['mix', '🔥 Mix'],
@@ -145,7 +145,7 @@ function renderArenaLobby(
                 ([val, label]) => html`
                   <button
                     type="button"
-                    class="course-filter-chip ${draftConfig.focusMode === val ? 'active' : ''}"
+                    class="arena-segment-btn course-filter-chip ${draftConfig.focusMode === val ? 'active' : ''}"
                     @click=${() => courseArenaManager.updateDraftConfig({ focusMode: val })}
                   >
                     ${label}
@@ -156,14 +156,13 @@ function renderArenaLobby(
           </div>
 
           <div class="arena-form-group">
-            <span class="arena-label">3. Högst antal rundor:</span>
-            <p>Om urvalet har färre frågor blir matchen kortare. Valt fokus behålls.</p>
-            <div class="arena-option-chips" role="group" aria-label="Välj antal rundor">
+            <span class="arena-label">Antal frågor</span>
+            <div class="arena-segmented-control arena-segmented-control-compact" role="group" aria-label="Välj antal rundor">
               ${([5, 10, 15] as ArenaRoundCount[]).map(
                 (cnt) => html`
                   <button
                     type="button"
-                    class="course-filter-chip ${draftConfig.roundCount === cnt ? 'active' : ''}"
+                    class="arena-segment-btn course-filter-chip ${draftConfig.roundCount === cnt ? 'active' : ''}"
                     @click=${() => courseArenaManager.updateDraftConfig({ roundCount: cnt })}
                   >
                     ${cnt} frågor
@@ -176,7 +175,7 @@ function renderArenaLobby(
           <div class="arena-create-actions">
             <button
               type="button"
-              class="course-btn-primary"
+              class="course-btn-primary arena-action-btn"
               data-arena-action="create-room"
               @click=${() => courseArenaManager.createRoom(false)}
             >
@@ -184,7 +183,7 @@ function renderArenaLobby(
             </button>
             <button
               type="button"
-              class="course-btn-secondary"
+              class="course-btn-secondary arena-action-btn"
               data-arena-action="quick-bot-match"
               @click=${async () => {
                 const created = await courseArenaManager.createRoom(true);
@@ -199,11 +198,11 @@ function renderArenaLobby(
         <!-- RIGHT: JOIN BY CODE OR OPEN LOBBY -->
         <article class="arena-card arena-join-card">
           <div class="bento-card-top">
-            <span class="bento-step-num">ANSLUT TILL VÄN ELLER ÖPPET RUM</span>
-            <span class="bento-stat-pill">4-siffrig kod</span>
+            <span class="bento-step-num">ANSLUT</span>
+            <span class="bento-stat-pill">4 siffror</span>
           </div>
-          <h2>🔢 Gå med via rumskod</h2>
-          <p>Har en kursare skapat ett rum? Skriv in den 4-siffriga koden nedan:</p>
+          <h2>Gå med via rumskod</h2>
+          <p class="arena-card-sub">Skriv in den 4-siffriga koden för att ansluta till ett skapat rum:</p>
 
           <form
             class="arena-code-form"
@@ -213,18 +212,21 @@ function renderArenaLobby(
             }}
           >
             <label for="arena-code-input" class="sr-only">4-siffrig rumskod</label>
-            <input
-              id="arena-code-input"
-              type="text"
-              inputmode="numeric"
-              placeholder="T.ex. 4821"
-              maxlength="4"
-              class="arena-code-input"
-              .value=${joinCodeInput}
-              @input=${(e: Event) =>
-                courseArenaManager.setJoinCodeInput((e.target as HTMLInputElement).value)}
-            />
-            <button type="submit" class="course-btn-primary">Gå med →</button>
+            <div class="arena-passcode-box">
+              <input
+                id="arena-code-input"
+                type="text"
+                inputmode="numeric"
+                pattern="[0-9]*"
+                placeholder="4821"
+                maxlength="4"
+                class="arena-code-input arena-apple-passcode"
+                .value=${joinCodeInput}
+                @input=${(e: Event) =>
+                  courseArenaManager.setJoinCodeInput((e.target as HTMLInputElement).value)}
+              />
+            </div>
+            <button type="submit" class="course-btn-primary arena-join-submit-btn">Gå med →</button>
           </form>
 
           <div class="arena-open-rooms-box">
