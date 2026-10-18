@@ -46,14 +46,51 @@ export function renderTeFormDojo(
 
   if (!current) {
     return html`<div class="course-empty-card">
-      <h2>Inga böjningsövningar i detta urval.</h2>
-      <button class="course-btn-primary" @click=${onBackToHub}>Tillbaka till veckan</button>
+      <h2>
+        ${
+          state.weekFilter === 'mistakes'
+            ? 'Inga svaga verb sparade! 🎉'
+            : 'Inga böjningsövningar i detta urval.'
+        }
+      </h2>
+      <p>
+        ${
+          state.weekFilter === 'mistakes'
+            ? 'Alla verb du tränat i Dojon har suttit! Eventuella felaktiga svar sparas automatiskt här så att du kan nöta dem inför tentan.'
+            : ''
+        }
+      </p>
+      <button
+        class="course-btn-primary"
+        @click=${() => {
+          if (state.weekFilter === 'mistakes') {
+            dojoDrill.selectFilter('current');
+            host.render();
+          } else {
+            onBackToHub();
+          }
+        }}
+      >
+        ${state.weekFilter === 'mistakes' ? 'Visa alla veckans verb' : 'Tillbaka till veckan'}
+      </button>
     </div>`;
   }
 
   const submitAnswer = (val: string) => {
     const command = dojoDrill.submit(val);
-    if (command) updateProgress(command);
+    if (command) {
+      updateProgress(command);
+      if (command.type === 'mastery' && !command.mastered && current) {
+        const matchVocab = week.vocab.find(
+          (v) =>
+            v.kana === current.dictionaryKana ||
+            (v.kanji && v.kanji === current.dictionaryKanji),
+        );
+        if (matchVocab) {
+          updateProgress({ type: 'mistake', kind: 'vocab', id: matchVocab.id, mistake: true });
+        }
+      }
+    }
     host.render();
     if (typeof requestAnimationFrame !== 'undefined') {
       requestAnimationFrame(() => {
@@ -110,6 +147,16 @@ export function renderTeFormDojo(
               }}
             >
               Alla veckor (${courseWeeks.flatMap((w) => w.conjugations).length})
+            </button>
+            <button
+              type="button"
+              class=${state.weekFilter === 'mistakes' ? 'active' : ''}
+              @click=${() => {
+                dojoDrill.selectFilter('mistakes');
+                host.render();
+              }}
+            >
+              ⚠️ Svaga verb (${state.mistakeCount})
             </button>
           </div>
           <div class="course-pill-switch" role="group" aria-label="Svarsläge">
@@ -316,7 +363,12 @@ export function renderTeFormDojo(
                   <strong>
                     ${state.isCorrect ? '✨ Helt rätt!' : '💡 Inte riktigt — se ljudregeln:'}
                   </strong>
-                  <span class="dojo-rule-pill">${current.ruleLabelSv}</span>
+                  <div class="dojo-feedback-tags">
+                    ${!state.isCorrect
+                      ? html`<span class="dojo-mistake-pill">⚠️ Sparat i misstagsbanken</span>`
+                      : ''}
+                    <span class="dojo-rule-pill">${current.ruleLabelSv}</span>
+                  </div>
                 </div>
                 <p class="dojo-conversion-line" lang="ja">
                   ${current.dictionaryKanji} (${current.dictionaryKana}) ➔

@@ -33,26 +33,38 @@ function createVocabDrill() {
   let weekId = '';
   let all: CourseVocabItem[] = [];
   let mastery: Record<string, boolean> = {};
+  let mistakes: Record<string, boolean> = {};
   let filter = 'all';
   let index = 0;
   let flipped = false;
+
   const items = () =>
-    all.filter(
-      (item) =>
-        filter === 'all' ||
-        (filter === 'unmastered' ? !mastery[item.id] : item.category === filter),
-    );
+    all.filter((item) => {
+      if (filter === 'all') return true;
+      if (filter === 'unmastered') return !mastery[item.id];
+      if (filter === 'mistakes') return Boolean(mistakes[item.id]);
+      return item.category === filter;
+    });
+
   function reset() {
     weekId = '';
     all = [];
     mastery = {};
+    mistakes = {};
     index = 0;
     flipped = false;
   }
-  function mark(id: string, mastered: boolean): CourseProgressCommand {
+
+  function mark(id: string, mastered: boolean, mistake?: boolean): CourseProgressCommand {
     mastery[id] = mastered;
-    return { type: 'mastery', kind: 'vocab', id, mastered };
+    if (mastered) {
+      delete mistakes[id];
+    } else if (mistake) {
+      mistakes[id] = true;
+    }
+    return { type: 'mastery', kind: 'vocab', id, mastered, mistake };
   }
+
   return {
     reset,
     read(week: CourseWeek, progress: CourseProgressData) {
@@ -60,6 +72,7 @@ function createVocabDrill() {
       weekId = week.id;
       all = week.vocab;
       mastery = { ...progress.masteredVocabIds };
+      mistakes = { ...(progress.mistakeVocabIds || {}) };
       const filtered = items();
       index = wrap(index, filtered.length);
       return {
@@ -70,6 +83,8 @@ function createVocabDrill() {
         flipped,
         masteredCount: all.filter((item) => mastery[item.id]).length,
         remainingCount: all.filter((item) => !mastery[item.id]).length,
+        mistakeCount: all.filter((item) => mistakes[item.id]).length,
+        mistakes: { ...mistakes },
       };
     },
     selectFilter(next: string) {
@@ -89,9 +104,11 @@ function createVocabDrill() {
       const position = wrap(index, before.length);
       const current = before[position];
       if (!current) return null;
-      const command = mark(current.id, mastered);
+      const command = mark(current.id, mastered, !mastered);
       // Removing the current card shifts the next card into its position.
-      index = wrap(position + (filter === 'unmastered' && mastered ? 0 : 1), items().length);
+      const shouldShift =
+        (filter === 'unmastered' && mastered) || (filter === 'mistakes' && mastered);
+      index = wrap(position + (shouldShift ? 0 : 1), items().length);
       flipped = false;
       return command;
     },
@@ -99,12 +116,19 @@ function createVocabDrill() {
       if (!all.some((item) => item.id === id)) return null;
       return mark(id, !mastery[id]);
     },
+    toggleMistake(id: string): CourseProgressCommand | null {
+      if (!all.some((item) => item.id === id)) return null;
+      const next = !mistakes[id];
+      if (next) mistakes[id] = true;
+      else delete mistakes[id];
+      return { type: 'mistake', kind: 'vocab', id, mistake: next };
+    },
   };
 }
 
 function createDojoDrill() {
   let weekId = '';
-  let weekFilter: 'current' | 'all' = 'current';
+  let weekFilter: 'current' | 'all' | 'mistakes' = 'current';
   let pool: VerbConjugationItem[] = [];
   let index = 0;
   let selectedAnswer: string | null = null;
@@ -132,14 +156,27 @@ function createDojoDrill() {
     selectedAnswer = answer;
     isCorrect =
       clean === normalizeJp(current.teFormKana) || clean === normalizeJp(current.teFormKanji);
-    return { type: 'mastery', kind: 'dojo', id: current.id, mastered: isCorrect };
+    return {
+      type: 'mastery',
+      kind: 'dojo',
+      id: current.id,
+      mastered: isCorrect,
+      mistake: !isCorrect,
+    };
   }
   return {
     reset,
     read(week: CourseWeek, weeks: CourseWeek[], progress: CourseProgressData) {
       if (weekId !== week.id) reset();
       weekId = week.id;
-      pool = weekFilter === 'all' ? weeks.flatMap((w) => w.conjugations) : week.conjugations;
+      const allVerbs = weeks.flatMap((w) => w.conjugations);
+      const mistakeVerbs = allVerbs.filter((c) => progress.mistakeDojoIds?.[c.id]);
+      pool =
+        weekFilter === 'all'
+          ? allVerbs
+          : weekFilter === 'mistakes'
+            ? mistakeVerbs
+            : week.conjugations;
       index = wrap(index, pool.length);
       const current = pool[index];
       return {
@@ -153,9 +190,10 @@ function createDojoDrill() {
         revealed: selectedAnswer !== null,
         choices: current ? buildDojoChoices(current) : [],
         masteredCount: pool.filter((item) => progress.masteredDojoIds[item.id]).length,
+        mistakeCount: mistakeVerbs.length,
       };
     },
-    selectFilter(next: 'current' | 'all') {
+    selectFilter(next: 'current' | 'all' | 'mistakes') {
       weekFilter = next;
       reset();
     },

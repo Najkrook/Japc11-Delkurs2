@@ -5,8 +5,10 @@ import {
   setCourseActiveWeek,
   setCourseSubView,
   setDojoMastered,
+  toggleDojoMistake,
   toggleKanjiMastered,
   toggleVocabMastered,
+  toggleVocabMistake,
 } from './course-state.ts';
 
 export interface CourseProgressPersistence {
@@ -20,7 +22,14 @@ export interface CourseProgressPersistence {
 export type CourseProgressCommand =
   | { type: 'week'; weekId: string }
   | { type: 'subview'; subView: CourseSubView }
-  | { type: 'mastery'; kind: 'vocab' | 'kanji' | 'dojo'; id: string; mastered: boolean }
+  | {
+      type: 'mastery';
+      kind: 'vocab' | 'kanji' | 'dojo';
+      id: string;
+      mastered: boolean;
+      mistake?: boolean;
+    }
+  | { type: 'mistake'; kind: 'vocab' | 'dojo'; id: string; mistake: boolean }
   | { type: 'quiz'; weekId: string; score: number; total: number };
 
 export type UpdateCourseProgress = (command: CourseProgressCommand) => void;
@@ -34,9 +43,26 @@ function apply(data: CourseProgressData, command: CourseProgressCommand, now: nu
       setCourseSubView(data, command.subView);
       break;
     case 'mastery':
-      if (command.kind === 'vocab') toggleVocabMastered(data, command.id, command.mastered);
-      else if (command.kind === 'kanji') toggleKanjiMastered(data, command.id, command.mastered);
-      else setDojoMastered(data, command.id, command.mastered);
+      if (command.kind === 'vocab') {
+        toggleVocabMastered(data, command.id, command.mastered);
+        if (command.mistake !== undefined) {
+          toggleVocabMistake(data, command.id, command.mistake);
+        }
+      } else if (command.kind === 'kanji') {
+        toggleKanjiMastered(data, command.id, command.mastered);
+      } else {
+        setDojoMastered(data, command.id, command.mastered);
+        if (command.mistake !== undefined) {
+          toggleDojoMistake(data, command.id, command.mistake);
+        }
+      }
+      break;
+    case 'mistake':
+      if (command.kind === 'vocab') {
+        toggleVocabMistake(data, command.id, command.mistake);
+      } else {
+        toggleDojoMistake(data, command.id, command.mistake);
+      }
       break;
     case 'quiz':
       recordWeekQuizScore(data, command.weekId, command.score, command.total, now);

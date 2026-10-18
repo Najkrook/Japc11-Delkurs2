@@ -85,6 +85,7 @@ export function renderVocabModule(
         ${[
           ['all', `Alla (${week.vocab.length})`],
           ['unmastered', `Kvar att lära (${state.remainingCount})`],
+          ['mistakes', `⚠️ Svaga ord (${state.mistakeCount})`],
           ['verb-u', 'U-verb'],
           ['verb-ru', 'Ru-verb'],
           ['adjective', 'Adjektiv'],
@@ -94,7 +95,7 @@ export function renderVocabModule(
           ([key, label]) => html`
             <button
               type="button"
-              class="course-filter-chip ${state.filter === key ? 'active' : ''}"
+              class="course-filter-chip ${key === 'mistakes' ? 'chip-mistakes' : ''} ${state.filter === key ? 'active' : ''}"
               @click=${() => {
                 vocabDrill.selectFilter(key);
                 host.render();
@@ -111,12 +112,29 @@ export function renderVocabModule(
           ? html`<div class="course-empty-card" role="status">
               <p>
                 ${
-                  state.filter === 'unmastered' && week.vocab.length
-                    ? 'Alla veckans glosor är bemästrade.'
-                    : 'Inga glosor matchar det valda filtret.'
+                  state.filter === 'mistakes'
+                    ? 'Inga svaga ord sparade i denna vecka än! 🎉 När du klickar "Behöver öva mer" på ett kort eller missar ett verb i Dojon hamnar det automatiskt här.'
+                    : state.filter === 'unmastered' && week.vocab.length
+                      ? 'Alla veckans glosor är bemästrade.'
+                      : 'Inga glosor matchar det valda filtret.'
                 }
               </p>
-              <p>Välj ett annat filter för att fortsätta.</p>
+              <p>
+                ${
+                  state.filter === 'mistakes'
+                    ? html`<button
+                        type="button"
+                        class="course-btn-primary"
+                        @click=${() => {
+                          vocabDrill.selectFilter('all');
+                          host.render();
+                        }}
+                      >
+                        Visa alla glosor (${week.vocab.length})
+                      </button>`
+                    : 'Välj ett annat filter för att fortsätta.'
+                }
+              </p>
             </div>`
           : vocabMode === 'cards'
             ? html`
@@ -171,6 +189,11 @@ export function renderVocabModule(
                         >Kort ${safeIdx + 1} av ${items.length}</span
                       >
                       <span class="course-cat-tag">${CATEGORY_LABELS[current.category]}</span>
+                      ${
+                        progress.mistakeVocabIds?.[current.id]
+                          ? html`<span class="course-weak-tag">⚠️ Svagt ord</span>`
+                          : ''
+                      }
                       ${
                         progress.masteredVocabIds[current.id]
                           ? html`<span class="dojo-mastered-tag">✓ Kan detta</span>`
@@ -268,8 +291,11 @@ export function renderVocabModule(
                 <div class="course-vocab-list">
                   ${items.map((item) => {
                     const isDone = Boolean(progress.masteredVocabIds[item.id]);
+                    const isWeak = Boolean(progress.mistakeVocabIds?.[item.id]);
                     return html`
-                      <article class="course-vocab-row ${isDone ? 'mastered' : ''}">
+                      <article
+                        class="course-vocab-row ${isDone ? 'mastered' : ''} ${isWeak ? 'weak' : ''}"
+                      >
                         <div class="course-vocab-row-jp" lang="ja">
                           <strong>${item.kanji || item.kana}</strong>
                           ${
@@ -292,22 +318,43 @@ export function renderVocabModule(
                           }
                         </div>
                         <div class="course-vocab-row-sv">
-                          <span class="course-cat-tag">${CATEGORY_LABELS[item.category]}</span>
+                          <div class="row-tags-line">
+                            <span class="course-cat-tag">${CATEGORY_LABELS[item.category]}</span>
+                            ${isWeak ? html`<span class="course-weak-tag">⚠️ Svagt ord</span>` : ''}
+                          </div>
                           <strong>${item.sv}</strong>
                           ${item.noteSv ? html`<small class="note">💡 ${item.noteSv}</small>` : ''}
                           <small lang="ja">${item.exampleJp} — ${item.exampleSv}</small>
                         </div>
-                        <button
-                          type="button"
-                          class="course-mastery-toggle ${isDone ? 'active' : ''}"
-                          @click=${() => {
-                            const command = vocabDrill.toggleMastered(item.id);
-                            if (command) updateProgress(command);
-                            host.render();
-                          }}
-                        >
-                          ${isDone ? '✓ Kan' : 'Markera'}
-                        </button>
+                        <div class="course-vocab-row-actions">
+                          <button
+                            type="button"
+                            class="course-weak-toggle ${isWeak ? 'active' : ''}"
+                            title=${
+                              isWeak
+                                ? 'Ta bort från svaga ord'
+                                : 'Markera som svagt ord i misstagsbanken'
+                            }
+                            @click=${() => {
+                              const command = vocabDrill.toggleMistake(item.id);
+                              if (command) updateProgress(command);
+                              host.render();
+                            }}
+                          >
+                            ${isWeak ? '⚠️ Svagt' : '☆ Svagt'}
+                          </button>
+                          <button
+                            type="button"
+                            class="course-mastery-toggle ${isDone ? 'active' : ''}"
+                            @click=${() => {
+                              const command = vocabDrill.toggleMastered(item.id);
+                              if (command) updateProgress(command);
+                              host.render();
+                            }}
+                          >
+                            ${isDone ? '✓ Kan' : 'Markera'}
+                          </button>
+                        </div>
                       </article>
                     `;
                   })}

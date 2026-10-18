@@ -12,6 +12,8 @@ export function createFreshCourseProgress(): CourseProgressData {
     masteredKanjiIds: {},
     masteredDojoIds: {},
     quizBestResults: {},
+    mistakeVocabIds: {},
+    mistakeDojoIds: {},
     updatedAt: 0,
   };
 }
@@ -34,6 +36,8 @@ export function readCourseProgress(
       masteredKanjiIds: { ...(parsed.masteredKanjiIds || {}) },
       masteredDojoIds: { ...(parsed.masteredDojoIds || {}) },
       quizBestResults: { ...(parsed.quizBestResults || {}) },
+      mistakeVocabIds: { ...(parsed.mistakeVocabIds || {}) },
+      mistakeDojoIds: { ...(parsed.mistakeDojoIds || {}) },
     };
   } catch {
     return createFreshCourseProgress();
@@ -64,6 +68,8 @@ export interface WeekProgressSummary {
   quizScore: number | null;
   quizTotal: number;
   overallPercent: number;
+  mistakeVocabCount: number;
+  mistakeDojoCount: number;
 }
 
 export function getWeekProgressSummary(
@@ -72,12 +78,14 @@ export function getWeekProgressSummary(
 ): WeekProgressSummary {
   const vocabTotal = week.vocab.length;
   const vocabDone = week.vocab.filter((v) => progress.masteredVocabIds[v.id]).length;
+  const mistakeVocabCount = week.vocab.filter((v) => progress.mistakeVocabIds?.[v.id]).length;
 
   const kanjiTotal = week.kanji.length;
   const kanjiDone = week.kanji.filter((k) => progress.masteredKanjiIds[k.id]).length;
 
   const dojoTotal = week.conjugations.length;
   const dojoDone = week.conjugations.filter((c) => progress.masteredDojoIds[c.id]).length;
+  const mistakeDojoCount = week.conjugations.filter((c) => progress.mistakeDojoIds?.[c.id]).length;
 
   const quizBest = progress.quizBestResults[week.id];
   const quizTotal = week.quiz.length;
@@ -100,6 +108,8 @@ export function getWeekProgressSummary(
     quizScore,
     quizTotal,
     overallPercent,
+    mistakeVocabCount,
+    mistakeDojoCount,
   };
 }
 
@@ -125,11 +135,29 @@ export function toggleVocabMastered(
   vocabId: string,
   forceValue?: boolean,
 ): boolean {
+  if (!progress.masteredVocabIds) progress.masteredVocabIds = {};
+  if (!progress.mistakeVocabIds) progress.mistakeVocabIds = {};
   const next = forceValue !== undefined ? forceValue : !progress.masteredVocabIds[vocabId];
   if (next) {
     progress.masteredVocabIds[vocabId] = true;
+    delete progress.mistakeVocabIds[vocabId];
   } else {
     delete progress.masteredVocabIds[vocabId];
+  }
+  return next;
+}
+
+export function toggleVocabMistake(
+  progress: CourseProgressData,
+  vocabId: string,
+  forceValue?: boolean,
+): boolean {
+  if (!progress.mistakeVocabIds) progress.mistakeVocabIds = {};
+  const next = forceValue !== undefined ? forceValue : !progress.mistakeVocabIds[vocabId];
+  if (next) {
+    progress.mistakeVocabIds[vocabId] = true;
+  } else {
+    delete progress.mistakeVocabIds[vocabId];
   }
   return next;
 }
@@ -139,6 +167,7 @@ export function toggleKanjiMastered(
   kanjiId: string,
   forceValue?: boolean,
 ): boolean {
+  if (!progress.masteredKanjiIds) progress.masteredKanjiIds = {};
   const next = forceValue !== undefined ? forceValue : !progress.masteredKanjiIds[kanjiId];
   if (next) {
     progress.masteredKanjiIds[kanjiId] = true;
@@ -153,11 +182,29 @@ export function setDojoMastered(
   conjId: string,
   mastered: boolean,
 ): void {
+  if (!progress.masteredDojoIds) progress.masteredDojoIds = {};
+  if (!progress.mistakeDojoIds) progress.mistakeDojoIds = {};
   if (mastered) {
     progress.masteredDojoIds[conjId] = true;
+    delete progress.mistakeDojoIds[conjId];
   } else {
     delete progress.masteredDojoIds[conjId];
   }
+}
+
+export function toggleDojoMistake(
+  progress: CourseProgressData,
+  conjId: string,
+  forceValue?: boolean,
+): boolean {
+  if (!progress.mistakeDojoIds) progress.mistakeDojoIds = {};
+  const next = forceValue !== undefined ? forceValue : !progress.mistakeDojoIds[conjId];
+  if (next) {
+    progress.mistakeDojoIds[conjId] = true;
+  } else {
+    delete progress.mistakeDojoIds[conjId];
+  }
+  return next;
 }
 
 export function recordWeekQuizScore(
@@ -190,5 +237,7 @@ export function selectLatestCourseProgress(
     masteredKanjiIds: selected.masteredKanjiIds || {},
     masteredDojoIds: selected.masteredDojoIds || {},
     quizBestResults: selected.quizBestResults || {},
+    mistakeVocabIds: selected.mistakeVocabIds || {},
+    mistakeDojoIds: selected.mistakeDojoIds || {},
   });
 }

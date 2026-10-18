@@ -122,6 +122,8 @@ export interface CourseProgressData {
   masteredKanjiIds: Record<string, boolean>;
   masteredDojoIds: Record<string, boolean>;
   quizBestResults: Record<string, WeekQuizResult>;
+  mistakeVocabIds?: Record<string, boolean>;
+  mistakeDojoIds?: Record<string, boolean>;
   updatedAt: number;
 }
 

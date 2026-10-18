@@ -259,3 +259,61 @@ test('Course Progress observes completed drill transitions before synchronous re
   assert.equal(dojo().selectedAnswer, null);
   assert.equal(quiz().chosen, null);
 });
+
+test('Misstagsbank: weak vocab words track errors, filter smoothly and clear upon mastery', () => {
+  const week = { ...courseWeeks[0], vocab: courseWeeks[0].vocab.slice(0, 3) };
+  const { drills, progress, vocab, update } = setup(week);
+
+  // Initially no weak words
+  assert.equal(vocab().mistakeCount, 0);
+
+  // Student reviews card 0 and needs more practice
+  update(drills.vocab.markAndAdvance(false));
+  assert.equal(progress.snapshot().mistakeVocabIds?.[week.vocab[0].id], true);
+  assert.equal(vocab().mistakeCount, 1);
+
+  // Toggle card 2 manually as weak
+  update(drills.vocab.toggleMistake(week.vocab[2].id));
+  assert.equal(progress.snapshot().mistakeVocabIds?.[week.vocab[2].id], true);
+  assert.equal(vocab().mistakeCount, 2);
+
+  // Switch filter to 'mistakes'
+  drills.vocab.selectFilter('mistakes');
+  assert.equal(vocab().items.length, 2);
+  assert.equal(vocab().current.id, week.vocab[0].id);
+
+  // Master the first weak card
+  update(drills.vocab.markAndAdvance(true));
+  assert.equal(progress.snapshot().masteredVocabIds[week.vocab[0].id], true);
+  assert.equal(progress.snapshot().mistakeVocabIds?.[week.vocab[0].id], undefined);
+  assert.equal(vocab().items.length, 1);
+  assert.equal(vocab().current.id, week.vocab[2].id);
+
+  // Untoggle card 2
+  update(drills.vocab.toggleMistake(week.vocab[2].id));
+  assert.equal(progress.snapshot().mistakeVocabIds?.[week.vocab[2].id], undefined);
+  assert.equal(vocab().items.length, 0);
+  assert.equal(vocab().current, undefined);
+});
+
+test('Misstagsbank: Dojo tracks failed verbs, filters to weak pool and clears on correct answer', () => {
+  const week = courseWeeks[0];
+  const { drills, progress, dojo, update } = setup(week);
+  const targetVerb = dojo().current;
+
+  // Submit a wrong answer
+  update(drills.dojo.submit('fel-svar'));
+  assert.equal(dojo().isCorrect, false);
+  assert.equal(progress.snapshot().mistakeDojoIds?.[targetVerb.id], true);
+
+  // Switch filter to 'mistakes'
+  drills.dojo.selectFilter('mistakes');
+  assert.equal(dojo().total, 1);
+  assert.equal(dojo().current.id, targetVerb.id);
+
+  // Submit correct answer
+  update(drills.dojo.submit(targetVerb.teFormKana));
+  assert.equal(dojo().isCorrect, true);
+  assert.equal(progress.snapshot().masteredDojoIds[targetVerb.id], true);
+  assert.equal(progress.snapshot().mistakeDojoIds?.[targetVerb.id], undefined);
+});

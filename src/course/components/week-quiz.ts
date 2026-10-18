@@ -62,7 +62,7 @@ export function renderWeekQuizModule(
                 <div class="course-quiz-review-item ${ok ? 'ok' : 'err'}">
                   <div class="course-quiz-review-head">
                     <span>#${i + 1} · ${QUIZ_CAT_LABELS[q.category]}</span>
-                    <strong>${ok ? '✓ Rätt' : '✗ Fel'}</strong>
+                    <strong>${ok ? '✓ Rätt' : '✗ Fel — Sparat i misstagsbanken'}</strong>
                   </div>
                   <p class="prompt">${q.prompt}</p>
                   <p class="ans">
@@ -104,7 +104,24 @@ export function renderWeekQuizModule(
 
   const advance = () => {
     const command = quizDrill.advance();
-    if (command) updateProgress(command);
+    if (command) {
+      updateProgress(command);
+      questions.forEach((q) => {
+        const userAns = state.answers[q.id];
+        if (userAns !== undefined && userAns !== q.answer) {
+          const matchVocab = week.vocab.find(
+            (v) =>
+              q.prompt.includes(v.kana) ||
+              (v.kanji && q.prompt.includes(v.kanji)) ||
+              q.answer.includes(v.kana) ||
+              (v.kanji && q.answer.includes(v.kanji)),
+          );
+          if (matchVocab) {
+            updateProgress({ type: 'mistake', kind: 'vocab', id: matchVocab.id, mistake: true });
+          }
+        }
+      });
+    }
     host.render();
   };
 

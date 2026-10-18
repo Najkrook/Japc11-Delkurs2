@@ -741,6 +741,63 @@ function renderWeekBentoHub(
       </div>
     </section>
 
+    <!-- Misstagsbank Callout Banner if there are weak words or verbs -->
+    ${
+      summary.mistakeVocabCount > 0 || summary.mistakeDojoCount > 0
+        ? html`
+            <section
+              class="course-misstagsbank-banner"
+              aria-label="Din personliga misstagsbank"
+            >
+              <div class="misstagsbank-left">
+                <span class="misstagsbank-icon">⚠️</span>
+                <div>
+                  <strong>
+                    Misstagsbank: ${summary.mistakeVocabCount} svaga glosor
+                    ${summary.mistakeDojoCount ? ` · ${summary.mistakeDojoCount} svaga verb` : ''}
+                    att repetera
+                  </strong>
+                  <p>
+                    Glosor och verb du nyligen markerat som svåra eller haft fel på under
+                    övningarna. Nöt dem för att säkra momenten inför tentan!
+                  </p>
+                </div>
+              </div>
+              <div class="misstagsbank-actions">
+                ${summary.mistakeVocabCount > 0
+                  ? html`
+                      <button
+                        type="button"
+                        class="course-btn-mistakes"
+                        @click=${() => {
+                          studyDrills.vocab.selectFilter('mistakes');
+                          selectCourseSubView('vocab', host);
+                        }}
+                      >
+                        Repetera svaga ord (${summary.mistakeVocabCount}) →
+                      </button>
+                    `
+                  : ''}
+                ${summary.mistakeDojoCount > 0
+                  ? html`
+                      <button
+                        type="button"
+                        class="course-btn-mistakes secondary"
+                        @click=${() => {
+                          studyDrills.dojo.selectFilter('mistakes');
+                          selectCourseSubView('dojo', host);
+                        }}
+                      >
+                        Nöt svaga verb (${summary.mistakeDojoCount}) →
+                      </button>
+                    `
+                  : ''}
+              </div>
+            </section>
+          `
+        : ''
+    }
+
     <!-- ================= 3-COLUMN BENTO GRID: Veckans glosor, Kanji-kort, Veckotest ================= -->
     <section class="course-three-col-grid" aria-label="Veckans tre studiemoduler">
       <!-- COLUMN 1: VECKANS GLOSOR -->
@@ -751,9 +808,16 @@ function renderWeekBentoHub(
               <span class="col-icon">🎴</span>
               <h2>Veckans glosor</h2>
             </div>
-            <span class="bento-stat-pill">
-              ${summary.vocabDone} / ${summary.vocabTotal} klara
-            </span>
+            <div class="bento-header-badges">
+              ${summary.mistakeVocabCount > 0
+                ? html`<span class="bento-stat-pill terracotta-pill"
+                    >⚠️ ${summary.mistakeVocabCount} svaga</span
+                  >`
+                : ''}
+              <span class="bento-stat-pill">
+                ${summary.vocabDone} / ${summary.vocabTotal} klara
+              </span>
+            </div>
           </div>
 
           ${
@@ -806,13 +870,27 @@ function renderWeekBentoHub(
           </div>
         </div>
 
-        <div class="bento-card-actions">
+        <div class="bento-card-actions ${summary.mistakeVocabCount > 0 ? 'split' : ''}">
+          ${summary.mistakeVocabCount > 0
+            ? html`
+                <button
+                  type="button"
+                  class="course-btn-mistakes-mini"
+                  @click=${() => {
+                    studyDrills.vocab.selectFilter('mistakes');
+                    selectCourseSubView('vocab', host);
+                  }}
+                >
+                  ⚠️ Nöt ${summary.mistakeVocabCount} svaga ord
+                </button>
+              `
+            : ''}
           <button
             type="button"
-            class="course-btn-primary full-width"
+            class="course-btn-primary ${summary.mistakeVocabCount > 0 ? '' : 'full-width'}"
             @click=${() => selectCourseSubView('vocab', host)}
           >
-            Öppna alla ${week.vocab.length} gloskort →
+            Öppna alla gloskort →
           </button>
         </div>
       </article>
