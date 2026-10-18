@@ -7,7 +7,7 @@ import type {
   VerbConjugationItem,
 } from '../types.ts';
 import { courseWeeks } from '../data/index.ts';
-import { setDojoMastered } from '../course-state.ts';
+import type { UpdateCourseProgress } from '../course-progress.ts';
 
 interface DojoUiState {
   weekFilter: string; // 'current' | 'all'
@@ -71,7 +71,7 @@ export function renderTeFormDojo(
   week: CourseWeek,
   progress: CourseProgressData,
   host: CourseHostContext,
-  onPersist: () => void,
+  updateProgress: UpdateCourseProgress,
   onBackToHub: () => void,
 ): CourseTemplate {
   const pool: VerbConjugationItem[] =
@@ -97,8 +97,7 @@ export function renderTeFormDojo(
     dojoState.selectedAnswer = val;
     dojoState.revealed = true;
     dojoState.isCorrect = ok;
-    setDojoMastered(progress, current.id, ok);
-    onPersist();
+    updateProgress({ type: 'mastery', kind: 'dojo', id: current.id, mastered: ok });
     host.render();
   };
 

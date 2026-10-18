@@ -5,7 +5,7 @@ import type {
   CourseTemplate,
   CourseWeek,
 } from '../types.ts';
-import { toggleKanjiMastered, toggleVocabMastered } from '../course-state.ts';
+import type { UpdateCourseProgress } from '../course-progress.ts';
 import { bindSwipeableFlashcard } from '../apple-physics.ts';
 
 interface DeckUiState {
@@ -46,7 +46,7 @@ export function renderVocabModule(
   week: CourseWeek,
   progress: CourseProgressData,
   host: CourseHostContext,
-  onPersist: () => void,
+  updateProgress: UpdateCourseProgress,
   onBackToHub: () => void,
 ): CourseTemplate {
   const filtered =
@@ -65,8 +65,7 @@ export function renderVocabModule(
 
   const markAndAdvance = (mastered: boolean) => {
     if (!current) return;
-    toggleVocabMastered(progress, current.id, mastered);
-    onPersist();
+    updateProgress({ type: 'mastery', kind: 'vocab', id: current.id, mastered });
     deckState.vocabFlipped = false;
     deckState.vocabIndex =
       mastered && deckState.vocabFilter === 'unmastered'
@@ -350,8 +349,12 @@ export function renderVocabModule(
                           type="button"
                           class="course-mastery-toggle ${isDone ? 'active' : ''}"
                           @click=${() => {
-                            toggleVocabMastered(progress, item.id);
-                            onPersist();
+                            updateProgress({
+                              type: 'mastery',
+                              kind: 'vocab',
+                              id: item.id,
+                              mastered: !progress.masteredVocabIds[item.id],
+                            });
                             host.render();
                           }}
                         >
@@ -371,7 +374,7 @@ export function renderKanjiModule(
   week: CourseWeek,
   progress: CourseProgressData,
   host: CourseHostContext,
-  onPersist: () => void,
+  updateProgress: UpdateCourseProgress,
   onBackToHub: () => void,
 ): CourseTemplate {
   const masteredCount = week.kanji.filter((k) => progress.masteredKanjiIds[k.id]).length;
@@ -425,8 +428,12 @@ export function renderKanjiModule(
                   type="button"
                   class="course-mastery-toggle ${isDone ? 'active' : ''}"
                   @click=${() => {
-                    toggleKanjiMastered(progress, k.id);
-                    onPersist();
+                    updateProgress({
+                      type: 'mastery',
+                      kind: 'kanji',
+                      id: k.id,
+                      mastered: !progress.masteredKanjiIds[k.id],
+                    });
                     host.render();
                   }}
                 >

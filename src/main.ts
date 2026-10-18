@@ -3,7 +3,7 @@ import { courseArenaManager } from './course/multiplayer/arena-service.ts';
 import { render } from 'lit-html';
 import { login, logout, watchUser } from './cloud.ts';
 import { speak as speakJp, stopSpeech, ttsSupported } from './speech.ts';
-import { renderCourseShell, syncCourseProgressForUser } from './course/course-view.ts';
+import { renderCourseShell, courseProgress } from './course/course-view.ts';
 import type { CourseHostContext } from './course/types.ts';
 
 const THEME_STORAGE_KEY = 'japc11-dk2-theme';
@@ -91,12 +91,14 @@ export function draw(): void {
   render(renderCourseShell(host), root);
 }
 
+courseProgress.subscribe(draw);
+
 watchUser((u) => {
   stopSpeech();
   currentUser = u ? { uid: u.uid, displayName: u.displayName, email: u.email } : null;
   courseArenaManager.bindHost(currentUser, () => draw());
   statusText = u ? `Inloggad som ${u.displayName || u.email || 'student'}` : 'Lokalt sparad';
-  syncCourseProgressForUser(u?.uid || null, () => draw());
+  void courseProgress.useUser(u?.uid || null);
   draw();
 });
 

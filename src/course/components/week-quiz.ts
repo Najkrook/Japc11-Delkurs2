@@ -5,7 +5,7 @@ import type {
   CourseTemplate,
   CourseWeek,
 } from '../types.ts';
-import { recordWeekQuizScore } from '../course-state.ts';
+import type { UpdateCourseProgress } from '../course-progress.ts';
 
 interface QuizUiState {
   weekId: string;
@@ -37,9 +37,9 @@ const QUIZ_CAT_LABELS: Record<string, string> = {
 
 export function renderWeekQuizModule(
   week: CourseWeek,
-  progress: CourseProgressData,
+  _progress: CourseProgressData,
   host: CourseHostContext,
-  onPersist: () => void,
+  updateProgress: UpdateCourseProgress,
   onBackToHub: () => void,
 ): CourseTemplate {
   if (quizState.weekId !== week.id) {
@@ -135,8 +135,7 @@ export function renderWeekQuizModule(
     } else {
       quizState.finished = true;
       const finalScore = questions.filter((q) => quizState.answers[q.id] === q.answer).length;
-      recordWeekQuizScore(progress, week.id, finalScore, total);
-      onPersist();
+      updateProgress({ type: 'quiz', weekId: week.id, score: finalScore, total });
     }
     host.render();
   };

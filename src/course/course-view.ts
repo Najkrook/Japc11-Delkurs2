@@ -1,19 +1,8 @@
 import { html } from 'lit-html';
-import type {
-  CourseHostContext,
-  CourseProgressData,
-  CourseSubView,
-  CourseTemplate,
-} from './types.ts';
+import type { CourseHostContext, CourseSubView, CourseTemplate } from './types.ts';
 import { courseWeeks, getCourseWeekById } from './data/index.ts';
-import {
-  getWeekProgressSummary,
-  selectLatestCourseProgress,
-  readCourseProgress,
-  saveCourseProgress,
-  setCourseActiveWeek,
-  setCourseSubView,
-} from './course-state.ts';
+import { getWeekProgressSummary } from './course-state.ts';
+import { createCourseProgress } from './course-progress.ts';
 import { renderTeFormDojo, resetDojoUiState } from './components/te-form-dojo.ts';
 import {
   renderGrammarModule,
@@ -23,84 +12,29 @@ import {
 } from './components/flashcard-deck.ts';
 import { renderWeekQuizModule, resetWeekQuizState } from './components/week-quiz.ts';
 import { renderCourseArenaModule } from './components/course-arena.ts';
-import { loadCloudCourseProgress, saveCloudCourseProgress } from '../cloud.ts';
+import { courseProgressPersistence } from '../cloud.ts';
 
-let activeUid: string | null = null;
-let courseProgress: CourseProgressData = readCourseProgress(
-  typeof localStorage !== 'undefined' ? localStorage : undefined,
-  null,
-);
-
-export function syncCourseProgressForUser(
-  uid?: string | null,
-  onCloudLoaded?: () => void,
-): CourseProgressData {
-  const normalizedUid = uid || null;
-  if (activeUid !== normalizedUid) {
-    activeUid = normalizedUid;
-    resetDojoUiState();
-    resetDeckUiState();
-    resetWeekQuizState();
-    courseProgress = readCourseProgress(
-      typeof localStorage !== 'undefined' ? localStorage : undefined,
-      activeUid,
-    );
-    if (activeUid) {
-      const uidToLoad = activeUid;
-      void loadCloudCourseProgress(uidToLoad).then((cloudData) => {
-        if (!cloudData || activeUid !== uidToLoad) return;
-        if ((cloudData.updatedAt || 0) >= (courseProgress.updatedAt || 0)) {
-          courseProgress = selectLatestCourseProgress(courseProgress, cloudData);
-          saveCourseProgress(
-            typeof localStorage !== 'undefined' ? localStorage : undefined,
-            activeUid,
-            courseProgress,
-          );
-          onCloudLoaded?.();
-        } else {
-          void saveCloudCourseProgress(uidToLoad, courseProgress);
-        }
-      });
-    }
-  }
-  return courseProgress;
-}
-
-export function getCourseProgressSnapshot(): CourseProgressData {
-  return courseProgress;
-}
-
-function persistCourse(): void {
-  saveCourseProgress(
-    typeof localStorage !== 'undefined' ? localStorage : undefined,
-    activeUid,
-    courseProgress,
-  );
-  if (activeUid) {
-    void saveCloudCourseProgress(activeUid, courseProgress);
-  }
-}
-
-export function selectCourseWeek(weekId: string, host?: CourseHostContext): void {
-  setCourseActiveWeek(courseProgress, weekId);
+export const courseProgress = createCourseProgress(courseProgressPersistence, (weekId) => {
   resetDojoUiState();
   resetDeckUiState();
   resetWeekQuizState(weekId);
-  persistCourse();
+});
+
+export function selectCourseWeek(weekId: string, host?: CourseHostContext): void {
+  courseProgress.update({ type: 'week', weekId });
   host?.render();
 }
 
 export function selectCourseSubView(subView: CourseSubView, host?: CourseHostContext): void {
-  setCourseSubView(courseProgress, subView);
-  persistCourse();
+  courseProgress.update({ type: 'subview', subView });
   host?.render();
 }
 
 export function renderCourseShell(host: CourseHostContext): CourseTemplate {
-  syncCourseProgressForUser(host.user?.uid);
-  const week = getCourseWeekById(courseProgress.activeWeekId);
-  const summary = getWeekProgressSummary(courseProgress, week);
-  const subView = courseProgress.activeSubView;
+  const progress = courseProgress.snapshot();
+  const week = getCourseWeekById(progress.activeWeekId);
+  const summary = getWeekProgressSummary(progress, week);
+  const subView = progress.activeSubView;
 
   const goHub = () => selectCourseSubView('hub', host);
 
@@ -243,7 +177,7 @@ export function renderCourseShell(host: CourseHostContext): CourseTemplate {
             <!-- Vertical Navigation Timeline (Roadmap) -->
             <div class="course-week-ribbon" role="tablist" aria-label="Välj kursvecka">
               ${courseWeeks.map((w) => {
-                const wSum = getWeekProgressSummary(courseProgress, w);
+                const wSum = getWeekProgressSummary(progress, w);
                 const isActive = w.id === week.id;
                 const shortTitle = w.titleSv.includes(':')
                   ? w.titleSv.split(':')[1].trim()
@@ -328,11 +262,11 @@ export function renderCourseShell(host: CourseHostContext): CourseTemplate {
         <main class="course-main-container" id="main">
           ${
             subView === 'hub'
-              ? renderWeekBentoHub(week, summary, host, persistCourse)
+              ? renderWeekBentoHub(week, summary, host)
               : subView === 'vocab'
-                ? renderVocabModule(week, courseProgress, host, persistCourse, goHub)
+                ? renderVocabModule(week, progress, host, courseProgress.update, goHub)
                 : subView === 'dojo'
-                  ? renderTeFormDojo(week, courseProgress, host, persistCourse, goHub)
+                  ? renderTeFormDojo(week, progress, host, courseProgress.update, goHub)
                   : subView === 'grammar'
                     ? renderGrammarModule(
                         week,
@@ -341,10 +275,10 @@ export function renderCourseShell(host: CourseHostContext): CourseTemplate {
                         goHub,
                       )
                     : subView === 'kanji'
-                      ? renderKanjiModule(week, courseProgress, host, persistCourse, goHub)
+                      ? renderKanjiModule(week, progress, host, courseProgress.update, goHub)
                       : subView === 'arena'
                         ? renderCourseArenaModule(host, goHub)
-                        : renderWeekQuizModule(week, courseProgress, host, persistCourse, goHub)
+                        : renderWeekQuizModule(week, progress, host, courseProgress.update, goHub)
           }
         </main>
       </div>
@@ -634,7 +568,6 @@ function renderWeekBentoHub(
   week: ReturnType<typeof getCourseWeekById>,
   summary: ReturnType<typeof getWeekProgressSummary>,
   host: CourseHostContext,
-  _onPersist: () => void,
 ): CourseTemplate {
   const previewVocab = week.vocab[0];
   const nextQueue = week.vocab.slice(1, 4);

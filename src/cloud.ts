@@ -1,3 +1,9 @@
+import type { CourseProgressPersistence } from './course/course-progress.ts';
+import {
+  courseStorageKey,
+  createFreshCourseProgress,
+  readCourseProgress,
+} from './course/course-state.ts';
 import { initializeApp } from 'firebase/app';
 import {
   getAuth,
@@ -67,14 +73,30 @@ export async function saveCloudCourseProgress(
 }
 
 export async function loadCloudCourseProgress(uid: string): Promise<CourseProgressData | null> {
-  try {
-    const ref = doc(db, 'users', uid, 'progress', 'course');
-    const snap = await getDoc(ref);
-    if (!snap.exists()) return null;
-    const data = snap.data() as { payload?: string };
-    if (!data?.payload) return null;
-    return JSON.parse(data.payload) as CourseProgressData;
-  } catch {
-    return null;
-  }
+  const ref = doc(db, 'users', uid, 'progress', 'course');
+  const snap = await getDoc(ref);
+  if (!snap.exists()) return null;
+  const data = snap.data() as { payload?: string };
+  if (!data?.payload) throw new Error('Course progress payload is missing');
+  return JSON.parse(data.payload) as CourseProgressData;
 }
+
+// Production adapter: local snapshots retain their logical timestamp on hydration.
+export const courseProgressPersistence: CourseProgressPersistence = {
+  readLocal(uid) {
+    try {
+      return readCourseProgress(localStorage, uid);
+    } catch {
+      return createFreshCourseProgress();
+    }
+  },
+  writeLocal(uid, data) {
+    try {
+      localStorage.setItem(courseStorageKey(uid), JSON.stringify(data));
+    } catch {
+      /* Private browsing or storage quota; progress remains in memory. */
+    }
+  },
+  readCloud: loadCloudCourseProgress,
+  writeCloud: saveCloudCourseProgress,
+};
