@@ -137,9 +137,10 @@ export class ArenaMatch {
         room.roundAnswers[key]?.[uid]
       )
         return;
-      const now = this.runtime.now();
+      const now = Math.max(room.roundStartedAt, this.runtime.now());
       const duration = room.config.roundDurationSeconds * 1000;
-      const remaining = duration - Math.max(0, now - room.roundStartedAt);
+      const elapsed = now - room.roundStartedAt;
+      const remaining = duration - elapsed;
       if (remaining <= 0) return;
       const correct = choice === question.answer;
       const points = calculateArenaPoints(correct, remaining, duration, player.streak);

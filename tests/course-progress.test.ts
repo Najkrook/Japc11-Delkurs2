@@ -211,3 +211,44 @@ test('absent cloud profile receives local progress; snapshots cannot mutate owne
   assert.equal(progress.snapshot().masteredVocabIds.accidental, undefined);
   assert.equal(progress.snapshot().activeWeekId, 'week-1');
 });
+
+test('failed cloud read followed by offline edits merges cloud progress when cloud updatedAt is older than offline edit', async () => {
+  let currentTime = 500;
+  const storage = new MemoryPersistence();
+  const progress = createCourseProgress(
+    storage,
+    () => {},
+    () => currentTime,
+  );
+  const load = progress.useUser('alice');
+  await drain();
+  storage.reads[0].result.reject(new Error('offline'));
+  await load;
+  // Local edit happens at currentTime = 500
+  progress.update({ type: 'mastery', kind: 'vocab', id: 'local-offline', mastered: true });
+  await drain();
+  // Cloud snapshot has updatedAt = 200 (older than local-offline at 500, but newer than baseline at 0)
+  const retry = progress.useUser('alice');
+  await drain();
+  storage.reads[1].result.resolve({
+    ...createFreshCourseProgress(),
+    updatedAt: 200,
+    masteredVocabIds: { remote: true },
+  });
+  await retry;
+  await drain();
+  assert.deepEqual(progress.snapshot().masteredVocabIds, { remote: true, 'local-offline': true });
+  assert.equal(storage.writes.length, 1);
+});
+
+test('useUser(null) and switching users synchronously notifies subscribers', async () => {
+  const { progress } = setup();
+  let notifications = 0;
+  progress.subscribe(() => notifications++);
+  void progress.useUser('alice');
+  assert.equal(notifications, 1);
+  await progress.useUser(null);
+  assert.equal(notifications, 2);
+  void progress.useUser('bob');
+  assert.equal(notifications, 3);
+});

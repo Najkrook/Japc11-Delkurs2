@@ -340,7 +340,9 @@ export class CourseArenaManager {
       const room = await this.store.change(id, (current) => {
         if (generation !== this.generation) throw new Error('session-changed');
         if (!current) return null;
+        const serializedBefore = JSON.stringify(current);
         update(current);
+        if (JSON.stringify(current) === serializedBefore) return current;
         current.updatedAt = Math.max(this.runtime.now(), current.updatedAt + 1);
         return current;
       });

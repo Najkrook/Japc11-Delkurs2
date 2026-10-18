@@ -15,6 +15,25 @@ const preferences: { inputMode: 'choices' | 'write'; showRuleSheet: boolean } = 
   showRuleSheet: true,
 };
 
+if (
+  typeof window !== 'undefined' &&
+  !(window as unknown as { __dojoEnterAttached?: boolean }).__dojoEnterAttached
+) {
+  (window as unknown as { __dojoEnterAttached?: boolean }).__dojoEnterAttached = true;
+  window.addEventListener('keydown', (e: KeyboardEvent) => {
+    if (e.key === 'Enter') {
+      const feedback = document.querySelector('.dojo-feedback-box');
+      const nextBtn = document.querySelector(
+        '.dojo-footer-nav .course-btn-primary',
+      ) as HTMLButtonElement | null;
+      if (feedback && nextBtn) {
+        e.preventDefault();
+        nextBtn.click();
+      }
+    }
+  });
+}
+
 export function renderTeFormDojo(
   week: CourseWeek,
   progress: CourseProgressData,
@@ -36,11 +55,25 @@ export function renderTeFormDojo(
     const command = dojoDrill.submit(val);
     if (command) updateProgress(command);
     host.render();
+    if (typeof requestAnimationFrame !== 'undefined') {
+      requestAnimationFrame(() => {
+        const nextBtn = document.querySelector(
+          '.dojo-footer-nav .course-btn-primary',
+        ) as HTMLElement | null;
+        nextBtn?.focus();
+      });
+    }
   };
 
   const goNext = (delta: number) => {
     dojoDrill.move(delta);
     host.render();
+    if (typeof requestAnimationFrame !== 'undefined' && preferences.inputMode === 'write') {
+      requestAnimationFrame(() => {
+        const input = document.getElementById('dojo-input') as HTMLInputElement | null;
+        input?.focus();
+      });
+    }
   };
 
   const groupBadgeLabel =
@@ -158,7 +191,16 @@ export function renderTeFormDojo(
         </div>
       </details>
 
-      <div class="dojo-arena-card">
+      <div
+        class="dojo-arena-card"
+        tabindex="0"
+        @keydown=${(e: KeyboardEvent) => {
+          if (e.key === 'Enter' && state.revealed) {
+            e.preventDefault();
+            goNext(1);
+          }
+        }}
+      >
         <div class="dojo-arena-meta">
           <span class="dojo-step-counter">Verb ${safeIndex + 1} av ${total}</span>
           <span class="dojo-verb-group-badge ${current.group}">${groupBadgeLabel}</span>
@@ -235,6 +277,14 @@ export function renderTeFormDojo(
                   const command = dojoDrill.submitInput();
                   if (command) updateProgress(command);
                   host.render();
+                  if (typeof requestAnimationFrame !== 'undefined') {
+                    requestAnimationFrame(() => {
+                      const nextBtn = document.querySelector(
+                        '.dojo-footer-nav .course-btn-primary',
+                      ) as HTMLElement | null;
+                      nextBtn?.focus();
+                    });
+                  }
                 }}
               >
                 <label for="dojo-input" class="sr-only">Skriv て-form på japanska</label>
@@ -287,7 +337,12 @@ export function renderTeFormDojo(
           <button type="button" class="course-btn-secondary" @click=${() => goNext(-1)}>
             ← Föregående verb
           </button>
-          <button type="button" class="course-btn-primary" @click=${() => goNext(1)}>
+          <button
+            type="button"
+            class="course-btn-primary"
+            ?autofocus=${state.revealed}
+            @click=${() => goNext(1)}
+          >
             Nästa verb →
           </button>
         </div>

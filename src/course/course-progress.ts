@@ -52,6 +52,7 @@ export function createCourseProgress(
 ) {
   let uid: string | null = null;
   let data = persistence.readLocal(uid);
+  let sessionBaseline = structuredClone(data);
   let generation = 0;
   let hydrated = true;
   let loading: Promise<void> | undefined;
@@ -78,16 +79,18 @@ export function createCourseProgress(
       uid = nextUid;
       generation++;
       data = persistence.readLocal(uid);
+      sessionBaseline = structuredClone(data);
       pending = [];
       loading = undefined;
       hydrated = !uid;
       resetStudyViews();
+      notify();
     }
     if (hydrated || !uid) return Promise.resolve();
     if (loading) return loading;
     const userToLoad = uid;
     const startedGeneration = generation;
-    const baseline = structuredClone(data);
+    const baseline = structuredClone(sessionBaseline);
     loading = (async () => {
       try {
         await writes.get(userToLoad);
@@ -98,6 +101,7 @@ export function createCourseProgress(
         for (const edit of pending) apply(data, edit.command, edit.at);
         if (pending.length) data.updatedAt = Math.max(now(), data.updatedAt + 1, before.updatedAt);
         hydrated = true;
+        sessionBaseline = structuredClone(data);
         if (
           before.activeWeekId !== data.activeWeekId ||
           before.activeSubView !== data.activeSubView

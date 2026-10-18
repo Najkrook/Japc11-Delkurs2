@@ -183,3 +183,37 @@ test('identity changes invalidate old callbacks and subscriptions even after reb
   assert.deepEqual(await store.get(created!.roomId), before);
   assert.equal(clock.pendingCount, 0);
 });
+
+test('participant clock skew before roundStartedAt clamps answeredAt to roundStartedAt and maintains duration consistency', async (t) => {
+  const { host, member, clock, dispose } = setup();
+  t.after(dispose);
+  const created = await host.createRoom();
+  await member.joinRoomById(created!.roomId);
+  await host.startMatch();
+  await settle();
+  const q = host.getState().room!.questions[0];
+  const roundStartedAt = host.getState().room!.roundStartedAt;
+  const originalNow = clock.now;
+  clock.now = () => roundStartedAt - 50;
+  await member.submitAnswer(q.answer);
+  clock.now = originalNow;
+  await settle();
+  const answer = member.getState().room!.roundAnswers['0'].member;
+  assert.ok(answer);
+  assert.equal(answer.answeredAt, roundStartedAt);
+  assert.equal(answer.timeRemainingMs, 15000);
+});
+
+test('redundant answer or no-op transition does not bump room updatedAt', async (t) => {
+  const { host, clock, dispose } = setup();
+  t.after(dispose);
+  await host.createRoom();
+  await host.startMatch();
+  const q = host.getState().room!.questions[0];
+  await host.submitAnswer(q.answer);
+  const updatedAtAfterFirstAnswer = host.getState().room!.updatedAt;
+  await clock.advance(500);
+  // Duplicate answer
+  await host.submitAnswer(q.answer);
+  assert.equal(host.getState().room!.updatedAt, updatedAtAfterFirstAnswer);
+});

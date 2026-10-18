@@ -27,6 +27,9 @@ test('typed Dojo answers persist mastery and next verb clears input and feedback
   await page.locator('#dojo-input').fill('wrong');
   await page.getByRole('button', { name: 'Kontrollera て-form', exact: true }).click();
   await expect(page.locator('.dojo-feedback-box.err')).toBeVisible();
+  await page.keyboard.press('Enter');
+  await expect(page.locator('.dojo-feedback-box')).toHaveCount(0);
+  await expect(page.locator('#dojo-input')).toBeEnabled();
 });
 
 test('weekly quiz completes, persists its score and restarts with unanswered first question', async ({
