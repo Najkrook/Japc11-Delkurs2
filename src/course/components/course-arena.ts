@@ -27,7 +27,6 @@ export function renderCourseArenaModule(
   host: CourseHostContext,
   onBackToHub: () => void,
 ): CourseTemplate {
-  courseArenaManager.bindHost(host.user, () => host.render());
   const state = courseArenaManager.getState();
   const { room } = state;
   const error = state.errorMessage

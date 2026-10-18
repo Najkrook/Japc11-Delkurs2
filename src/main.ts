@@ -92,11 +92,12 @@ export function draw(): void {
 }
 
 courseProgress.subscribe(draw);
+courseArenaManager.bindHost(null, draw);
 
 watchUser((u) => {
   stopSpeech();
   currentUser = u ? { uid: u.uid, displayName: u.displayName, email: u.email } : null;
-  courseArenaManager.bindHost(currentUser, () => draw());
+  courseArenaManager.bindHost(currentUser, draw);
   statusText = u ? `Inloggad som ${u.displayName || u.email || 'student'}` : 'Lokalt sparad';
   void courseProgress.useUser(u?.uid || null);
   draw();

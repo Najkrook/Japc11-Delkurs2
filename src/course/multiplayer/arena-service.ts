@@ -1,4 +1,4 @@
-import { calculateArenaPoints, generateArenaQuestionDeck } from './arena-questions.ts';
+import { generateArenaQuestionDeck } from './arena-questions.ts';
 import { cloudArenaStore, localArenaStore, type ArenaStore } from './arena-store.ts';
 import type {
   ArenaOpenRoomSummary,
@@ -6,52 +6,12 @@ import type {
   ArenaRoomConfig,
   ArenaRoomDoc,
 } from './arena-types.ts';
-export interface BotPreset {
-  id: string;
-  name: string;
-  avatar: string;
-  skill: 'chill' | 'steady' | 'sensei';
-  accuracy: number;
-  minDelayMs: number;
-  maxDelayMs: number;
-  descriptionSv: string;
-}
+import { ArenaMatch, ARENA_BOT_PRESETS } from './arena-match.ts';
+import { systemArenaRuntime, type ArenaRuntime } from './arena-runtime.ts';
+export { ARENA_BOT_PRESETS, type BotPreset } from './arena-match.ts';
 
-export const ARENA_BOT_PRESETS: BotPreset[] = [
-  {
-    id: 'bot-sakura',
-    name: 'Sakura-bot',
-    avatar: '🌸',
-    skill: 'chill',
-    accuracy: 0.72,
-    minDelayMs: 1400,
-    maxDelayMs: 3200,
-    descriptionSv: 'Glad klasskompis · ~72% rätt',
-  },
-  {
-    id: 'bot-kenji',
-    name: 'Kenji-bot',
-    avatar: '🥋',
-    skill: 'steady',
-    accuracy: 0.85,
-    minDelayMs: 1100,
-    maxDelayMs: 2500,
-    descriptionSv: 'て-form-entusiast · ~85% rätt',
-  },
-  {
-    id: 'bot-sensei',
-    name: 'Sensei-bot',
-    avatar: '🎓',
-    skill: 'sensei',
-    accuracy: 0.95,
-    minDelayMs: 800,
-    maxDelayMs: 1800,
-    descriptionSv: 'Grammatikmästare · ~95% rätt',
-  },
-];
-
-export function generateRoomCode(): string {
-  return String(Math.floor(1000 + Math.random() * 9000));
+export function generateRoomCode(random: () => number = Math.random): string {
+  return String(Math.floor(1000 + random() * 9000));
 }
 
 export class CourseArenaManager {
@@ -71,10 +31,8 @@ export class CourseArenaManager {
   };
   private joinCodeInput = '';
   private errorMessage = '';
-  private timeRemainingMs = 15000;
-  private tickInterval: ReturnType<typeof setInterval> | null = null;
-  private botTimers: Array<ReturnType<typeof setTimeout>> = [];
-  private timerRound = '';
+  private match: ArenaMatch;
+  private runtime: ArenaRuntime;
   private roomUnsub: (() => void) | null = null;
   private openRoomsUnsub: (() => void) | null = null;
   private onUpdateCallback: (() => void) | null = null;
@@ -83,8 +41,15 @@ export class CourseArenaManager {
 
   constructor(
     storeFactory = (loggedIn: boolean) => (loggedIn ? cloudArenaStore : localArenaStore),
+    runtime: ArenaRuntime = systemArenaRuntime,
   ) {
     this.storeFactory = storeFactory;
+    this.runtime = runtime;
+    this.match = new ArenaMatch(
+      runtime,
+      (transition) => this.change(transition),
+      () => this.notify(),
+    );
   }
 
   public bindHost(
@@ -138,7 +103,7 @@ export class CourseArenaManager {
               createdAt: r.createdAt,
             }))
             .sort((a, b) => b.createdAt - a.createdAt);
-          // Local watchOpen may deliver synchronously while the view is rendering.
+          // Defer synchronous store delivery until lifecycle binding has completed.
           queueMicrotask(() => {
             if (generation === this.generation) this.notify();
           });
@@ -149,6 +114,7 @@ export class CourseArenaManager {
   }
 
   public getState() {
+    const timeRemainingMs = this.match.remainingMs();
     return {
       room: this.room,
       openRooms: this.openRooms,
@@ -158,12 +124,9 @@ export class CourseArenaManager {
       draftConfig: this.draftConfig,
       joinCodeInput: this.joinCodeInput,
       errorMessage: this.errorMessage,
-      timeRemainingSeconds: Math.max(0, Math.ceil(this.timeRemainingMs / 1000)),
+      timeRemainingSeconds: Math.max(0, Math.ceil(timeRemainingMs / 1000)),
       timeRemainingRatio: this.room
-        ? Math.max(
-            0,
-            Math.min(1, this.timeRemainingMs / (this.room.config.roundDurationSeconds * 1000)),
-          )
+        ? Math.max(0, Math.min(1, timeRemainingMs / (this.room.config.roundDurationSeconds * 1000)))
         : 1,
     };
   }
@@ -193,7 +156,15 @@ export class CourseArenaManager {
   }
 
   private makePlayer(uid: string, name: string, avatar = '🐼'): ArenaPlayer {
-    return { uid, name, avatar, score: 0, streak: 0, correctCount: 0, joinedAt: Date.now() };
+    return {
+      uid,
+      name,
+      avatar,
+      score: 0,
+      streak: 0,
+      correctCount: 0,
+      joinedAt: this.runtime.now(),
+    };
   }
 
   public async createRoom(withDefaultBot = false): Promise<ArenaRoomDoc | null> {
@@ -207,8 +178,8 @@ export class CourseArenaManager {
     this.errorMessage = '';
     try {
       for (let attempt = 0; attempt < 20; attempt++) {
-        const roomCode = generateRoomCode();
-        const now = Date.now();
+        const roomCode = generateRoomCode(() => this.runtime.random());
+        const now = this.runtime.now();
         const players: Record<string, ArenaPlayer> = {
           [uid]: this.makePlayer(uid, this.localPlayerName, '🦊'),
         };
@@ -228,7 +199,7 @@ export class CourseArenaManager {
           status: 'waiting',
           config: { ...this.draftConfig },
           players,
-          questions: generateArenaQuestionDeck(this.draftConfig),
+          questions: generateArenaQuestionDeck(this.draftConfig, () => this.runtime.random()),
           currentRoundIndex: 0,
           roundStartedAt: 0,
           roundAnswers: {},
@@ -284,7 +255,7 @@ export class CourseArenaManager {
         if (!current.players[uid]) {
           if (current.status !== 'waiting') throw new Error('already-started');
           current.players[uid] = player;
-          current.updatedAt = Math.max(Date.now(), current.updatedAt + 1);
+          current.updatedAt = Math.max(this.runtime.now(), current.updatedAt + 1);
         }
         return current;
       });
@@ -318,87 +289,15 @@ export class CourseArenaManager {
   }
 
   public async startMatch(): Promise<void> {
-    // Build once: a Firestore transaction may retry its callback.
-    const questions = generateArenaQuestionDeck(this.room?.config || this.draftConfig);
-    await this.change((room) => {
-      this.requireHost(room);
-      if (room.status !== 'waiting' && room.status !== 'finished') return;
-      for (const player of Object.values(room.players)) {
-        player.score = 0;
-        player.streak = 0;
-        player.correctCount = 0;
-      }
-      room.questions = questions;
-      room.currentRoundIndex = 0;
-      room.roundStartedAt = Date.now();
-      room.roundAnswers = { '0': {} };
-      room.status = 'question';
-    });
+    await this.change(this.match.start(this.room?.config || this.draftConfig, this.localPlayerUid));
   }
 
   public async submitAnswer(choice: string): Promise<void> {
-    await this.answer(this.localPlayerUid, choice);
-  }
-
-  private async answer(uid: string, choice: string): Promise<void> {
-    const expectedRound = this.room?.currentRoundIndex;
-    const expectedStart = this.room?.roundStartedAt;
-    await this.change((room) => {
-      if (
-        room.status !== 'question' ||
-        room.currentRoundIndex !== expectedRound ||
-        room.roundStartedAt !== expectedStart
-      )
-        return;
-      if (
-        uid !== this.localPlayerUid &&
-        (room.hostUid !== this.localPlayerUid || !room.players[uid]?.isBot)
-      )
-        return;
-      const key = String(room.currentRoundIndex);
-      const q = room.questions[room.currentRoundIndex];
-      const player = room.players[uid];
-      if (!player || !q || !q.choices.includes(choice) || room.roundAnswers[key]?.[uid]) return;
-      const now = Date.now();
-      const duration = room.config.roundDurationSeconds * 1000;
-      const remaining = duration - Math.max(0, now - room.roundStartedAt);
-      if (remaining <= 0) return;
-      const correct = choice === q.answer;
-      const points = calculateArenaPoints(correct, remaining, duration, player.streak);
-      room.roundAnswers[key] ||= {};
-      room.roundAnswers[key][uid] = {
-        choice,
-        correct,
-        pointsAwarded: points,
-        timeRemainingMs: remaining,
-        answeredAt: now,
-      };
-      player.score += points;
-      player.streak = correct ? player.streak + 1 : 0;
-      if (correct) player.correctCount++;
-      if (room.hostUid === this.localPlayerUid && this.allAnswered(room)) room.status = 'reveal';
-    });
+    await this.change(this.match.answer(this.localPlayerUid, this.localPlayerUid, choice));
   }
 
   public async nextRound(): Promise<void> {
-    const expectedRound = this.room?.currentRoundIndex;
-    const expectedStart = this.room?.roundStartedAt;
-    await this.change((room) => {
-      this.requireHost(room);
-      if (
-        room.status !== 'reveal' ||
-        room.currentRoundIndex !== expectedRound ||
-        room.roundStartedAt !== expectedStart
-      )
-        return;
-      if (room.currentRoundIndex + 1 >= room.questions.length) room.status = 'finished';
-      else {
-        room.currentRoundIndex++;
-        room.roundStartedAt = Date.now();
-        room.roundAnswers[String(room.currentRoundIndex)] = {};
-        room.status = 'question';
-      }
-    });
+    await this.change(this.match.next(this.localPlayerUid));
   }
 
   public async leaveRoom(): Promise<void> {
@@ -410,7 +309,7 @@ export class CourseArenaManager {
       await this.store.change(room.roomId, (current) => {
         if (!current || current.hostUid === uid) return null;
         delete current.players[uid];
-        current.updatedAt = Math.max(Date.now(), current.updatedAt + 1);
+        current.updatedAt = Math.max(this.runtime.now(), current.updatedAt + 1);
         return current;
       });
       if (generation !== this.generation) return;
@@ -433,11 +332,6 @@ export class CourseArenaManager {
     if (room.hostUid !== this.localPlayerUid) throw new Error('host-only');
   }
 
-  private allAnswered(room: ArenaRoomDoc): boolean {
-    const answers = room.roundAnswers[String(room.currentRoundIndex)] || {};
-    return Object.keys(room.players).every((uid) => Boolean(answers[uid]));
-  }
-
   private async change(update: (room: ArenaRoomDoc) => void): Promise<void> {
     const id = this.room?.roomId;
     if (!id) return;
@@ -447,7 +341,7 @@ export class CourseArenaManager {
         if (generation !== this.generation) throw new Error('session-changed');
         if (!current) return null;
         update(current);
-        current.updatedAt = Math.max(Date.now(), current.updatedAt + 1);
+        current.updatedAt = Math.max(this.runtime.now(), current.updatedAt + 1);
         return current;
       });
       if (generation !== this.generation || this.room?.roomId !== id) return;
@@ -481,7 +375,7 @@ export class CourseArenaManager {
     }
     if (this.room?.roomId === room.roomId && this.room.updatedAt > room.updatedAt) return;
     this.room = room;
-    this.syncTimers();
+    this.match.observe(room, this.localPlayerUid);
     this.notify();
   }
 
@@ -489,81 +383,7 @@ export class CourseArenaManager {
     this.roomUnsub?.();
     this.roomUnsub = null;
     this.room = null;
-    this.stopTimers();
-  }
-
-  private stopTimers(): void {
-    if (this.tickInterval) clearInterval(this.tickInterval);
-    this.tickInterval = null;
-    this.botTimers.forEach(clearTimeout);
-    this.botTimers = [];
-    this.timerRound = '';
-  }
-
-  private syncTimers(): void {
-    const room = this.room;
-    if (!room || room.status !== 'question') {
-      this.stopTimers();
-      return;
-    }
-    this.timeRemainingMs = Math.max(
-      0,
-      room.config.roundDurationSeconds * 1000 - (Date.now() - room.roundStartedAt),
-    );
-    const key = `${room.roomId}:${room.currentRoundIndex}:${room.roundStartedAt}`;
-    if (key === this.timerRound) return;
-    this.stopTimers();
-    this.timerRound = key;
-    let revealing = false;
-    this.tickInterval = setInterval(() => {
-      const current = this.room;
-      if (!current || current.status !== 'question') return;
-      this.timeRemainingMs = Math.max(
-        0,
-        current.config.roundDurationSeconds * 1000 - (Date.now() - current.roundStartedAt),
-      );
-      if (
-        current.hostUid === this.localPlayerUid &&
-        !revealing &&
-        (this.timeRemainingMs === 0 || this.allAnswered(current))
-      ) {
-        revealing = true;
-        void this.change((latest) => {
-          this.requireHost(latest);
-          if (
-            latest.status === 'question' &&
-            latest.currentRoundIndex === current.currentRoundIndex &&
-            latest.roundStartedAt === current.roundStartedAt &&
-            (Date.now() >= latest.roundStartedAt + latest.config.roundDurationSeconds * 1000 ||
-              this.allAnswered(latest))
-          )
-            latest.status = 'reveal';
-        }).finally(() => {
-          revealing = false;
-        });
-      }
-      this.notify();
-    }, 250);
-    if (room.hostUid !== this.localPlayerUid) return;
-    const question = room.questions[room.currentRoundIndex];
-    if (!question) return;
-    for (const player of Object.values(room.players)) {
-      if (!player.isBot || room.roundAnswers[String(room.currentRoundIndex)]?.[player.uid])
-        continue;
-      const preset = ARENA_BOT_PRESETS.find((b) => b.id === player.uid) || ARENA_BOT_PRESETS[0];
-      const delay = preset.minDelayMs + Math.random() * (preset.maxDelayMs - preset.minDelayMs);
-      this.botTimers.push(
-        setTimeout(() => {
-          if (this.timerRound !== key) return;
-          const wrong = question.choices.filter((c) => c !== question.answer);
-          const choice =
-            Math.random() < preset.accuracy
-              ? question.answer
-              : wrong[Math.floor(Math.random() * wrong.length)];
-          void this.answer(player.uid, choice);
-        }, delay),
-      );
-    }
+    this.match.reset();
   }
 
   private fail(message: string): void {

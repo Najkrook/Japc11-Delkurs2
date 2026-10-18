@@ -184,17 +184,3 @@ export function generateArenaQuestionDeck(
 
   return shuffleArray(filtered, rng).slice(0, config.roundCount);
 }
-
-export function calculateArenaPoints(
-  isCorrect: boolean,
-  timeRemainingMs: number,
-  totalDurationMs: number,
-  currentStreak: number,
-): number {
-  if (!isCorrect) return 0;
-  const clampedRatio = Math.max(0, Math.min(1, timeRemainingMs / Math.max(1000, totalDurationMs)));
-  const basePoints = 500;
-  const speedBonus = Math.round(clampedRatio * 500);
-  const streakBonus = Math.min(300, currentStreak * 100);
-  return basePoints + speedBonus + streakBonus;
-}

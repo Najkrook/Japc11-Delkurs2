@@ -14,7 +14,6 @@ import {
 } from '../src/course/course-state.ts';
 import {
   buildAllCourseArenaQuestions,
-  calculateArenaPoints,
   generateArenaQuestionDeck,
 } from '../src/course/multiplayer/arena-questions.ts';
 import { generateRoomCode } from '../src/course/multiplayer/arena-service.ts';
@@ -82,7 +81,7 @@ test('JAPC11 Delkurs 2 State: Tracks mastery across all 4 blocks per week', () =
   assert.equal(loaded.activeWeekId, 'week-2');
 });
 
-test('Course Arena Multiplayer: Generates L6-L9 decks and calculates time-bonus points', () => {
+test('Course Arena Multiplayer: Generates L6-L9 decks and room codes', () => {
   const allBank = buildAllCourseArenaQuestions('all');
   assert.ok(allBank.length >= 120, 'Generates 120+ Arena questions from Lessons 6–9');
 
@@ -99,10 +98,6 @@ test('Course Arena Multiplayer: Generates L6-L9 decks and calculates time-bonus 
   });
   assert.equal(teDeck.length, 10);
   assert.ok(teDeck.every((q) => q.weekId === 'week-1' && q.category === 'te-form'));
-
-  assert.equal(calculateArenaPoints(false, 12000, 15000, 3), 0);
-  assert.equal(calculateArenaPoints(true, 15000, 15000, 0), 1000);
-  assert.equal(calculateArenaPoints(true, 7500, 15000, 2), 950);
 
   const code = generateRoomCode();
   assert.match(code, /^\d{4}$/);
