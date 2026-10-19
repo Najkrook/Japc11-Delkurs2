@@ -54,14 +54,30 @@ test('JAPC11 Delkurs 2 standalone app: Vecka för vecka, Te-Form Dojo, Flashcard
   await expect(page.locator('.arena-question-card')).toBeVisible();
   await page.locator('.arena-choice-btn').first().click();
 
-  // 4. Open Extra studier from sidebar, flip card, rate, and return to hub
+  // 4. Open Extra studier from sidebar, verify Tae Kim Immersion deck & 6 Arcs, study Arc 1
   await page.locator('[data-course-nav="extra"]').click();
-  await expect(page.locator('main h1')).toContainText('Extra studier · Anki & Kortlekar');
-  const ankiCard = page.locator('.anki-stage-card');
+  await expect(page.locator('main h1')).toContainText('Extra studier · Tae Kim Anime Immersion');
+  await expect(page.locator('.taekim-arc-card')).toHaveCount(6);
+
+  // Start Arc 1 continuous flow
+  const firstArcResumeBtn = page.locator('.taekim-arc-card').first().locator('[data-arc-action="start-resume"]');
+  await expect(firstArcResumeBtn).toContainText('Starta Arc 1');
+  await firstArcResumeBtn.click();
+
+  const ankiCard = page.locator('.taekim-card-stage');
   await expect(ankiCard).toBeVisible();
+  await expect(page.locator('.anki-front-text')).toBeVisible();
+
+  // Flip card, rate "Bra"
   await ankiCard.click();
   await expect(page.locator('.anki-card-answer-revealed')).toBeVisible();
   await page.locator('.anki-rate-btn.rate-good').click();
+
+  // Return to Arcs overview - verify Arc 1 button now says "Fortsätt från kort 2"
+  await page.locator('.anki-back-nav-btn').click();
+  await expect(firstArcResumeBtn).toContainText('Fortsätt från kort 2');
+
+  // Return to main study plan hub
   await page.getByRole('button', { name: '← Tillbaka till studieplanen' }).click();
   await expect(page.locator('main h1')).toContainText('Vecka 1 · Lektion 6');
 

@@ -2251,473 +2251,696 @@
   flex-wrap: wrap;
 }
 
-/* ================= EXTRA STUDIER (ANKI & FÖRDJUPNING) ================= */
-.extra-studies-section {
+/* ================= EXTRA STUDIER (TAE KIM ANIME IMMERSION) ================= */
+.taekim-section {
   display: flex;
   flex-direction: column;
   gap: 20px;
 }
 
-.extra-studies-live-pill {
-  display: inline-flex;
-  align-items: center;
-  gap: 6px;
-  background: var(--c-indigo-soft);
-  color: var(--c-indigo-mid);
-  font-size: 12px;
-  font-weight: 700;
-  padding: 5px 12px;
-  border-radius: 999px;
-  border: 1px solid rgba(43, 91, 70, 0.16);
-}
-
-.extra-studies-hero {
+.taekim-hero {
   background: var(--c-surface);
   border: 1px solid var(--c-line);
   border-radius: 20px;
   padding: 24px 28px;
 }
 
-.extra-studies-grid {
-  display: grid;
-  grid-template-columns: 1fr 340px;
-  gap: 20px;
-  align-items: start;
-}
-
-@media (max-width: 980px) {
-  .extra-studies-grid {
-    grid-template-columns: 1fr;
-  }
-}
-
-.extra-card-deck-preview {
+.taekim-autoplay-toggle {
   background: var(--c-surface);
-  border: 1px solid var(--c-line);
-  border-radius: 20px;
-  padding: 24px 26px;
-  display: flex;
-  flex-direction: column;
-  gap: 18px;
-  box-shadow: var(--c-shadow);
-}
-
-.extra-deck-head {
-  display: flex;
-  justify-content: space-between;
-  align-items: flex-start;
-  gap: 12px;
-  flex-wrap: wrap;
-}
-
-.extra-eyebrow {
-  display: block;
-  font-size: 11px;
-  font-weight: 800;
-  letter-spacing: 0.08em;
-  text-transform: uppercase;
-  color: var(--c-indigo-mid);
-  margin-bottom: 2px;
-}
-
-.extra-deck-head h2 {
-  font-size: 20px;
-  font-weight: 700;
-  color: var(--c-ink);
-  margin: 0;
-}
-
-.extra-deck-stats {
-  display: flex;
-  gap: 8px;
-  flex-wrap: wrap;
-}
-
-/* Anki Flashcard Stage */
-.anki-stage-card {
-  min-height: 220px;
-  background: #faf8f5;
-  border: 1.5px solid var(--c-line);
-  border-radius: 16px;
-  padding: 20px 24px;
-  display: flex;
-  flex-direction: column;
-  justify-content: space-between;
-  cursor: pointer;
-  transition: transform 140ms ease, box-shadow 140ms ease, border-color 140ms ease;
-  user-select: none;
-}
-
-.anki-stage-card:hover {
-  border-color: var(--c-indigo-mid);
-  box-shadow: 0 6px 18px rgba(20, 63, 46, 0.07);
-}
-
-.anki-stage-card:focus-visible {
-  outline: 2px solid var(--c-indigo-mid);
-  outline-offset: 2px;
-}
-
-.anki-stage-card.flipped {
-  background: var(--c-surface);
-  border-color: rgba(43, 91, 70, 0.3);
-}
-
-.anki-card-badge-row {
-  display: flex;
-  justify-content: space-between;
-  align-items: center;
-  gap: 10px;
-}
-
-.anki-deck-chip {
-  font-size: 11.5px;
-  font-weight: 700;
   color: var(--c-muted);
-  background: var(--c-surface);
   border: 1px solid var(--c-line);
-  padding: 3px 9px;
   border-radius: 999px;
-}
-
-.anki-card-main-content {
-  text-align: center;
-  padding: 16px 0;
-}
-
-.anki-reading {
-  display: block;
-  font-size: 14px;
-  color: var(--c-muted);
-  margin-bottom: 4px;
-}
-
-.anki-front-text {
-  display: block;
-  font-size: 32px;
-  font-weight: 700;
-  color: var(--c-indigo);
-  letter-spacing: 0.02em;
-}
-
-.anki-front-sub {
-  display: block;
+  padding: 6px 14px;
   font-size: 12.5px;
-  color: var(--c-muted);
-  margin-top: 6px;
-}
-
-.anki-card-prompt-hint {
-  text-align: center;
-  font-size: 12px;
-  color: var(--c-muted);
-  padding-top: 8px;
-}
-
-.anki-card-answer-revealed {
-  text-align: center;
-  padding-top: 6px;
-  animation: appleMaterialize 180ms ease both;
-}
-
-.anki-reveal-divider {
-  border: 0;
-  border-top: 1px dashed var(--c-line);
-  margin: 12px auto;
-  max-width: 140px;
-}
-
-.anki-back-text {
-  font-size: 16px;
   font-weight: 600;
-  color: var(--c-ink);
-  margin: 0 0 6px 0;
-}
-
-.anki-note-text {
-  display: block;
-  font-size: 12px;
-  color: var(--c-muted);
-}
-
-/* Anki Rating Tray */
-.anki-rating-tray {
-  display: grid;
-  grid-template-columns: repeat(4, 1fr);
-  gap: 10px;
-}
-
-@media (max-width: 600px) {
-  .anki-rating-tray {
-    grid-template-columns: 1fr 1fr;
-  }
-}
-
-.anki-rate-btn {
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-  gap: 2px;
-  padding: 10px 8px;
-  border-radius: 12px;
-  border: 1px solid var(--c-line);
-  background: var(--c-surface);
   cursor: pointer;
-  transition: transform 80ms ease, background 120ms ease, border-color 120ms ease;
-}
-
-.anki-rate-btn:hover {
-  transform: translateY(-1px);
-}
-
-.anki-rate-btn:active {
-  transform: translateY(1px);
-}
-
-.rate-interval {
-  font-size: 11px;
-  font-weight: 600;
-  color: var(--c-muted);
-}
-
-.rate-label {
-  font-size: 13.5px;
-  font-weight: 700;
-}
-
-.anki-rate-btn.rate-again {
-  border-color: #f3c1b8;
-  background: #fdf5f3;
-}
-.anki-rate-btn.rate-again .rate-label {
-  color: var(--c-danger);
-}
-.anki-rate-btn.rate-again:hover {
-  background: #fde8e4;
-}
-
-.anki-rate-btn.rate-hard {
-  border-color: #ebd6af;
-  background: #fdf8ee;
-}
-.anki-rate-btn.rate-hard .rate-label {
-  color: #8c581c;
-}
-.anki-rate-btn.rate-hard:hover {
-  background: #f8eccf;
-}
-
-.anki-rate-btn.rate-good {
-  border-color: #c5ddd0;
-  background: #f0f7f3;
-}
-.anki-rate-btn.rate-good .rate-label {
-  color: var(--c-indigo-mid);
-}
-.anki-rate-btn.rate-good:hover {
-  background: #e2f0e8;
-}
-
-.anki-rate-btn.rate-easy {
-  border-color: #bcd4e6;
-  background: #f0f5fa;
-}
-.anki-rate-btn.rate-easy .rate-label {
-  color: #2b5580;
-}
-.anki-rate-btn.rate-easy:hover {
-  background: #e1edf7;
-}
-
-.anki-show-answer-btn {
-  grid-column: 1 / -1;
-  padding: 13px 20px;
-  font-size: 15px;
-}
-
-/* Extra Studies Side Column */
-.extra-studies-sidebar-col {
-  display: flex;
-  flex-direction: column;
-  gap: 16px;
-}
-
-.extra-box-card {
-  background: var(--c-surface);
-  border: 1px solid var(--c-line);
-  border-radius: 18px;
-  padding: 18px 20px;
-}
-
-.extra-box-header {
-  display: flex;
-  justify-content: space-between;
+  display: inline-flex;
   align-items: center;
-  gap: 8px;
-  margin-bottom: 12px;
-}
-
-.extra-box-header h3 {
-  font-size: 14.5px;
-  font-weight: 700;
-  color: var(--c-ink);
-  margin: 0;
-}
-
-.extra-tag-pill {
-  font-size: 11px;
-  font-weight: 700;
-  padding: 2px 8px;
-  border-radius: 999px;
-  background: var(--c-indigo-soft);
-  color: var(--c-indigo-mid);
-}
-
-.extra-tag-pill.future {
-  background: #fcf6ec;
-  color: #8c581c;
-}
-
-.anki-deck-list {
-  list-style: none;
-  padding: 0;
-  margin: 0;
-  display: flex;
-  flex-direction: column;
-  gap: 8px;
-}
-
-.anki-deck-item {
-  display: flex;
-  align-items: center;
-  gap: 10px;
-  padding: 9px 10px;
-  border-radius: 10px;
-  border: 1px solid var(--c-line);
-  background: var(--c-surface);
+  gap: 6px;
   transition: all 120ms ease;
 }
 
-.anki-deck-item.active {
-  border-color: var(--c-indigo-mid);
+.taekim-autoplay-toggle.active {
   background: var(--c-indigo-soft);
+  color: var(--c-indigo-mid);
+  border-color: rgba(43, 91, 70, 0.3);
+  font-weight: 700;
 }
 
-.deck-item-icon {
-  font-size: 18px;
-  flex-shrink: 0;
+.taekim-stats-bar {
+  margin-top: 18px;
 }
 
-.deck-item-info {
+.taekim-quick-actions {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  flex-wrap: wrap;
+  margin-top: 18px;
+  padding-top: 16px;
+  border-top: 1px solid var(--c-line);
+}
+
+.taekim-due-clear-badge {
+  font-size: 13px;
+  font-weight: 600;
+  color: var(--c-indigo-mid);
+  background: var(--c-indigo-soft);
+  padding: 8px 16px;
+  border-radius: 999px;
+}
+
+.taekim-star-filter-btn {
+  background: #fdfaf2;
+  color: #8c581c;
+  border: 1px solid #ebd6af;
+  border-radius: 999px;
+  padding: 8px 14px;
+  font-size: 13px;
+  font-weight: 700;
+  cursor: pointer;
+  transition: all 120ms ease;
+}
+
+.taekim-star-filter-btn:hover {
+  background: #f8eccf;
+}
+
+/* Search Box */
+.taekim-search-box {
+  background: var(--c-surface);
+  border: 1px solid var(--c-line);
+  border-radius: 18px;
+  padding: 18px 24px;
+}
+
+.taekim-search-label {
+  display: block;
+  font-size: 13px;
+  font-weight: 600;
+  color: var(--c-muted);
+  margin-bottom: 8px;
+}
+
+.taekim-search-input {
+  width: 100%;
+  box-sizing: border-box;
+  padding: 11px 16px;
+  border-radius: 12px;
+  border: 1.5px solid var(--c-line);
+  background: #faf8f5;
+  font-size: 14px;
+  color: var(--c-ink);
+  transition: all 140ms ease;
+}
+
+.taekim-search-input:focus {
+  outline: none;
+  background: #ffffff;
+  border-color: var(--c-indigo-mid);
+  box-shadow: 0 0 0 3px rgba(43, 91, 70, 0.12);
+}
+
+.taekim-search-results {
+  margin-top: 14px;
+}
+
+.search-count {
+  display: block;
+  font-size: 12px;
+  font-weight: 700;
+  color: var(--c-muted);
+  margin-bottom: 8px;
+}
+
+.search-results-list {
+  display: grid;
+  gap: 8px;
+  max-height: 280px;
+  overflow-y: auto;
+}
+
+.search-result-row {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  gap: 12px;
+  padding: 10px 14px;
+  border-radius: 10px;
+  border: 1px solid var(--c-line);
+  background: #faf8f5;
+}
+
+.search-result-main {
   flex: 1;
   min-width: 0;
 }
 
-.deck-item-info strong {
+.search-result-main strong {
+  display: block;
+  font-size: 15px;
+  color: var(--c-indigo);
+}
+
+.search-result-main small {
+  display: block;
+  font-size: 12px;
+  color: var(--c-muted);
+}
+
+.search-def {
   display: block;
   font-size: 12.5px;
   color: var(--c-ink);
   white-space: nowrap;
   overflow: hidden;
   text-overflow: ellipsis;
+  margin-top: 2px;
 }
 
-.deck-item-info small {
-  display: block;
-  font-size: 11px;
-  color: var(--c-muted);
-}
-
-.deck-status-dot {
-  width: 7px;
-  height: 7px;
-  border-radius: 50%;
-  background: var(--c-line);
-}
-
-.deck-status-dot.active {
-  background: var(--c-indigo-mid);
-}
-
-.import-desc {
-  font-size: 12.5px;
-  color: var(--c-muted);
-  line-height: 1.45;
-  margin: 0 0 12px 0;
-}
-
-.anki-import-form {
-  margin-top: 12px;
-  display: flex;
-  flex-direction: column;
-  gap: 10px;
-  animation: appleMaterialize 180ms ease both;
-}
-
-.anki-input-label {
-  font-size: 12px;
-  font-weight: 600;
-  color: var(--c-muted);
-}
-
-.anki-textarea {
-  width: 100%;
-  box-sizing: border-box;
-  padding: 8px 10px;
-  border-radius: 10px;
-  border: 1px solid var(--c-line);
-  background: #faf8f5;
-  font-family: inherit;
-  font-size: 12.5px;
-  resize: vertical;
-}
-
-.anki-textarea:focus {
-  outline: 2px solid var(--c-indigo-mid);
-  outline-offset: 1px;
-}
-
-.extra-quick-links {
-  display: flex;
-  flex-direction: column;
-  gap: 8px;
-}
-
-.extra-quick-link-btn {
+.search-result-side {
   display: flex;
   align-items: center;
   gap: 10px;
-  padding: 8px 10px;
-  border-radius: 10px;
-  border: 1px solid transparent;
-  background: transparent;
-  cursor: pointer;
-  text-align: left;
-  transition: all 120ms ease;
-  width: 100%;
-  box-sizing: border-box;
+  flex-shrink: 0;
 }
 
-.extra-quick-link-btn:hover {
-  background: #faf8f5;
-  border-color: var(--c-line);
-}
-
-.extra-quick-link-btn div {
-  flex: 1;
-  min-width: 0;
-}
-
-.extra-quick-link-btn strong {
-  display: block;
-  font-size: 12.5px;
-  color: var(--c-indigo);
-}
-
-.extra-quick-link-btn small {
-  display: block;
-  font-size: 11px;
+.search-source-tag {
+  font-size: 11.5px;
+  font-weight: 700;
   color: var(--c-muted);
+  background: #f0ece3;
+  padding: 3px 8px;
+  border-radius: 6px;
+}
+
+.search-empty {
+  font-size: 13px;
+  color: var(--c-muted);
+  margin: 10px 0 0 0;
+}
+
+/* 6 Arcs Container & Clean Continuous Grid */
+.taekim-arcs-container {
+  display: flex;
+  flex-direction: column;
+  gap: 18px;
+}
+
+.taekim-arcs-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: flex-start;
+  gap: 16px;
+  flex-wrap: wrap;
+}
+
+.taekim-arcs-header h2 {
+  font-size: 20px;
+  font-weight: 800;
+  color: var(--c-ink);
+  margin: 0 0 4px 0;
+}
+
+.taekim-arcs-subtitle {
+  font-size: 13.5px;
+  color: var(--c-muted);
+  margin: 0;
+  max-width: 650px;
+  line-height: 1.45;
+}
+
+.taekim-arc-count-pill {
+  font-size: 12px;
+  font-weight: 700;
+  color: var(--c-indigo-mid);
+  background: var(--c-indigo-soft);
+  padding: 6px 14px;
+  border-radius: 999px;
+  white-space: nowrap;
+}
+
+.taekim-arcs-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(320px, 1fr));
+  gap: 20px;
+}
+
+.taekim-arc-card {
+  background: var(--c-surface);
+  border: 1.5px solid var(--c-line);
+  border-radius: 20px;
+  padding: 22px 24px;
+  text-align: left;
+  transition: all 160ms cubic-bezier(0.2, 0.8, 0.2, 1);
+  display: flex;
+  flex-direction: column;
+  gap: 14px;
+  box-shadow: 0 2px 10px rgba(0, 0, 0, 0.03);
+  position: relative;
+}
+
+.taekim-arc-card:hover {
+  border-color: var(--arc-color, var(--c-indigo-mid));
+  box-shadow: 0 8px 24px rgba(20, 63, 46, 0.08);
+  transform: translateY(-2px);
+}
+
+.taekim-arc-card.arc-completed {
+  border-left: 4.5px solid var(--c-success);
+}
+
+.arc-card-top {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+}
+
+.arc-badge-group {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.arc-emoji {
+  font-size: 24px;
+  line-height: 1;
+}
+
+.arc-badge {
+  font-size: 11.5px;
+  font-weight: 800;
+  letter-spacing: 0.04em;
+  color: var(--arc-color, var(--c-indigo-mid));
+  background: var(--arc-bg, #fdf8ee);
+  padding: 3px 10px;
+  border-radius: 999px;
+  border: 1px solid rgba(0, 0, 0, 0.08);
+}
+
+.arc-total-cards {
+  font-size: 12px;
+  font-weight: 700;
+  color: var(--c-muted);
+}
+
+.arc-card-titles {
+  display: flex;
+  flex-direction: column;
+  gap: 3px;
+}
+
+.arc-title {
+  display: block;
+  font-size: 17px;
+  font-weight: 800;
+  color: var(--c-ink);
+  line-height: 1.25;
+}
+
+.arc-subtitles {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  font-size: 13px;
+  color: var(--c-muted);
+  flex-wrap: wrap;
+}
+
+.arc-jap-title {
+  color: var(--arc-color, var(--c-indigo));
+  font-weight: 700;
+}
+
+.arc-romaji-title {
+  opacity: 0.85;
+}
+
+.arc-desc {
+  font-size: 13px;
+  color: var(--c-muted);
+  line-height: 1.5;
+  margin: 0;
+  flex: 1;
+}
+
+.arc-progress-section {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  padding-top: 10px;
+  border-top: 1px solid rgba(0, 0, 0, 0.06);
+}
+
+.arc-progress-meta {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  font-size: 12px;
+  color: var(--c-muted);
+}
+
+.arc-progress-label strong {
+  color: var(--c-ink);
+  font-weight: 700;
+}
+
+.arc-progress-pct {
+  font-weight: 800;
+  color: var(--c-ink);
+}
+
+.arc-progress-bar {
+  height: 6px;
+  background: rgba(0, 0, 0, 0.07);
+  border-radius: 999px;
+  overflow: hidden;
+}
+
+.arc-progress-bar span {
+  display: block;
+  height: 100%;
+  border-radius: 999px;
+  transition: width 240ms ease;
+}
+
+.arc-stats-pills {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  flex-wrap: wrap;
+}
+
+.arc-pill {
+  font-size: 11px;
+  font-weight: 700;
+  padding: 3px 8px;
+  border-radius: 999px;
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+}
+
+.arc-pill.mastered {
+  background: var(--c-success-bg);
+  color: var(--c-success);
+}
+
+.arc-pill.weak {
+  background: #fdf3eb;
+  color: #a64d1f;
+  border: 1px solid #ebd6af;
+}
+
+.taekim-arc-actions {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  margin-top: 4px;
+}
+
+.taekim-resume-btn {
+  width: 100%;
+  justify-content: center;
+  padding: 10px 16px !important;
+  font-size: 14px !important;
+  font-weight: 700 !important;
+}
+
+.taekim-resume-btn.completed {
+  background: #244b39;
+}
+
+.taekim-weak-btn {
+  width: 100%;
+  justify-content: center;
+  padding: 8px 14px !important;
+  font-size: 13px !important;
+  font-weight: 700 !important;
+}
+
+.taekim-reset-btn {
+  background: none;
+  border: none;
+  color: var(--c-muted);
+  font-size: 11.5px;
+  font-weight: 600;
+  padding: 4px;
+  cursor: pointer;
+  align-self: center;
+  transition: color 120ms ease;
+}
+
+.taekim-reset-btn:hover {
+  color: var(--c-danger, #b33939);
+  text-decoration: underline;
+}
+
+.arc-search-badge {
+  font-size: 11px;
+  font-weight: 700;
+  padding: 2px 6px;
+  border-radius: 4px;
+  background: rgba(0, 0, 0, 0.04);
+}
+
+.search-open-btn {
+  padding: 5px 12px !important;
+  font-size: 12px !important;
+}
+
+/* ================= STUDY SCREEN ================= */
+.taekim-study-section {
+  display: flex;
+  flex-direction: column;
+  gap: 18px;
+}
+
+.taekim-study-meta {
+  text-align: center;
+}
+
+.taekim-study-meta strong {
+  display: block;
+  font-size: 14px;
+  color: var(--c-ink);
+}
+
+.taekim-study-meta small {
+  display: block;
+  font-size: 12px;
+  color: var(--c-muted);
+}
+
+.taekim-star-btn {
+  background: var(--c-surface);
+  color: var(--c-muted);
+  border: 1px solid var(--c-line);
+  border-radius: 999px;
+  padding: 6px 14px;
+  font-size: 12.5px;
+  font-weight: 600;
+  cursor: pointer;
+  transition: all 120ms ease;
+}
+
+.taekim-star-btn.active {
+  background: #fdfaf2;
+  color: #8c581c;
+  border-color: #ebd6af;
+  font-weight: 700;
+}
+
+.taekim-linear-progress {
+  height: 5px;
+  background: #e6e2d8;
+  border-radius: 999px;
+  overflow: hidden;
+}
+
+.taekim-linear-fill {
+  height: 100%;
+  background: var(--c-indigo-mid);
+  border-radius: 999px;
+  transition: width 180ms ease;
+}
+
+/* Flashcard Stage */
+.taekim-card-stage {
+  min-height: 280px;
+  background: var(--c-surface);
+  border: 1.5px solid var(--c-line);
+  border-radius: 22px;
+  padding: 24px 28px;
+  display: flex;
+  flex-direction: column;
+  justify-content: space-between;
+  cursor: pointer;
+  box-shadow: 0 4px 18px rgba(0, 0, 0, 0.04);
+  transition: all 140ms ease;
+}
+
+.taekim-card-stage:hover {
+  border-color: var(--c-indigo-mid);
+  box-shadow: 0 8px 24px rgba(20, 63, 46, 0.08);
+}
+
+.taekim-card-stage.flipped {
+  background: #ffffff;
+  border-color: rgba(43, 91, 70, 0.35);
+}
+
+.stage-right-badges {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.anki-status-tag {
+  font-size: 10.5px;
+  font-weight: 800;
+  letter-spacing: 0.05em;
+  padding: 3px 8px;
+  border-radius: 999px;
+  background: #ede9e0;
+  color: var(--c-muted);
+}
+
+.anki-status-tag.mastered {
+  background: var(--c-success-bg);
+  color: var(--c-success);
+}
+
+.anki-status-tag.learning {
+  background: #fdf8ee;
+  color: #8c581c;
+}
+
+.anki-status-tag.new {
+  background: var(--c-indigo-soft);
+  color: var(--c-indigo-mid);
+}
+
+.mini-audio-btn.playing {
+  background: var(--c-indigo-mid);
+  color: #ffffff;
+}
+
+.taekim-image-wrapper {
+  margin: 12px auto;
+  max-width: 380px;
+  border-radius: 12px;
+  overflow: hidden;
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
+  border: 1px solid var(--c-line);
+}
+
+.taekim-screenshot {
+  display: block;
+  width: 100%;
+  height: auto;
+  object-fit: cover;
+}
+
+.taekim-meaning-box {
+  margin: 10px 0;
+}
+
+.taekim-def-title {
+  font-size: 17px;
+  font-weight: 700;
+  color: var(--c-indigo);
+  margin: 0 0 6px 0;
+}
+
+.taekim-full-meaning {
+  font-size: 13.5px;
+  color: var(--c-ink);
+  line-height: 1.5;
+  margin: 0;
+  white-space: pre-wrap;
+  text-align: left;
+  background: #faf8f5;
+  padding: 12px 14px;
+  border-radius: 10px;
+  border: 1px solid var(--c-line);
+}
+
+.rate-key-hint {
+  font-size: 10px;
+  color: var(--c-muted);
+  opacity: 0.7;
+}
+
+/* ================= FINISHED SCREEN ================= */
+.taekim-finished-section {
+  display: flex;
+  justify-content: center;
+  padding: 20px 0;
+}
+
+.taekim-finished-card {
+  max-width: 540px;
+  width: 100%;
+  background: var(--c-surface);
+  border: 1px solid var(--c-line);
+  border-radius: 24px;
+  padding: 36px 32px;
+  text-align: center;
+  box-shadow: 0 8px 30px rgba(0, 0, 0, 0.05);
+}
+
+.taekim-finished-card h1 {
+  font-size: 26px;
+  font-weight: 800;
+  color: var(--c-indigo);
+  margin: 6px 0 8px 0;
+}
+
+.taekim-finished-sub {
+  font-size: 14px;
+  color: var(--c-muted);
+  margin: 0 0 24px 0;
+}
+
+.taekim-finished-metrics {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(120px, 1fr));
+  gap: 12px;
+  margin-bottom: 28px;
+}
+
+.finished-stat {
+  background: #faf8f5;
+  border: 1px solid var(--c-line);
+  border-radius: 14px;
+  padding: 14px;
+}
+
+.finished-stat strong {
+  display: block;
+  font-size: 26px;
+  font-weight: 800;
+  color: var(--c-ink);
+}
+
+.finished-stat span {
+  font-size: 12px;
+  color: var(--c-muted);
+}
+
+.finished-stat.success strong {
+  color: var(--c-success);
+}
+
+.finished-stat.warning strong {
+  color: #a64d1f;
+}
+
+.taekim-finished-actions {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
 }
 
 /* Footer */

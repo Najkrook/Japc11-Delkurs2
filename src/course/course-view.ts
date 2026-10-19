@@ -254,7 +254,7 @@ export function renderCourseShell(host: CourseHostContext): CourseTemplate {
                       <strong class="week-tab-title">Extra studier</strong>
                       <span class="week-tab-pct extra-tag">Anki</span>
                     </div>
-                    <span class="week-tab-sub">Öva Anki-kortlekar</span>
+                    <span class="week-tab-sub">Tae Kim Anki · 2 075 kort</span>
                   </div>
                 </div>
               </button>
