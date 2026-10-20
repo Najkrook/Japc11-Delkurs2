@@ -44,20 +44,6 @@ export function readCourseProgress(
   }
 }
 
-export function saveCourseProgress(
-  storage: Pick<Storage, 'setItem'> | undefined,
-  uid: string | null | undefined,
-  data: CourseProgressData,
-): void {
-  if (!storage) return;
-  try {
-    data.updatedAt = Date.now();
-    storage.setItem(courseStorageKey(uid), JSON.stringify(data));
-  } catch {
-    // Ignore storage quota errors
-  }
-}
-
 export interface WeekProgressSummary {
   vocabDone: number;
   vocabTotal: number;

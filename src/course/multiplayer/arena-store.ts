@@ -34,18 +34,21 @@ function changedFields(
     const previous = before[key];
     const next = after[key];
     const child = [...path, key];
-    if (!(key in after)) result.push({ field: new FieldPath(...child), value: deleteField() });
-    else if (
-      previous &&
+    if (!(key in after)) {
+      result.push({ field: new FieldPath(...child), value: deleteField() });
+    } else if (
       next &&
-      typeof previous === 'object' &&
       typeof next === 'object' &&
-      !Array.isArray(previous) &&
-      !Array.isArray(next)
+      !Array.isArray(next) &&
+      ((previous && typeof previous === 'object' && !Array.isArray(previous)) ||
+        (path.length === 0 && (key === 'players' || key === 'roundAnswers')) ||
+        (path.length === 1 && path[0] === 'roundAnswers'))
     ) {
       result.push(
         ...changedFields(
-          previous as Record<string, unknown>,
+          (previous && typeof previous === 'object' && !Array.isArray(previous)
+            ? previous
+            : {}) as Record<string, unknown>,
           next as Record<string, unknown>,
           child,
         ),

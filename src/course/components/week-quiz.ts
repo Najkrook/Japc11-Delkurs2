@@ -2,6 +2,7 @@ import { html } from 'lit-html';
 import type {
   CourseHostContext,
   CourseProgressData,
+  CourseQuizQuestion,
   CourseTemplate,
   CourseWeek,
 } from '../types.ts';
@@ -16,6 +17,24 @@ const QUIZ_CAT_LABELS: Record<string, string> = {
   vocab: 'Ordförråd',
   kanji: 'Kanji',
 };
+
+export function recordQuizMistakes(
+  questions: CourseQuizQuestion[],
+  answers: Record<string, string>,
+  updateProgress: UpdateCourseProgress,
+): void {
+  questions.forEach((q) => {
+    const userAns = answers[q.id];
+    if (userAns !== undefined && userAns !== q.answer) {
+      if (q.vocabId) {
+        updateProgress({ type: 'mistake', kind: 'vocab', id: q.vocabId, mistake: true });
+      }
+      if (q.conjugationId) {
+        updateProgress({ type: 'mistake', kind: 'dojo', id: q.conjugationId, mistake: true });
+      }
+    }
+  });
+}
 
 export function renderWeekQuizModule(
   week: CourseWeek,
@@ -106,21 +125,7 @@ export function renderWeekQuizModule(
     const command = quizDrill.advance();
     if (command) {
       updateProgress(command);
-      questions.forEach((q) => {
-        const userAns = state.answers[q.id];
-        if (userAns !== undefined && userAns !== q.answer) {
-          const matchVocab = week.vocab.find(
-            (v) =>
-              q.prompt.includes(v.kana) ||
-              (v.kanji && q.prompt.includes(v.kanji)) ||
-              q.answer.includes(v.kana) ||
-              (v.kanji && q.answer.includes(v.kanji)),
-          );
-          if (matchVocab) {
-            updateProgress({ type: 'mistake', kind: 'vocab', id: matchVocab.id, mistake: true });
-          }
-        }
-      });
+      recordQuizMistakes(questions, state.answers, updateProgress);
     }
     host.render();
   };

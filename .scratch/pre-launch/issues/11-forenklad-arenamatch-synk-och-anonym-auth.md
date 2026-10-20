@@ -4,8 +4,8 @@
 
 **Blocked by:** 05 — Tydlig gästhantering och inloggningsfeedback i Arenamatch & Kontovy
 
-**Status:** ready-for-agent
+**Status:** done
 
-- [ ] En oinloggad student som skapar eller går med i en arenamatch kan autentiseras anonymt i bakgrunden så att rummet synkroniseras via molnet mellan olika enheter (med lokal fallback om molnet är otillgängligt)
-- [ ] Samtidiga svar från flera deltagare i samma runda registreras oberoende av varandra utan att skriva över varandras poäng eller avvisas p.g.a. millisekundavrundning
-- [ ] Säkerhetsregeltesterna i emulatorn (`npm run test:rules`) verifierar att deltagare endast kan uppdatera sitt eget deltagartillstånd och att samtidiga svar fungerar
+- [x] En oinloggad student som skapar eller går med i en arenamatch kan autentiseras anonymt i bakgrunden så att rummet synkroniseras via molnet mellan olika enheter (med lokal fallback om molnet är otillgängligt)
+- [x] Samtidiga svar från flera deltagare i samma runda registreras oberoende av varandra utan att skriva över varandras poäng eller avvisas p.g.a. millisekundavrundning
+- [x] Säkerhetsregeltesterna i emulatorn (`npm run test:rules`) verifierar att deltagare endast kan uppdatera sitt eget deltagartillstånd och att samtidiga svar fungerar

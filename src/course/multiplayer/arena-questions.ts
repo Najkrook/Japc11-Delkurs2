@@ -1,5 +1,5 @@
 import { courseWeeks } from '../data/index.ts';
-import { buildTeChoices } from '../study-drills.ts';
+import { buildNaiChoices, buildTaChoices, buildTeChoices } from '../study-drills.ts';
 import type { ArenaQuestion, ArenaRoomConfig, ArenaWeekFilter } from './arena-types.ts';
 import type { CourseWeek } from '../types.ts';
 
@@ -65,21 +65,55 @@ export function buildAllCourseArenaQuestions(
       });
     }
 
-    // 2. Generated Te-Form conjugation questions
+    // 2. Generated conjugation questions (te-form in W1-2, nai-form in W3, ta-form in W4)
     for (const conj of week.conjugations) {
-      const choices = shuffleArray(buildTeChoices(conj), rng);
-      bank.push({
-        id: `aq-te-${conj.id}`,
-        weekId: week.id,
-        lessonNumber: week.lessonNumber,
-        category: 'te-form',
-        badgeLabel: `Lektion ${week.lessonNumber} · て-form Dojo`,
-        prompt: `Vilken är rätt て-form av ${conj.dictionaryKanji} (${conj.dictionaryKana} — "${conj.sv}")?`,
-        highlightJp: `${conj.dictionaryKanji}（${conj.dictionaryKana}）`,
-        choices,
-        answer: conj.teFormKana,
-        explanationSv: `${conj.ruleLabelSv}: ${conj.dictionaryKanji} (${conj.dictionaryKana}) → ${conj.teFormKanji} (${conj.teFormKana}). ${conj.ruleExplanationSv}`,
-      });
+      if (week.lessonNumber === 8 || week.id === 'week-3') {
+        const target = conj.naiFormKana ?? conj.teFormKana;
+        const targetKanji = conj.naiFormKanji ?? conj.naiFormKana ?? conj.teFormKanji;
+        const choices = shuffleArray(buildNaiChoices(conj), rng);
+        bank.push({
+          id: `aq-te-${conj.id}`,
+          weekId: week.id,
+          lessonNumber: week.lessonNumber,
+          category: 'te-form',
+          badgeLabel: `Lektion ${week.lessonNumber} · ない-form Dojo`,
+          prompt: `Vilken är rätt ない-form av ${conj.dictionaryKanji} (${conj.dictionaryKana} — "${conj.sv}")?`,
+          highlightJp: `${conj.dictionaryKanji}（${conj.dictionaryKana}）`,
+          choices,
+          answer: target,
+          explanationSv: `${conj.ruleLabelSv}: ${conj.dictionaryKanji} (${conj.dictionaryKana}) → ${targetKanji} (${target}). ${conj.ruleExplanationSv}`,
+        });
+      } else if (week.lessonNumber === 9 || week.id === 'week-4') {
+        const target = conj.taFormKana ?? conj.teFormKana;
+        const targetKanji = conj.taFormKanji ?? conj.taFormKana ?? conj.teFormKanji;
+        const choices = shuffleArray(buildTaChoices(conj), rng);
+        bank.push({
+          id: `aq-te-${conj.id}`,
+          weekId: week.id,
+          lessonNumber: week.lessonNumber,
+          category: 'te-form',
+          badgeLabel: `Lektion ${week.lessonNumber} · た-form Dojo`,
+          prompt: `Vilken är rätt た-form av ${conj.dictionaryKanji} (${conj.dictionaryKana} — "${conj.sv}")?`,
+          highlightJp: `${conj.dictionaryKanji}（${conj.dictionaryKana}）`,
+          choices,
+          answer: target,
+          explanationSv: `${conj.ruleLabelSv}: ${conj.dictionaryKanji} (${conj.dictionaryKana}) → ${targetKanji} (${target}). ${conj.ruleExplanationSv}`,
+        });
+      } else {
+        const choices = shuffleArray(buildTeChoices(conj), rng);
+        bank.push({
+          id: `aq-te-${conj.id}`,
+          weekId: week.id,
+          lessonNumber: week.lessonNumber,
+          category: 'te-form',
+          badgeLabel: `Lektion ${week.lessonNumber} · て-form Dojo`,
+          prompt: `Vilken är rätt て-form av ${conj.dictionaryKanji} (${conj.dictionaryKana} — "${conj.sv}")?`,
+          highlightJp: `${conj.dictionaryKanji}（${conj.dictionaryKana}）`,
+          choices,
+          answer: conj.teFormKana,
+          explanationSv: `${conj.ruleLabelSv}: ${conj.dictionaryKanji} (${conj.dictionaryKana}) → ${conj.teFormKanji} (${conj.teFormKana}). ${conj.ruleExplanationSv}`,
+        });
+      }
     }
 
     // 3. Generated Vocabulary questions (JP -> SV and SV -> JP)

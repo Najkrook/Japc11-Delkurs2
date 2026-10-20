@@ -217,7 +217,13 @@ export function renderVocabModule(
                               title="Lyssna på uttal"
                               @click=${(e: Event) => {
                                 e.stopPropagation();
-                                host.speak(current.kana, e.currentTarget as HTMLElement);
+                                const result = host.speak(
+                                  current.kana,
+                                  e.currentTarget as HTMLElement,
+                                );
+                                if (result === 'no-voice') {
+                                  host.announce?.('Din enhet saknar japansk talsyntesröst');
+                                }
                               }}
                             >
                               🔊 Lyssna
@@ -310,8 +316,15 @@ export function renderVocabModule(
                                   type="button"
                                   class="course-tts-inline"
                                   title="Lyssna"
-                                  @click=${(e: Event) =>
-                                    host.speak(item.kana, e.currentTarget as HTMLElement)}
+                                  @click=${(e: Event) => {
+                                    const result = host.speak(
+                                      item.kana,
+                                      e.currentTarget as HTMLElement,
+                                    );
+                                    if (result === 'no-voice') {
+                                      host.announce?.('Din enhet saknar japansk talsyntesröst');
+                                    }
+                                  }}
                                 >
                                   🔊
                                 </button>`
@@ -513,8 +526,15 @@ export function renderGrammarModule(
                                 type="button"
                                 class="course-tts-inline"
                                 title="Lyssna"
-                                @click=${(e: Event) =>
-                                  host.speak(ex.kana || ex.jp, e.currentTarget as HTMLElement)}
+                                @click=${(e: Event) => {
+                                  const result = host.speak(
+                                    ex.kana || ex.jp,
+                                    e.currentTarget as HTMLElement,
+                                  );
+                                  if (result === 'no-voice') {
+                                    host.announce?.('Din enhet saknar japansk talsyntesröst');
+                                  }
+                                }}
                               >
                                 🔊
                               </button>`

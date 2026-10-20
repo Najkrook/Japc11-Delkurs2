@@ -8,7 +8,21 @@ import type {
 } from './arena-types.ts';
 import { ArenaMatch, ARENA_BOT_PRESETS } from './arena-match.ts';
 import { systemArenaRuntime, type ArenaRuntime } from './arena-runtime.ts';
+import { ensureAnonymousAuth } from '../../cloud.ts';
 export { ARENA_BOT_PRESETS, type BotPreset } from './arena-match.ts';
+
+async function defaultEnsureAuth(): Promise<string | null> {
+  if (
+    typeof window === 'undefined' &&
+    typeof process !== 'undefined' &&
+    !process.env.FIRESTORE_EMULATOR_HOST &&
+    !process.env.FIREBASE_AUTH_EMULATOR_HOST
+  ) {
+    return null;
+  }
+  const user = await ensureAnonymousAuth().catch(() => null);
+  return user?.uid || null;
+}
 
 export function generateRoomCode(random: () => number = Math.random): string {
   return String(Math.floor(1000 + random() * 9000));
@@ -36,15 +50,19 @@ export class CourseArenaManager {
   private roomUnsub: (() => void) | null = null;
   private openRoomsUnsub: (() => void) | null = null;
   private onUpdateCallback: (() => void) | null = null;
+  private listeners: Set<() => void> = new Set();
   private store: ArenaStore = localArenaStore;
   private storeFactory: (loggedIn: boolean) => ArenaStore;
+  private ensureAuth: () => Promise<string | null>;
 
   constructor(
     storeFactory = (loggedIn: boolean) => (loggedIn ? cloudArenaStore : localArenaStore),
     runtime: ArenaRuntime = systemArenaRuntime,
+    ensureAuth: () => Promise<string | null> = defaultEnsureAuth,
   ) {
     this.storeFactory = storeFactory;
     this.runtime = runtime;
+    this.ensureAuth = ensureAuth;
     this.match = new ArenaMatch(
       runtime,
       (transition) => this.change(transition),
@@ -87,30 +105,43 @@ export class CourseArenaManager {
       this.errorMessage = '';
     }
     if (!this.openRoomsUnsub) {
-      const generation = this.generation;
-      this.openRoomsUnsub = this.store.watchOpen(
-        (rooms) => {
-          if (generation !== this.generation) return;
-          this.openRooms = rooms
-            .map((r) => ({
-              roomId: r.roomId,
-              roomCode: r.roomCode,
-              hostName: r.hostName,
-              weekFilter: r.config.weekFilter,
-              focusMode: r.config.focusMode,
-              roundCount: r.questions.length,
-              playerCount: Object.keys(r.players).length,
-              createdAt: r.createdAt,
-            }))
-            .sort((a, b) => b.createdAt - a.createdAt);
-          // Defer synchronous store delivery until lifecycle binding has completed.
-          queueMicrotask(() => {
-            if (generation === this.generation) this.notify();
-          });
-        },
-        () => this.fail('Kunde inte hämta rum. Kontrollera anslutningen.'),
-      );
+      this.startWatchingOpenRooms();
     }
+  }
+
+  private startWatchingOpenRooms(): void {
+    this.openRoomsUnsub?.();
+    this.openRoomsUnsub = null;
+    const generation = this.generation;
+    this.openRoomsUnsub = this.store.watchOpen(
+      (rooms) => {
+        if (generation !== this.generation) return;
+        this.openRooms = rooms
+          .map((r) => ({
+            roomId: r.roomId,
+            roomCode: r.roomCode,
+            hostName: r.hostName,
+            weekFilter: r.config.weekFilter,
+            focusMode: r.config.focusMode,
+            roundCount: r.questions.length,
+            playerCount: Object.keys(r.players).length,
+            createdAt: r.createdAt,
+          }))
+          .sort((a, b) => b.createdAt - a.createdAt);
+        // Defer synchronous store delivery until lifecycle binding has completed.
+        queueMicrotask(() => {
+          if (generation === this.generation) this.notify();
+        });
+      },
+      () => {
+        if (!this.isLoggedIn && this.store !== localArenaStore) {
+          this.store = localArenaStore;
+          this.startWatchingOpenRooms();
+        } else {
+          this.fail('Kunde inte hämta rum. Kontrollera anslutningen.');
+        }
+      },
+    );
   }
 
   public getState() {
@@ -167,65 +198,111 @@ export class CourseArenaManager {
     };
   }
 
+  private async prepareStoreForAction(): Promise<{ uid: string; store: ArenaStore }> {
+    if (this.isLoggedIn) {
+      return { uid: this.localPlayerUid, store: this.store };
+    }
+    const anonUid = await this.ensureAuth().catch(() => null);
+    if (anonUid) {
+      this.localPlayerUid = anonUid;
+      const cloudStore = this.storeFactory(true);
+      if (this.store !== cloudStore) {
+        this.store = cloudStore;
+        this.startWatchingOpenRooms();
+      }
+      return { uid: anonUid, store: cloudStore };
+    }
+    const fallbackStore = this.storeFactory(false);
+    this.store = fallbackStore;
+    return { uid: this.localPlayerUid || this.guestUid, store: fallbackStore };
+  }
+
+  private async performCreateRoom(
+    store: ArenaStore,
+    uid: string,
+    withDefaultBot: boolean,
+    generation: number,
+  ): Promise<ArenaRoomDoc | null> {
+    for (let attempt = 0; attempt < 20; attempt++) {
+      const roomCode = generateRoomCode(() => this.runtime.random());
+      const now = this.runtime.now();
+      const players: Record<string, ArenaPlayer> = {
+        [uid]: this.makePlayer(uid, this.localPlayerName, '🦊'),
+      };
+      if (withDefaultBot) {
+        const bot = ARENA_BOT_PRESETS[0];
+        players[bot.id] = {
+          ...this.makePlayer(bot.id, bot.name, bot.avatar),
+          isBot: true,
+          botSkill: bot.skill,
+        };
+      }
+      const candidate: ArenaRoomDoc = {
+        roomId: `room-${roomCode}`,
+        roomCode,
+        hostUid: uid,
+        hostName: this.localPlayerName,
+        status: 'waiting',
+        config: { ...this.draftConfig },
+        players,
+        questions: generateArenaQuestionDeck(this.draftConfig, () => this.runtime.random()),
+        currentRoundIndex: 0,
+        roundStartedAt: 0,
+        roundAnswers: {},
+        createdAt: now,
+        updatedAt: now,
+      };
+      let collision = false;
+      const saved = await store
+        .change(candidate.roomId, (existing) => {
+          if (generation !== this.generation) throw new Error('session-changed');
+          collision = Boolean(existing);
+          if (existing) throw new Error('room-code-collision');
+          return candidate;
+        })
+        .catch((error) => {
+          if (collision) return null;
+          throw error;
+        });
+      if (generation !== this.generation) return null;
+      if (!saved) continue;
+      this.accept(saved);
+      this.subscribe(saved.roomId);
+      return saved;
+    }
+    this.fail('Kunde inte hitta en ledig rumskod. Försök igen.');
+    return null;
+  }
+
   public async createRoom(withDefaultBot = false): Promise<ArenaRoomDoc | null> {
     if (this.room) {
       await this.leaveRoom();
       if (this.room) return null;
     }
     const generation = this.generation;
-    const store = this.store;
-    const uid = this.localPlayerUid;
     this.errorMessage = '';
+    const { uid, store } = await this.prepareStoreForAction();
+    if (generation !== this.generation) return null;
+
     try {
-      for (let attempt = 0; attempt < 20; attempt++) {
-        const roomCode = generateRoomCode(() => this.runtime.random());
-        const now = this.runtime.now();
-        const players: Record<string, ArenaPlayer> = {
-          [uid]: this.makePlayer(uid, this.localPlayerName, '🦊'),
-        };
-        if (withDefaultBot) {
-          const bot = ARENA_BOT_PRESETS[0];
-          players[bot.id] = {
-            ...this.makePlayer(bot.id, bot.name, bot.avatar),
-            isBot: true,
-            botSkill: bot.skill,
-          };
-        }
-        const candidate: ArenaRoomDoc = {
-          roomId: `room-${roomCode}`,
-          roomCode,
-          hostUid: uid,
-          hostName: this.localPlayerName,
-          status: 'waiting',
-          config: { ...this.draftConfig },
-          players,
-          questions: generateArenaQuestionDeck(this.draftConfig, () => this.runtime.random()),
-          currentRoundIndex: 0,
-          roundStartedAt: 0,
-          roundAnswers: {},
-          createdAt: now,
-          updatedAt: now,
-        };
-        let collision = false;
-        const saved = await store
-          .change(candidate.roomId, (existing) => {
-            if (generation !== this.generation) throw new Error('session-changed');
-            collision = Boolean(existing);
-            if (existing) throw new Error('room-code-collision');
-            return candidate;
-          })
-          .catch((error) => {
-            if (collision) return null;
-            throw error;
-          });
-        if (generation !== this.generation) return null;
-        if (!saved) continue;
-        this.accept(saved);
-        this.subscribe(saved.roomId);
-        return saved;
-      }
-      this.fail('Kunde inte hitta en ledig rumskod. Försök igen.');
+      const room = await this.performCreateRoom(store, uid, withDefaultBot, generation);
+      if (room) return room;
     } catch {
+      if (!this.isLoggedIn && store !== localArenaStore) {
+        try {
+          this.store = localArenaStore;
+          this.localPlayerUid = this.guestUid;
+          const fallbackRoom = await this.performCreateRoom(
+            localArenaStore,
+            this.guestUid,
+            withDefaultBot,
+            generation,
+          );
+          if (fallbackRoom) return fallbackRoom;
+        } catch {
+          /* Fall through */
+        }
+      }
       this.fail('Rummet kunde inte sparas. Kontrollera anslutningen och försök igen.');
     }
     return null;
@@ -246,10 +323,12 @@ export class CourseArenaManager {
       if (this.room) return false;
     }
     const generation = this.generation;
-    const uid = this.localPlayerUid;
+    const { uid, store } = await this.prepareStoreForAction();
+    if (generation !== this.generation) return false;
+
     const player = this.makePlayer(uid, this.localPlayerName);
     try {
-      const room = await this.store.change(roomId, (current) => {
+      const room = await store.change(roomId, (current) => {
         if (generation !== this.generation) throw new Error('session-changed');
         if (!current) throw new Error('missing');
         if (!current.players[uid]) {
@@ -265,6 +344,31 @@ export class CourseArenaManager {
       this.subscribe(roomId);
       return true;
     } catch {
+      if (!this.isLoggedIn && store !== localArenaStore) {
+        try {
+          this.store = localArenaStore;
+          this.localPlayerUid = this.guestUid;
+          const localPlayer = this.makePlayer(this.guestUid, this.localPlayerName);
+          const localRoom = await localArenaStore.change(roomId, (current) => {
+            if (generation !== this.generation) throw new Error('session-changed');
+            if (!current) throw new Error('missing');
+            if (!current.players[this.guestUid]) {
+              if (current.status !== 'waiting') throw new Error('already-started');
+              current.players[this.guestUid] = localPlayer;
+              current.updatedAt = Math.max(this.runtime.now(), current.updatedAt + 1);
+            }
+            return current;
+          });
+          if (generation === this.generation && localRoom) {
+            this.errorMessage = '';
+            this.accept(localRoom);
+            this.subscribe(roomId);
+            return true;
+          }
+        } catch {
+          /* Fall through */
+        }
+      }
       this.fail(
         'Kunde inte ansluta. Rummet kan vara stängt, matchen startad eller anslutningen bruten.',
       );
@@ -392,8 +496,22 @@ export class CourseArenaManager {
     this.errorMessage = message;
     this.notify();
   }
+  public onStateChange(listener: () => void): () => void {
+    this.listeners.add(listener);
+    return () => {
+      this.listeners.delete(listener);
+    };
+  }
+
   private notify(): void {
     this.onUpdateCallback?.();
+    this.listeners.forEach((listener) => {
+      try {
+        listener();
+      } catch {
+        /* ignore subscriber error */
+      }
+    });
   }
 }
 

@@ -4,9 +4,9 @@
 
 **Blocked by:** 01 — Grön baslinje för CI, formatering och E2E-filtertest
 
-**Status:** ready-for-agent
+**Status:** done
 
-- [ ] Byte av kursvecka och studievy uppdaterar webbläsarens URL-hash, och sidladdning med en befintlig hash öppnar motsvarande vecka och vy direkt
-- [ ] Webbläsarens bakåt- och framåtknappar navigerar mellan tidigare besökta vyer i applikationen istället för att lämna webbplatsen
-- [ ] En direktlänk till ett arenarum (t.ex. med rumskod i URL-hashen) förifyller eller öppnar rummet i Kurs-Arena
-- [ ] E2E- eller enhetstest verifierar synkronisering mellan URL-hash och aktiv vy samt bakåtnavigering
+- [x] Byte av kursvecka och studievy uppdaterar webbläsarens URL-hash, och sidladdning med en befintlig hash öppnar motsvarande vecka och vy direkt
+- [x] Webbläsarens bakåt- och framåtknappar navigerar mellan tidigare besökta vyer i applikationen istället för att lämna webbplatsen
+- [x] En direktlänk till ett arenarum (t.ex. med rumskod i URL-hashen) förifyller eller öppnar rummet i Kurs-Arena
+- [x] E2E- eller enhetstest verifierar synkronisering mellan URL-hash och aktiv vy samt bakåtnavigering

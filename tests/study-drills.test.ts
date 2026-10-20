@@ -1,6 +1,7 @@
 import test from 'node:test';
 import assert from 'node:assert/strict';
 import { createStudyDrills, getDojoExpectedForm } from '../src/course/study-drills.ts';
+import { recordQuizMistakes } from '../src/course/components/week-quiz.ts';
 import { createCourseProgress, type CourseProgressCommand } from '../src/course/course-progress.ts';
 import { createFreshCourseProgress } from '../src/course/course-state.ts';
 import { courseWeeks } from '../src/course/data/index.ts';
@@ -150,7 +151,7 @@ test('Dojo builds four distinct choices for every course verb and filters betwee
     seen.add(state.current.id);
     assert.equal(state.choices.length, 4);
     assert.equal(new Set(state.choices).size, 4);
-    const expected = getDojoExpectedForm(state.current).kana;
+    const expected = getDojoExpectedForm(state.current, state.targetForm).kana;
     assert.ok(state.choices.includes(expected));
     drills.dojo.move(1);
   }
@@ -317,4 +318,100 @@ test('Misstagsbank: Dojo tracks failed verbs, filters to weak pool and clears on
   assert.equal(dojo().isCorrect, true);
   assert.equal(progress.snapshot().masteredDojoIds[targetVerb.id], true);
   assert.equal(progress.snapshot().mistakeDojoIds?.[targetVerb.id], undefined);
+});
+
+test('Misstagsbank: Weekly quiz connects mistakes explicitly to vocabId and conjugationId without false substring matches', () => {
+  const week = courseWeeks[0];
+  const { progress, update } = setup(week);
+
+  // w1-q07 wrong: particle question with "次の駅" which previously false-matched "つぎ"
+  // w1-q09 wrong: 消す -> vocabId 'w1-v04'
+  // w1-q01 wrong: 行く -> conjugationId 'w1-c09'
+  // w1-q06 wrong: 開ける -> vocabId 'w1-v14' & conjugationId 'w1-c12'
+  // w1-q02 correct: 遊ぶ -> conjugationId 'w1-c06'
+  const answers: Record<string, string> = {
+    'w1-q07': 'fel partikel',
+    'w1-q09': 'fel översättning',
+    'w1-q01': 'fel böjning',
+    'w1-q06': 'fel förfrågan',
+    'w1-q02': week.quiz.find((q) => q.id === 'w1-q02')!.answer,
+  };
+
+  recordQuizMistakes(week.quiz, answers, update);
+
+  const snapshot = progress.snapshot();
+
+  // 1. Exact vocab mistake registered
+  assert.equal(
+    snapshot.mistakeVocabIds?.['w1-v04'],
+    true,
+    'w1-v04 (消す) should be registered in vocab mistakes',
+  );
+  assert.equal(
+    snapshot.mistakeVocabIds?.['w1-v14'],
+    true,
+    'w1-v14 (開ける) should be registered in vocab mistakes',
+  );
+
+  // 2. Exact dojo mistake registered
+  assert.equal(
+    snapshot.mistakeDojoIds?.['w1-c09'],
+    true,
+    'w1-c09 (行く) should be registered in dojo mistakes',
+  );
+  assert.equal(
+    snapshot.mistakeDojoIds?.['w1-c12'],
+    true,
+    'w1-c12 (開ける) should be registered in dojo mistakes',
+  );
+
+  // 3. Question answered correctly is NOT in mistakes
+  assert.equal(
+    snapshot.mistakeDojoIds?.['w1-c06'],
+    undefined,
+    'w1-c06 (遊ぶ) was answered correctly and must not be marked weak',
+  );
+
+  // 4. Critical regression check: "次の駅" in w1-q07 prompt MUST NOT trigger false match on w1-v33 ("つぎ")
+  assert.equal(
+    snapshot.mistakeVocabIds?.['w1-v33'],
+    undefined,
+    'w1-v33 (つぎ) must NEVER be flagged as weak from unrelated question',
+  );
+
+  // 5. No other accidental entries exist in mistake banks
+  assert.deepEqual(Object.keys(snapshot.mistakeVocabIds || {}).sort(), ['w1-v04', 'w1-v14'].sort());
+  assert.deepEqual(Object.keys(snapshot.mistakeDojoIds || {}).sort(), ['w1-c09', 'w1-c12'].sort());
+});
+
+test('Misstagsbank: Substring kana overlaps without IDs produce zero mistake bank pollution', () => {
+  const { progress, update } = setup();
+
+  // Synthetic questions that have prompt substrings matching short kana words: "くに", "いく", "つぎ"
+  const trickyQuestions = [
+    {
+      id: 'mock-q1',
+      weekId: 'week-1',
+      category: 'grammar' as const,
+      prompt: '外国に行きます。次の駅で降ります。',
+      choices: ['A', 'B'],
+      answer: 'A',
+      explanationSv: 'Grammatiktest',
+    },
+    {
+      id: 'mock-q2',
+      weekId: 'week-1',
+      category: 'vocab' as const,
+      prompt: 'Vad betyder つぎ?',
+      choices: ['A', 'B'],
+      answer: 'A',
+      explanationSv: 'Exakt vocabId saknas på mock',
+    },
+  ];
+
+  recordQuizMistakes(trickyQuestions, { 'mock-q1': 'B', 'mock-q2': 'B' }, update);
+
+  const snapshot = progress.snapshot();
+  assert.deepEqual(snapshot.mistakeVocabIds || {}, {});
+  assert.deepEqual(snapshot.mistakeDojoIds || {}, {});
 });

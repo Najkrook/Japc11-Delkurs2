@@ -5,7 +5,7 @@ import type {
   CourseTemplate,
   CourseWeek,
 } from '../types.ts';
-import { getDojoExpectedForm, studyDrills } from '../study-drills.ts';
+import { studyDrills } from '../study-drills.ts';
 import { courseWeeks } from '../data/index.ts';
 import type { UpdateCourseProgress } from '../course-progress.ts';
 
@@ -46,14 +46,9 @@ export function renderTeFormDojo(
   onBackToHub: () => void,
 ): CourseTemplate {
   const state = dojoDrill.read(week, courseWeeks, progress);
-  const { current, index: safeIndex, choices, masteredCount, total } = state;
-  const expected = current ? getDojoExpectedForm(current) : { kana: '', kanji: '' };
+  const { current, index: safeIndex, choices, masteredCount, total, targetForm, expected } = state;
   const targetFormName =
-    current?.weekId === 'week-3'
-      ? 'ない-form'
-      : current?.weekId === 'week-4'
-        ? 'た-form'
-        : 'て-form';
+    targetForm === 'nai' ? 'ない-form' : targetForm === 'ta' ? 'た-form' : 'て-form';
 
   if (!current) {
     return html`<div class="course-empty-card">
@@ -137,6 +132,38 @@ export function renderTeFormDojo(
           ← Tillbaka till ${week.titleSv.split(':')[0]}
         </button>
         <div class="course-module-controls">
+          <div class="course-pill-switch" role="group" aria-label="Målform">
+            <button
+              type="button"
+              class=${targetForm === 'te' ? 'active' : ''}
+              @click=${() => {
+                dojoDrill.selectTargetForm('te');
+                host.render();
+              }}
+            >
+              て-form
+            </button>
+            <button
+              type="button"
+              class=${targetForm === 'nai' ? 'active' : ''}
+              @click=${() => {
+                dojoDrill.selectTargetForm('nai');
+                host.render();
+              }}
+            >
+              ない-form
+            </button>
+            <button
+              type="button"
+              class=${targetForm === 'ta' ? 'active' : ''}
+              @click=${() => {
+                dojoDrill.selectTargetForm('ta');
+                host.render();
+              }}
+            >
+              た-form
+            </button>
+          </div>
           <div class="course-pill-switch" role="group" aria-label="Urval i Dojo">
             <button
               type="button"
@@ -220,9 +247,9 @@ export function renderTeFormDojo(
           <span
             >🎵 Minnesschema:
             ${
-              week.lessonNumber === 8
+              targetForm === 'nai'
                 ? 'Böjningsregler för kortform nekande (ない-form)'
-                : week.lessonNumber === 9
+                : targetForm === 'ta'
                   ? 'Böjningsregler för dåtid i kortform (た-form)'
                   : 'Alla て-form-regler på 10 sekunder'
             }</span
@@ -231,7 +258,7 @@ export function renderTeFormDojo(
         </summary>
         <div class="dojo-rules-grid">
           ${
-            week.lessonNumber === 8
+            targetForm === 'nai'
               ? html`
                   <div class="dojo-rule-chip">
                     <strong>う → わない</strong>
@@ -258,7 +285,7 @@ export function renderTeFormDojo(
                     <span>する → しない · 来る(くる) → こない · ある → ない</span>
                   </div>
                 `
-              : week.lessonNumber === 9
+              : targetForm === 'ta'
                 ? html`
                     <div class="dojo-rule-chip">
                       <strong>う・つ・る → った</strong>
@@ -356,6 +383,11 @@ export function renderTeFormDojo(
           <div class="dojo-verb-sub">
             <span>ます-form: <strong lang="ja">${current.politeMasu}</strong></span>
             <span>Betydelse: <strong>${current.sv}</strong></span>
+            ${
+              current.teFormKana && (targetFormName !== 'て-form' || state.revealed)
+                ? html`<span>て-form: <strong lang="ja">${current.teFormKana}</strong></span>`
+                : ''
+            }
             ${
               current.naiFormKana && (targetFormName !== 'ない-form' || state.revealed)
                 ? html`<span

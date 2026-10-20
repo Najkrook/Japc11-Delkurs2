@@ -12,9 +12,69 @@ import {
 } from './components/flashcard-deck.ts';
 import { renderWeekQuizModule } from './components/week-quiz.ts';
 import { renderCourseArenaModule } from './components/course-arena.ts';
-import { renderExtraStudiesModule } from './components/extra-studies.ts';
 import { renderHubStampBadge, renderMiniStamp } from './components/stamp-medal.ts';
 import { courseProgressPersistence } from '../cloud.ts';
+
+type ExtraStudiesModule = typeof import('./components/extra-studies.ts');
+let extraStudiesModule: ExtraStudiesModule | null = null;
+let extraStudiesLoadingPromise: Promise<ExtraStudiesModule> | null = null;
+let extraStudiesLoadError: Error | null = null;
+
+export function loadExtraStudiesModule(host?: CourseHostContext): Promise<ExtraStudiesModule> {
+  if (extraStudiesModule) {
+    return Promise.resolve(extraStudiesModule);
+  }
+  if (extraStudiesLoadingPromise) {
+    return extraStudiesLoadingPromise;
+  }
+  extraStudiesLoadError = null;
+  extraStudiesLoadingPromise = import('./components/extra-studies.ts')
+    .then((mod) => {
+      extraStudiesModule = mod;
+      extraStudiesLoadingPromise = null;
+      host?.render();
+      return mod;
+    })
+    .catch((err) => {
+      extraStudiesLoadError = err instanceof Error ? err : new Error(String(err));
+      extraStudiesLoadingPromise = null;
+      host?.render();
+      throw err;
+    });
+  return extraStudiesLoadingPromise;
+}
+
+function renderExtraStudiesPlaceholder(host: CourseHostContext): CourseTemplate {
+  if (!extraStudiesModule && !extraStudiesLoadingPromise && !extraStudiesLoadError) {
+    loadExtraStudiesModule(host).catch(() => {});
+  }
+
+  if (extraStudiesLoadError) {
+    return html`
+      <div class="course-loading course-loading-error" role="alert">
+        <p>Kunde inte ladda extra studiematerial.</p>
+        <button
+          type="button"
+          class="course-btn-primary"
+          @click=${() => {
+            extraStudiesLoadError = null;
+            loadExtraStudiesModule(host).catch(() => {});
+            host.render();
+          }}
+        >
+          Försök igen
+        </button>
+      </div>
+    `;
+  }
+
+  return html`
+    <div class="course-loading" role="status" aria-live="polite">
+      <div class="course-loading-spinner" aria-hidden="true"></div>
+      <div>Laddar extra studiematerial...</div>
+    </div>
+  `;
+}
 
 export const courseProgress = createCourseProgress(courseProgressPersistence, studyDrills.reset);
 
@@ -56,6 +116,9 @@ export function selectCourseWeek(weekId: string, host?: CourseHostContext): void
 
 export function selectCourseSubView(subView: CourseSubView, host?: CourseHostContext): void {
   courseProgress.update({ type: 'subview', subView });
+  if (subView === 'extra' && !extraStudiesModule) {
+    loadExtraStudiesModule(host).catch(() => {});
+  }
   host?.render();
 }
 
@@ -163,42 +226,66 @@ export function renderCourseShell(host: CourseHostContext): CourseTemplate {
               ${host.theme === 'sakura' ? '🍵 Washi' : '🌸 Sakura'}
             </button>
 
-            <button
-              type="button"
-              class="course-account-btn ${host.user ? 'logged-in' : ''} ${host.user?.photoURL ? 'has-avatar' : ''}"
-              ?disabled=${host.authBusy}
-              @click=${host.account}
-              title=${
-                host.user
-                  ? `Inloggad som ${host.user.displayName || host.user.email || 'användare'} · Klicka för att logga ut`
-                  : 'Logga in med Google'
-              }
-            >
+            <div class="course-account-wrapper">
+              <button
+                type="button"
+                class="course-account-btn ${host.user ? 'logged-in' : ''} ${host.user?.photoURL ? 'has-avatar' : ''}"
+                ?disabled=${host.authBusy}
+                @click=${host.account}
+                title=${
+                  host.user
+                    ? `Inloggad som ${host.user.displayName || host.user.email || 'användare'} · Klicka för att logga ut`
+                    : 'Logga in med Google'
+                }
+              >
+                ${
+                  host.user
+                    ? html`
+                        ${
+                          host.user.photoURL
+                            ? html`<img
+                                class="course-account-avatar"
+                                src=${host.user.photoURL}
+                                alt=""
+                                referrerpolicy="no-referrer"
+                                loading="lazy"
+                              />`
+                            : html`<span class="course-account-fallback-avatar">
+                                ${
+                                  host.user.displayName
+                                    ? host.user.displayName.trim().charAt(0).toUpperCase()
+                                    : '👤'
+                                }
+                              </span>`
+                        }
+                        <span class="course-account-name">${host.user.displayName || 'Konto'}</span>
+                      `
+                    : 'Logga in'
+                }
+              </button>
+
               ${
-                host.user
+                host.authError
                   ? html`
-                      ${
-                        host.user.photoURL
-                          ? html`<img
-                              class="course-account-avatar"
-                              src=${host.user.photoURL}
-                              alt=""
-                              referrerpolicy="no-referrer"
-                              loading="lazy"
-                            />`
-                          : html`<span class="course-account-fallback-avatar">
-                              ${
-                                host.user.displayName
-                                  ? host.user.displayName.trim().charAt(0).toUpperCase()
-                                  : '👤'
-                              }
-                            </span>`
-                      }
-                      <span class="course-account-name">${host.user.displayName || 'Konto'}</span>
+                      <div
+                        class="course-account-error-badge"
+                        role="alert"
+                        data-testid="course-account-error"
+                      >
+                        <span class="error-text">⚠️ ${host.authError}</span>
+                        <button
+                          type="button"
+                          class="error-dismiss-btn"
+                          aria-label="Stäng meddelande"
+                          @click=${() => host.clearAuthError?.()}
+                        >
+                          ×
+                        </button>
+                      </div>
                     `
-                  : 'Logga in'
+                  : ''
               }
-            </button>
+            </div>
           </div>
         </div>
       </header>
@@ -359,11 +446,37 @@ export function renderCourseShell(host: CourseHostContext): CourseTemplate {
                       : subView === 'arena'
                         ? renderCourseArenaModule(host, goHub)
                         : subView === 'extra'
-                          ? renderExtraStudiesModule(host, goHub)
+                          ? extraStudiesModule
+                            ? extraStudiesModule.renderExtraStudiesModule(host, goHub)
+                            : renderExtraStudiesPlaceholder(host)
                           : renderWeekQuizModule(week, progress, host, courseProgress.update, goHub)
           }
         </main>
       </div>
+
+      ${
+        host.speechNotice
+          ? html`
+              <div
+                class="course-speech-toast"
+                role="status"
+                aria-live="polite"
+                data-testid="speech-toast"
+              >
+                <span class="course-speech-toast-icon" aria-hidden="true">🔊</span>
+                <span class="course-speech-toast-text">${host.speechNotice}</span>
+                <button
+                  type="button"
+                  class="course-speech-toast-dismiss"
+                  aria-label="Stäng notis"
+                  @click=${() => host.clearSpeechNotice?.()}
+                >
+                  ✕
+                </button>
+              </div>
+            `
+          : ''
+      }
 
       <footer class="course-footer">
         <span>${host.status} · JAPC11 Delkurs 2 (Genki I Lektion 6–9)</span>

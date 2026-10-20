@@ -95,6 +95,8 @@ export interface CourseQuizQuestion {
   answer: string;
   acceptedAnswers?: string[];
   explanationSv: string;
+  vocabId?: string;
+  conjugationId?: string;
 }
 
 export interface CourseWeek {
@@ -144,8 +146,13 @@ export interface CourseHostContext {
     photoURL?: string | null;
   } | null;
   authBusy?: boolean;
+  authError?: string | null;
+  clearAuthError?: () => void;
+  speechNotice?: string | null;
+  clearSpeechNotice?: () => void;
+  onLogin?: () => void;
   account: () => void;
-  speak: (text: string, button?: HTMLElement | null) => void;
+  speak: (text: string, button?: HTMLElement | null) => 'ok' | 'no-voice' | 'unsupported' | void;
   tts: boolean;
   status: string;
   render: () => void;

@@ -4,9 +4,9 @@
 
 **Blocked by:** 01 — Grön baslinje för CI, formatering och E2E-filtertest
 
-**Status:** ready-for-agent
+**Status:** done
 
-- [ ] På mobilvy (375×812 px) är den klistrade toppmenyn kompakt (navigeringsvalen ligger på en horisontellt skrollbar rad eller motsvarande kompakt layout) och upptar högst ~15 % av skärmhöjden
-- [ ] Vid sidladdning på mobilvy börjar det primära studieinnehållet ovanför skrollgränsen (above the fold), utan att en hel sidopanel på flera hundra pixlar tvingar studenten att skrolla för att se kursmaterialet
-- [ ] Ljudknappar och sekundära navigeringsknappar har en tillräcklig tryckyta på pekskärmar
-- [ ] Playwright-test i mobilvy verifierar att toppmenyn är kompakt och att huvudytan syns utan skrollning
+- [x] På mobilvy (375×812 px) är den klistrade toppmenyn kompakt (navigeringsvalen ligger på en horisontellt skrollbar rad eller motsvarande kompakt layout) och upptar högst ~15 % av skärmhöjden
+- [x] Vid sidladdning på mobilvy börjar det primära studieinnehållet ovanför skrollgränsen (above the fold), utan att en hel sidopanel på flera hundra pixlar tvingar studenten att skrolla för att se kursmaterialet
+- [x] Ljudknappar och sekundära navigeringsknappar har en tillräcklig tryckyta på pekskärmar
+- [x] Playwright-test i mobilvy verifierar att toppmenyn är kompakt och att huvudytan syns utan skrollning

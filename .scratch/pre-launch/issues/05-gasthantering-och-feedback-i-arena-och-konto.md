@@ -4,9 +4,9 @@
 
 **Blocked by:** 01 — Grön baslinje för CI, formatering och E2E-filtertest
 
-**Status:** ready-for-agent
+**Status:** done
 
-- [ ] I Kurs-Arenas lobby och väntrum ser oinloggade gäster en tydlig upplysning om att gästläge endast fungerar lokalt i samma webbläsare, med en direktknapp för att logga in inför spel med kurskamrater
-- [ ] När en inloggning misslyckas eller avbryts visas återkopplingen i anslutning till kontoknappen/toppmenyn så att användaren ser den utan att skrolla till sidfoten
-- [ ] När en enhet saknar japansk röst för talsyntes visas ett begripligt meddelande vid försök att spela upp uttal istället för tyst misslyckande
-- [ ] Test verifierar att gästupplysningen renderas i Kurs-Arena när användaren är utloggad
+- [x] I Kurs-Arenas lobby och väntrum ser oinloggade gäster en tydlig upplysning om att gästläge endast fungerar lokalt i samma webbläsare, med en direktknapp för att logga in inför spel med kurskamrater
+- [x] När en inloggning misslyckas eller avbryts visas återkopplingen i anslutning till kontoknappen/toppmenyn så att användaren ser den utan att skrolla till sidfoten
+- [x] När en enhet saknar japansk röst för talsyntes visas ett begripligt meddelande vid försök att spela upp uttal istället för tyst misslyckande
+- [x] Test verifierar att gästupplysningen renderas i Kurs-Arena när användaren är utloggad

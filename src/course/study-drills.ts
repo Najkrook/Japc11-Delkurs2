@@ -73,21 +73,34 @@ export function buildTaChoices(item: VerbConjugationItem): string[] {
   return [...candidates].sort((a, b) => a.localeCompare(b, 'ja'));
 }
 
-export function getDojoExpectedForm(item: VerbConjugationItem): { kana: string; kanji: string } {
-  if (item.weekId === 'week-3' && item.naiFormKana) {
+export type DojoTargetForm = 'te' | 'nai' | 'ta';
+
+export function getWeekDefaultTargetForm(weekId: string): DojoTargetForm {
+  if (weekId === 'week-3') return 'nai';
+  if (weekId === 'week-4') return 'ta';
+  return 'te';
+}
+
+export function getDojoExpectedForm(
+  item: VerbConjugationItem,
+  targetForm?: DojoTargetForm,
+): { kana: string; kanji: string } {
+  const form = targetForm ?? getWeekDefaultTargetForm(item.weekId);
+  if (form === 'nai' && item.naiFormKana) {
     return { kana: item.naiFormKana, kanji: item.naiFormKanji || item.naiFormKana };
   }
-  if (item.weekId === 'week-4' && item.taFormKana) {
+  if (form === 'ta' && item.taFormKana) {
     return { kana: item.taFormKana, kanji: item.taFormKanji || item.taFormKana };
   }
   return { kana: item.teFormKana, kanji: item.teFormKanji };
 }
 
-export function buildDojoChoices(item: VerbConjugationItem): string[] {
-  if (item.weekId === 'week-3' && item.naiFormKana) {
+export function buildDojoChoices(item: VerbConjugationItem, targetForm?: DojoTargetForm): string[] {
+  const form = targetForm ?? getWeekDefaultTargetForm(item.weekId);
+  if (form === 'nai') {
     return buildNaiChoices(item);
   }
-  if (item.weekId === 'week-4' && item.taFormKana) {
+  if (form === 'ta') {
     return buildTaChoices(item);
   }
   return buildTeChoices(item);
@@ -193,6 +206,7 @@ function createVocabDrill() {
 function createDojoDrill() {
   let weekId = '';
   let weekFilter: 'current' | 'all' | 'mistakes' = 'current';
+  let explicitTargetForm: DojoTargetForm | 'auto' = 'auto';
   let pool: VerbConjugationItem[] = [];
   let index = 0;
   let selectedAnswer: string | null = null;
@@ -207,18 +221,23 @@ function createDojoDrill() {
     weekId = '';
     pool = [];
     index = 0;
+    explicitTargetForm = 'auto';
     clearAnswer();
   }
   function move(delta: number) {
     index = wrap(index + delta, pool.length);
     clearAnswer();
   }
+  function currentTargetForm(): DojoTargetForm {
+    return explicitTargetForm === 'auto' ? getWeekDefaultTargetForm(weekId) : explicitTargetForm;
+  }
   function submit(answer: string): CourseProgressCommand | null {
     const current = pool[index];
     const clean = normalizeJp(answer);
     if (!current || !clean || selectedAnswer !== null) return null;
     selectedAnswer = answer;
-    const expected = getDojoExpectedForm(current);
+    const form = currentTargetForm();
+    const expected = getDojoExpectedForm(current, form);
     isCorrect = clean === normalizeJp(expected.kana) || clean === normalizeJp(expected.kanji);
     return {
       type: 'mastery',
@@ -243,23 +262,32 @@ function createDojoDrill() {
             : week.conjugations;
       index = wrap(index, pool.length);
       const current = pool[index];
+      const form = currentTargetForm();
+      const expected = current ? getDojoExpectedForm(current, form) : { kana: '', kanji: '' };
       return {
         current,
         index,
         total: pool.length,
         weekFilter,
+        targetForm: form,
+        expected,
         selectedAnswer,
         typedAnswer,
         isCorrect,
         revealed: selectedAnswer !== null,
-        choices: current ? buildDojoChoices(current) : [],
+        choices: current ? buildDojoChoices(current, form) : [],
         masteredCount: pool.filter((item) => progress.masteredDojoIds[item.id]).length,
         mistakeCount: mistakeVerbs.length,
       };
     },
     selectFilter(next: 'current' | 'all' | 'mistakes') {
       weekFilter = next;
-      reset();
+      index = 0;
+      clearAnswer();
+    },
+    selectTargetForm(form: DojoTargetForm | 'auto') {
+      explicitTargetForm = form;
+      clearAnswer();
     },
     setInput(value: string) {
       if (selectedAnswer === null) typedAnswer = value;

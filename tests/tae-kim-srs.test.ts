@@ -1,11 +1,12 @@
 import test from 'node:test';
 import assert from 'node:assert/strict';
 import { taeKimSrs } from '../src/course/tae-kim-srs.ts';
-import { TAE_KIM_ARCS, getAllChapters } from '../src/course/data/taeKimData.ts';
+import { CHAPTER_SIZE, TAE_KIM_ARCS, TAE_KIM_CARDS } from '../src/course/data/taeKimData.ts';
 
 test('Tae Kim Data: Has 2 075 cards and 208 chapters across 6 Arcs', () => {
-  const chapters = getAllChapters();
-  assert.equal(chapters.length, 208);
+  const chapterCount = Math.ceil(TAE_KIM_CARDS.length / CHAPTER_SIZE);
+  assert.equal(TAE_KIM_CARDS.length, 2075);
+  assert.equal(chapterCount, 208);
   assert.equal(TAE_KIM_ARCS.length, 6);
   assert.equal(TAE_KIM_ARCS[0].startChapter, 1);
   assert.equal(TAE_KIM_ARCS[5].endChapter, 208);
@@ -44,10 +45,7 @@ test('Tae Kim SRS: Canonical SM-2 updates intervals, ease factor, and review dat
   assert.equal(card3.interval, 3);
 });
 
-test('Tae Kim SRS: Chapters and bookmarks track independently without touching course state', () => {
-  taeKimSrs.markChapterCompleted(0, true);
-  assert.equal(taeKimSrs.isChapterCompleted(0), true);
-
+test('Tae Kim SRS: Bookmarks track independently without touching course state', () => {
   const saved1 = taeKimSrs.toggleBookmark(42);
   assert.equal(saved1, true);
   assert.equal(taeKimSrs.isBookmarked(42), true);

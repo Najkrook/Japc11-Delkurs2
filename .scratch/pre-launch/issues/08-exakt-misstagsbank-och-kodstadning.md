@@ -4,8 +4,8 @@
 
 **Blocked by:** 06 — Autentiska glosor och kanji-fält för Lektion 6–9
 
-**Status:** ready-for-agent
+**Status:** done
 
-- [ ] Frågor i veckotesten knyts till exakt rätt glos- eller böjningspost i misstagsbanken utan oavsiktlig delsträngsmatchning på korta kana-sekvenser
-- [ ] Oanvända/döda funktioner och typer för kursframsteg och kapitelhierarki som inte anropas någonstans i applikationen är bortstädade
-- [ ] Enhetstest verifierar att ett felsvar på en veckotestfråga endast registrerar den avsedda glosan/böjningen i misstagsbanken
+- [x] Frågor i veckotesten knyts till exakt rätt glos- eller böjningspost i misstagsbanken utan oavsiktlig delsträngsmatchning på korta kana-sekvenser
+- [x] Oanvända/döda funktioner och typer för kursframsteg och kapitelhierarki som inte anropas någonstans i applikationen är bortstädade
+- [x] Enhetstest verifierar att ett felsvar på en veckotestfråga endast registrerar den avsedda glosan/böjningen i misstagsbanken

@@ -278,19 +278,6 @@ class TaeKimSrsService {
     return Boolean(this.state.bookmarks[cardIndex]);
   }
 
-  public markChapterCompleted(chapterIndex: number, completed: boolean = true): void {
-    if (completed) {
-      this.state.completedChapters[chapterIndex] = true;
-    } else {
-      delete this.state.completedChapters[chapterIndex];
-    }
-    this.save();
-  }
-
-  public isChapterCompleted(chapterIndex: number): boolean {
-    return Boolean(this.state.completedChapters[chapterIndex]);
-  }
-
   public toggleAutoPlay(): boolean {
     this.state.autoPlayAudio = !this.state.autoPlayAudio;
     this.save();
@@ -303,13 +290,6 @@ class TaeKimSrsService {
       .filter((p) => p.nextReviewDate <= now)
       .map((p) => p.cardIndex)
       .sort((a, b) => a - b);
-  }
-
-  public getWeakCardIndices(): number[] {
-    return Object.values(this.state.cardProgress)
-      .filter((p) => p.totalErrors > 0 || p.lapses > 0)
-      .sort((a, b) => b.totalErrors + b.lapses - (a.totalErrors + a.lapses))
-      .map((p) => p.cardIndex);
   }
 
   public getArcStats(arc: TaeKimArc): {

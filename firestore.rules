@@ -56,7 +56,7 @@ service cloud.firestore {
         let roundMs = resource.data.config.roundDurationSeconds * 1000;
         let streakBonus = before.streak >= 3 ? 300 : before.streak * 100;
         return resource.data.status == 'question'
-          && request.time.toMillis() < resource.data.roundStartedAt + resource.data.config.roundDurationSeconds * 1000
+          && request.time.toMillis() < resource.data.roundStartedAt + roundMs + 5000
           && !(uid in beforeAnswers)
           && request.resource.data.diff(resource.data).affectedKeys().hasOnly(['players', 'roundAnswers', 'updatedAt'])
           && ownPlayerChange() && ownPlayerShape(after)
@@ -69,10 +69,11 @@ service cloud.firestore {
           && answer.pointsAwarded is int
           && answer.pointsAwarded == (answer.correct ? 500 + int(math.round(answer.timeRemainingMs * 500.0 / roundMs)) + streakBonus : 0)
           && answer.answeredAt is int
-          && answer.answeredAt >= resource.data.roundStartedAt
-          && answer.answeredAt <= request.time.toMillis()
-          && answer.timeRemainingMs is int && answer.timeRemainingMs >= 0
-          && answer.timeRemainingMs == roundMs - (answer.answeredAt - resource.data.roundStartedAt)
+          && answer.answeredAt >= resource.data.roundStartedAt - 3000
+          && answer.answeredAt <= request.time.toMillis() + 10000
+          && answer.timeRemainingMs is int && answer.timeRemainingMs >= 0 && answer.timeRemainingMs <= roundMs
+          && answer.timeRemainingMs - (roundMs - (answer.answeredAt - resource.data.roundStartedAt)) >= -1000
+          && answer.timeRemainingMs - (roundMs - (answer.answeredAt - resource.data.roundStartedAt)) <= 1000
           && after.score == before.score + answer.pointsAwarded
           && after.streak == (answer.correct ? before.streak + 1 : 0)
           && after.correctCount == before.correctCount + (answer.correct ? 1 : 0);

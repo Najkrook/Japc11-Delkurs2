@@ -23,6 +23,27 @@ const FOCUS_MODE_LABELS: Record<ArenaFocusMode, string> = {
   grammar: 'Grammatik',
 };
 
+export function renderArenaGuestBanner(host: CourseHostContext): CourseTemplate {
+  if (host.user) return html``;
+  return html`
+    <div class="arena-guest-banner" data-testid="arena-guest-banner" role="note">
+      <div class="arena-guest-banner-icon" aria-hidden="true">💡</div>
+      <div class="arena-guest-banner-body">
+        <strong>Gästläge:</strong> Detta rum körs lokalt i din webbläsare. För att spela i realtid
+        mot kurskamrater på andra mobiler och datorer, logga in med Google.
+      </div>
+      <button
+        type="button"
+        class="course-btn-primary arena-guest-login-btn"
+        data-testid="arena-guest-login-btn"
+        @click=${() => (host.onLogin ? host.onLogin() : host.account())}
+      >
+        Logga in
+      </button>
+    </div>
+  `;
+}
+
 export function renderCourseArenaModule(
   host: CourseHostContext,
   onBackToHub: () => void,
@@ -50,7 +71,7 @@ export function renderCourseArenaModule(
 
 function renderArenaLobby(
   state: ReturnType<typeof courseArenaManager.getState>,
-  _host: CourseHostContext,
+  host: CourseHostContext,
   onBackToHub: () => void,
 ): CourseTemplate {
   const { draftConfig, openRooms, joinCodeInput, errorMessage, localPlayerName } = state;
@@ -75,6 +96,7 @@ function renderArenaLobby(
         </div>
       </div>
 
+      ${renderArenaGuestBanner(host)}
       ${
         errorMessage
           ? html`<div class="arena-error-toast" role="alert">⚠️ ${errorMessage}</div>`
@@ -295,6 +317,8 @@ function renderArenaWaitingRoom(
           ${FOCUS_MODE_LABELS[room.config.focusMode]}
         </span>
       </div>
+
+      ${renderArenaGuestBanner(host)}
 
       <div class="arena-waiting-hero">
         <div class="arena-room-code-showcase">

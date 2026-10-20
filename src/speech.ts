@@ -23,7 +23,11 @@ if (ttsSupported()) {
 
 export function speak(
   text: string,
-  { rate = 0.9, onend }: { rate?: number; onend?: () => void } = {},
+  {
+    rate = 0.9,
+    onend,
+    onNoVoice,
+  }: { rate?: number; onend?: () => void; onNoVoice?: () => void } = {},
 ): 'ok' | 'no-voice' | 'unsupported' {
   if (!ttsSupported() || !text) return 'unsupported';
   speechSynthesis.cancel();
@@ -34,9 +38,17 @@ export function speak(
   u.rate = rate;
   u.onend = u.onerror = () => onend?.();
   speechSynthesis.speak(u);
-  return !voice && loaded ? 'no-voice' : 'ok';
+  const result = !voice && loaded > 0 ? 'no-voice' : 'ok';
+  if (result === 'no-voice') {
+    onNoVoice?.();
+  }
+  return result;
 }
 
 export const stopSpeech = (): void => {
   if (ttsSupported()) speechSynthesis.cancel();
 };
+
+export function resetVoiceForTesting(): void {
+  voice = null;
+}

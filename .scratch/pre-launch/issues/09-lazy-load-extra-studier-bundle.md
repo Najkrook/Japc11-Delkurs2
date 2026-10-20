@@ -4,8 +4,8 @@
 
 **Blocked by:** 01 — Grön baslinje för CI, formatering och E2E-filtertest
 
-**Status:** ready-for-agent
+**Status:** done
 
-- [ ] Startpaketet vid första sidladdning innehåller inte den stora Tae Kim-datamängden, och produktionsbygget (`npm run build`) passerar utan varningar för för stora paket (> 500 kB)
-- [ ] När studenten öppnar fliken "Extra studier" laddas modulen och dess data asynkront med en tydlig laddningsindikator och fungerar därefter precis som tidigare
-- [ ] Befintliga enhets- och E2E-tester fortsätter att passera
+- [x] Startpaketet vid första sidladdning innehåller inte den stora Tae Kim-datamängden, och produktionsbygget (`npm run build`) passerar utan varningar för för stora paket (> 500 kB)
+- [x] När studenten öppnar fliken "Extra studier" laddas modulen och dess data asynkront med en tydlig laddningsindikator och fungerar därefter precis som tidigare
+- [x] Befintliga enhets- och E2E-tester fortsätter att passera

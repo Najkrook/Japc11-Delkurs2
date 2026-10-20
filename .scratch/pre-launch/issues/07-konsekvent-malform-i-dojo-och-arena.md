@@ -4,9 +4,9 @@
 
 **Blocked by:** 02 — Dölj facitläckor och rätta lathund i て-form Dojo, 06 — Autentiska glosor och kanji-fält för Lektion 6–9
 
-**Status:** ready-for-agent
+**Status:** done
 
-- [ ] Samtliga verb i Vecka 1–4 har kompletta böjningsdata för て-form, ない-form och た-form
-- [ ] I Dojon hålls målformen konsekvent utifrån vald kursvecka (eller explicit val av målform) även när filtret "Alla veckor" är aktiverat, utan att målformen oväntat skiftar mellan kort
-- [ ] Böjningsfrågor i en arenamatch testar veckans fokusform (て-form i vecka 1–2, ない-form i vecka 3, た-form i vecka 4)
-- [ ] Enhetstester verifierar frågegenereringen i arenamatcher för respektive vecka samt målformsvalet i Dojon
+- [x] Samtliga verb i Vecka 1–4 har kompletta böjningsdata för て-form, ない-form och た-form
+- [x] I Dojon hålls målformen konsekvent utifrån vald kursvecka (eller explicit val av målform) även när filtret "Alla veckor" är aktiverat, utan att målformen oväntat skiftar mellan kort
+- [x] Böjningsfrågor i en arenamatch testar veckans fokusform (て-form i vecka 1–2, ない-form i vecka 3, た-form i vecka 4)
+- [x] Enhetstester verifierar frågegenereringen i arenamatcher för respektive vecka samt målformsvalet i Dojon
