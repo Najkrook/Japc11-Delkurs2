@@ -442,6 +442,18 @@ test('Dojo Choices: Hiragana in focus, clear slash separator and kanji variant o
     );
   }
 
+  // 3. Showcase displays kana first in .dojo-verb-kana, followed by kanji in .dojo-verb-kanji
+  assert.ok(
+    htmlBefore.includes(`<span class="dojo-verb-kana">${cur.dictionaryKana}</span>`),
+    'Showcase displays dictionary kana first',
+  );
+  if (cur.dictionaryKanji && cur.dictionaryKanji !== cur.dictionaryKana) {
+    assert.ok(
+      htmlBefore.includes(`<span class="dojo-verb-kanji">（${cur.dictionaryKanji}）</span>`),
+      'Showcase displays dictionary kanji secondary in parentheses',
+    );
+  }
+
   // Reset
   studyDrills.reset();
 });

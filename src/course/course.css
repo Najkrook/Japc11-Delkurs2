@@ -1829,13 +1829,13 @@
   flex-wrap: wrap;
 }
 
-.dojo-verb-kanji {
+.dojo-verb-kana {
   font-size: 38px;
   font-weight: 800;
   color: var(--c-ink);
 }
 
-.dojo-verb-kana {
+.dojo-verb-kanji {
   font-size: 22px;
   color: var(--c-muted);
 }
@@ -4345,7 +4345,7 @@
 .dojo-header-banner h1,
 .course-portal-header h2,
 .arena-waiting-details h1,
-.dojo-verb-kanji,
+.dojo-verb-kana,
 .course-flashcard-jp,
 .arena-giant-code {
   letter-spacing: -0.02em;

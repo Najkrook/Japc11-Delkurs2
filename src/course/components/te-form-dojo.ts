@@ -364,8 +364,12 @@ export function renderTeFormDojo(
 
         <div class="dojo-verb-showcase">
           <div class="dojo-verb-main" lang="ja">
-            <span class="dojo-verb-kanji">${current.dictionaryKanji}</span>
-            <span class="dojo-verb-kana">（${current.dictionaryKana}）</span>
+            <span class="dojo-verb-kana">${current.dictionaryKana}</span>
+            ${
+              current.dictionaryKanji && current.dictionaryKanji !== current.dictionaryKana
+                ? html`<span class="dojo-verb-kanji">（${current.dictionaryKanji}）</span>`
+                : ''
+            }
             ${
               host.tts
                 ? html`<button
@@ -497,8 +501,21 @@ export function renderTeFormDojo(
                   </div>
                 </div>
                 <p class="dojo-conversion-line" lang="ja">
-                  ${current.dictionaryKanji} (${current.dictionaryKana}) ➔
-                  <strong>${expected.kanji} (${expected.kana})</strong>
+                  ${current.dictionaryKana}
+                  ${
+                    current.dictionaryKanji && current.dictionaryKanji !== current.dictionaryKana
+                      ? `(${current.dictionaryKanji})`
+                      : ''
+                  }
+                  ➔
+                  <strong
+                    >${expected.kana}
+                    ${
+                      expected.kanji && expected.kanji !== expected.kana
+                        ? `(${expected.kanji})`
+                        : ''
+                    }</strong
+                  >
                   ${targetFormName !== 'て-form' ? html` · て-form: <b>${current.teFormKana}</b>` : ''}
                   ${targetFormName !== 'ない-form' && current.naiFormKana ? html` · ない-form: <b>${current.naiFormKana}</b>` : ''}
                   ${targetFormName !== 'た-form' && current.taFormKana ? html` · た-form: <b>${current.taFormKana}</b>` : ''}
