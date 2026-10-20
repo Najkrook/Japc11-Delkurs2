@@ -204,11 +204,13 @@ export function renderCourseShell(host: CourseHostContext): CourseTemplate {
             </button>
             <button
               type="button"
-              class="course-top-link arena-nav-pill ${subView === 'arena' ? 'active' : ''}"
+              class="course-top-link arena-nav-pill ${subView === 'arena' ? 'active' : ''} ${!host.user ? 'is-locked' : ''}"
               data-course-nav="arena"
+              title=${host.user ? 'Kurs-Arena' : 'Kurs-Arena (Kräver inloggning)'}
               @click=${() => selectCourseSubView('arena', host)}
             >
               Kurs-Arena
+              ${!host.user ? html`<span class="nav-lock-badge" aria-hidden="true">🔒</span>` : ''}
             </button>
           </nav>
 
@@ -310,10 +312,12 @@ export function renderCourseShell(host: CourseHostContext): CourseTemplate {
               </button>
               <button
                 type="button"
-                class="mode-switch-pill ${subView === 'arena' ? 'active' : ''}"
+                class="mode-switch-pill ${subView === 'arena' ? 'active' : ''} ${!host.user ? 'is-locked' : ''}"
+                title=${host.user ? 'Arena' : 'Arena (Kräver inloggning)'}
                 @click=${() => selectCourseSubView('arena', host)}
               >
                 Arena
+                ${!host.user ? html`<span class="pill-lock-icon" aria-hidden="true">🔒</span>` : ''}
               </button>
             </div>
 
@@ -396,14 +400,18 @@ export function renderCourseShell(host: CourseHostContext): CourseTemplate {
           <div class="course-sidebar-bottom">
             <button
               type="button"
-              class="course-sidebar-arena-pill ${subView === 'arena' ? 'active' : ''}"
+              class="course-sidebar-arena-pill ${subView === 'arena' ? 'active' : ''} ${!host.user ? 'is-locked' : ''}"
+              title=${host.user ? 'Kurs-Arena' : 'Kurs-Arena (Kräver inloggning)'}
               @click=${() => selectCourseSubView('arena', host)}
             >
               <span class="arena-pill-text">
-                <strong>Kurs-Arena</strong>
-                <small>Multiplayer · 3 bots redo</small>
+                <strong
+                  >Kurs-Arena
+                  ${!host.user ? html`<span class="pill-lock-icon" aria-hidden="true">🔒</span>` : ''}</strong
+                >
+                <small>${host.user ? 'Multiplayer · 3 bots redo' : 'Kräver inloggning'}</small>
               </span>
-              <span class="arena-live-dot" title="Live"></span>
+              ${host.user ? html`<span class="arena-live-dot" title="Live"></span>` : ''}
             </button>
 
             <div class="course-sidebar-links">
@@ -491,9 +499,10 @@ export function renderCourseShell(host: CourseHostContext): CourseTemplate {
           <button
             type="button"
             class="course-text-link"
+            title=${host.user ? 'Kurs-Arena (Multiplayer L6–L9)' : 'Kurs-Arena (Kräver inloggning)'}
             @click=${() => selectCourseSubView('arena', host)}
           >
-            Kurs-Arena (Multiplayer L6–L9)
+            Kurs-Arena (Multiplayer L6–L9)${!host.user ? ' 🔒' : ''}
           </button>
           <button
             type="button"

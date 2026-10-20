@@ -390,6 +390,62 @@ test('Dojo Facit Protection & Cheatsheet: No answer leaks in placeholder or card
   studyDrills.reset();
 });
 
+test('Dojo Choices: Hiragana in focus, clear slash separator and kanji variant on revealed answer', () => {
+  const host = { render: () => {}, speak: () => {}, tts: false };
+  const w1 = getCourseWeekById('week-1');
+  const p1 = createFreshCourseProgress();
+  studyDrills.reset();
+  setDojoPreferences({ inputMode: 'choices' });
+
+  // 1. Before reveal: buttons show hiragana choice without slash or kanji variant
+  const htmlBefore = renderTemplateToString(
+    renderTeFormDojo(
+      w1,
+      p1,
+      host,
+      () => {},
+      () => {},
+    ),
+  );
+  assert.ok(htmlBefore.includes('class="dojo-choice-kana"'));
+  assert.ok(!htmlBefore.includes('class="dojo-choice-sep"'));
+  assert.ok(!htmlBefore.includes('class="dojo-choice-kanji"'));
+
+  // 2. Submit correct answer: revealed answer displays hiragana + slash separator + kanji variant
+  const cur = studyDrills.dojo.read(w1, courseWeeks, p1).current;
+  const exp = getDojoExpectedForm(cur);
+  studyDrills.dojo.submit(exp.kana);
+
+  const htmlAfter = renderTemplateToString(
+    renderTeFormDojo(
+      w1,
+      p1,
+      host,
+      () => {},
+      () => {},
+    ),
+  );
+
+  if (exp.kanji && exp.kanji !== exp.kana) {
+    assert.ok(
+      htmlAfter.includes('class="dojo-choice-sep"'),
+      'Revealed correct choice must include separator',
+    );
+    assert.ok(
+      htmlAfter.includes('class="dojo-choice-kanji"'),
+      'Revealed correct choice must include kanji variant container',
+    );
+    assert.ok(htmlAfter.includes(exp.kanji), 'Revealed correct choice must include kanji variant');
+    assert.ok(
+      htmlAfter.includes(`aria-label="${exp.kana} / ${exp.kanji}"`),
+      'Button aria-label clearly expresses both alternatives',
+    );
+  }
+
+  // Reset
+  studyDrills.reset();
+});
+
 test('Genki Lesson 9 Content: 15 authentic kanji, 書く nakatta-form, and duplicate-free quiz questions', () => {
   const w4 = getCourseWeekById('week-4');
 

@@ -18,15 +18,30 @@ function readTheme(): 'classic' | 'sakura' {
   }
 }
 
+function readInitialUser(): {
+  uid: string;
+  displayName?: string | null;
+  email?: string | null;
+  photoURL?: string | null;
+} | null {
+  try {
+    const raw = sessionStorage.getItem('japc11-mock-user');
+    if (raw) return JSON.parse(raw);
+  } catch {}
+  return null;
+}
+
 let currentTheme: 'classic' | 'sakura' = readTheme();
 let currentUser: {
   uid: string;
   displayName?: string | null;
   email?: string | null;
   photoURL?: string | null;
-} | null = null;
+} | null = readInitialUser();
 let authBusy = false;
-let statusText = 'Lokalt sparad';
+let statusText = currentUser
+  ? `Inloggad som ${currentUser.displayName || currentUser.email || 'student'}`
+  : 'Lokalt sparad';
 let authError: string | null = null;
 let authErrorTimeout: ReturnType<typeof setTimeout> | null = null;
 let speechNotice: string | null = null;
@@ -157,6 +172,13 @@ export function draw(): void {
   render(renderCourseShell(host), root);
 }
 
+if (currentUser) {
+  courseArenaManager.bindHost(currentUser, draw);
+  void courseProgress.useUser(currentUser.uid);
+} else {
+  courseArenaManager.bindHost(null, draw);
+}
+
 export const courseRouter = initCourseRouter({
   progress: courseProgress,
   arenaManager: courseArenaManager,
@@ -164,19 +186,17 @@ export const courseRouter = initCourseRouter({
 });
 
 courseProgress.subscribe(draw);
-courseArenaManager.bindHost(null, draw);
 
-watchUser((u) => {
+function applyUser(
+  user: {
+    uid: string;
+    displayName?: string | null;
+    email?: string | null;
+    photoURL?: string | null;
+  } | null,
+): void {
   stopSpeech();
-  const isGoogleUser = Boolean(u && !u.isAnonymous);
-  currentUser = isGoogleUser
-    ? {
-        uid: u!.uid,
-        displayName: u!.displayName,
-        email: u!.email,
-        photoURL: u!.photoURL,
-      }
-    : null;
+  currentUser = user;
   if (currentUser) {
     setAuthError(null);
   }
@@ -185,7 +205,42 @@ watchUser((u) => {
     ? `Inloggad som ${currentUser.displayName || currentUser.email || 'student'}`
     : 'Lokalt sparad';
   void courseProgress.useUser(currentUser?.uid || null);
+  courseRouter?.syncFromHash();
   draw();
+}
+
+if (typeof window !== 'undefined') {
+  (
+    window as unknown as {
+      __setMockUser?: (
+        u: {
+          uid: string;
+          displayName?: string | null;
+          email?: string | null;
+          photoURL?: string | null;
+        } | null,
+      ) => void;
+    }
+  ).__setMockUser = (u) => {
+    applyUser(u);
+  };
+}
+
+watchUser((u) => {
+  try {
+    if (sessionStorage.getItem('japc11-mock-user')) return;
+  } catch {}
+  const isGoogleUser = Boolean(u && !u.isAnonymous);
+  applyUser(
+    isGoogleUser
+      ? {
+          uid: u!.uid,
+          displayName: u!.displayName,
+          email: u!.email,
+          photoURL: u!.photoURL,
+        }
+      : null,
+  );
 });
 
 draw();

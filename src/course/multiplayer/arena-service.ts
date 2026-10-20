@@ -288,13 +288,13 @@ export class CourseArenaManager {
       const room = await this.performCreateRoom(store, uid, withDefaultBot, generation);
       if (room) return room;
     } catch {
-      if (!this.isLoggedIn && store !== localArenaStore) {
+      if (store !== localArenaStore) {
         try {
           this.store = localArenaStore;
-          this.localPlayerUid = this.guestUid;
+          const fallbackUid = uid || this.guestUid;
           const fallbackRoom = await this.performCreateRoom(
             localArenaStore,
-            this.guestUid,
+            fallbackUid,
             withDefaultBot,
             generation,
           );
@@ -515,4 +515,12 @@ export class CourseArenaManager {
   }
 }
 
-export const courseArenaManager = new CourseArenaManager();
+const metaEnv = (import.meta as unknown as { env?: Record<string, string> }).env;
+const isTestWithoutEmulators =
+  metaEnv?.MODE === 'test' && metaEnv?.VITE_FIREBASE_EMULATORS !== 'true';
+
+export const courseArenaManager = new CourseArenaManager(
+  isTestWithoutEmulators
+    ? () => localArenaStore
+    : (loggedIn: boolean) => (loggedIn ? cloudArenaStore : localArenaStore),
+);

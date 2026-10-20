@@ -78,7 +78,7 @@ function createMockHost(overrides: Partial<CourseHostContext> = {}): CourseHostC
   return mock;
 }
 
-test('Ticket 05: Arenans gästbanner och login-knapp renderas för utloggade användare och döljs vid inloggning', async () => {
+test('Arenans spärrsida renderas för oinloggade användare och låser ute lobbyn tills användaren är inloggad', async () => {
   let loginCalled = false;
   const guestHost = createMockHost({
     user: null,
@@ -102,30 +102,35 @@ test('Ticket 05: Arenans gästbanner och login-knapp renderas för utloggade anv
         ),
       'Gästbannern ska innehålla den specificerade förklaringen',
     );
-    assert.ok(
-      bannerHtml.includes('arena-guest-login-btn'),
-      'Gästbannern ska ha en logga in-knapp med klass arena-guest-login-btn',
-    );
 
-    // 2. I lobbyn när ingen match pågår
+    // 2. För en oinloggad användare ska Arenan visa spärrsidan istället för lobbyn
     courseArenaManager.bindHost(null, () => {});
-    const lobbyHtml = renderTemplateToString(renderCourseArenaModule(guestHost, () => {}));
+    const authGateHtml = renderTemplateToString(renderCourseArenaModule(guestHost, () => {}));
     assert.ok(
-      lobbyHtml.includes('arena-guest-banner'),
-      'Gästbannern ska renderas i arenans lobby när användaren är gäst',
+      authGateHtml.includes('arena-auth-gate'),
+      'Spärrsidan ska renderas i arenan när användaren inte är inloggad',
     );
-    assert.ok(lobbyHtml.includes('Logga in'), 'Logga in-knappen ska renderas i lobbyn för gäster');
-
-    // 3. I väntrummet när rum skapas
-    await courseArenaManager.createRoom(false);
-    const waitingHtml = renderTemplateToString(renderCourseArenaModule(guestHost, () => {}));
     assert.ok(
-      waitingHtml.includes('arena-guest-banner'),
-      'Gästbannern ska renderas i arenans väntrum när användaren är gäst',
+      authGateHtml.includes('Logga in för att gå in i Kurs-Arena'),
+      'Spärrsidan ska förklara att man måste logga in för att gå in i Kurs-Arena',
     );
-    await courseArenaManager.leaveRoom();
+    assert.ok(
+      authGateHtml.includes('arena-login-gate-btn'),
+      'Spärrsidan ska ha en logga in-knapp med testid arena-login-gate-btn',
+    );
+    assert.ok(
+      !authGateHtml.includes('KURS-ARENA · MULTIPLAYER'),
+      'Själva spellobbyn ska inte vara synlig eller tillgänglig för oinloggade',
+    );
 
-    // 4. När användaren är inloggad ska bannern inte visas
+    // 3. I toppmenyn ska oinloggade se en låsindikator på arenapillern
+    const guestShellHtml = renderTemplateToString(renderCourseShell(guestHost));
+    assert.ok(
+      guestShellHtml.includes('is-locked') && guestShellHtml.includes('🔒'),
+      'Menyn ska visa en låsikon för Kurs-Arena för oinloggade',
+    );
+
+    // 4. När användaren är inloggad ska spellobbyn renderas och spärrsidan döljas
     const loggedInHost = createMockHost({
       user: { uid: 'u123', displayName: 'Tanaka', email: 'tanaka@example.com' },
     });
@@ -133,8 +138,18 @@ test('Ticket 05: Arenans gästbanner och login-knapp renderas för utloggade anv
       renderCourseArenaModule(loggedInHost, () => {}),
     );
     assert.ok(
-      !loggedInLobbyHtml.includes('arena-guest-banner'),
-      'Gästbannern ska inte renderas när användaren är inloggad',
+      !loggedInLobbyHtml.includes('arena-auth-gate'),
+      'Spärrsidan ska inte renderas när användaren är inloggad',
+    );
+    assert.ok(
+      loggedInLobbyHtml.includes('KURS-ARENA · MULTIPLAYER'),
+      'Arenans spellobby ska renderas när användaren är inloggad',
+    );
+
+    const loggedInShellHtml = renderTemplateToString(renderCourseShell(loggedInHost));
+    assert.ok(
+      !loggedInShellHtml.includes('nav-lock-badge'),
+      'Låsikonen ska inte visas för inloggade användare',
     );
   } finally {
     courseArenaManager.dispose();

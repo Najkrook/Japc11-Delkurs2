@@ -1,7 +1,7 @@
 import { test, expect } from '@playwright/test';
 
-test.describe('Ticket 05: Gästhantering och feedback i Arena, toppmeny och talsyntes', () => {
-  test('Arena visar tydlig gästupplysning i lobby och väntrum när användaren är gäst', async ({
+test.describe('Gästhantering och feedback i Arena, toppmeny och talsyntes', () => {
+  test('Arena visar tydlig spärrsida när användaren är oinloggad och blockerar lobbyn', async ({
     page,
   }) => {
     const errors: string[] = [];
@@ -9,29 +9,28 @@ test.describe('Ticket 05: Gästhantering och feedback i Arena, toppmeny och tals
 
     await page.goto('/');
 
+    // Kontrollera att menyn visar låsikon för oinloggade
+    const arenaNavBtn = page.locator('[data-course-nav="arena"]');
+    await expect(arenaNavBtn).toBeVisible();
+    await expect(arenaNavBtn).toHaveClass(/is-locked/);
+    await expect(arenaNavBtn).toContainText('🔒');
+
     // Navigera till Arenan
-    await page.locator('[data-course-nav="arena"]').click();
+    await arenaNavBtn.click();
 
-    // 1. Verifiera gästbannern i lobbyn
-    const lobbyBanner = page.locator('[data-testid="arena-guest-banner"]');
-    await expect(lobbyBanner).toBeVisible();
-    await expect(lobbyBanner).toContainText('Gästläge:');
-    await expect(lobbyBanner).toContainText(
-      'Detta rum körs lokalt i din webbläsare. För att spela i realtid mot kurskamrater på andra mobiler och datorer, logga in med Google.',
-    );
+    // 1. Verifiera spärrsidan (auth gate)
+    const authGate = page.locator('[data-testid="arena-auth-gate"]');
+    await expect(authGate).toBeVisible();
+    await expect(authGate).toContainText('Logga in för att gå in i Kurs-Arena');
+    await expect(authGate).toContainText('INLOGGNING KRÄVS');
 
-    const lobbyLoginBtn = page.locator('[data-testid="arena-guest-login-btn"]');
-    await expect(lobbyLoginBtn).toBeVisible();
-    await expect(lobbyLoginBtn).toHaveText('Logga in');
+    const loginBtn = page.locator('[data-testid="arena-login-gate-btn"]');
+    await expect(loginBtn).toBeVisible();
+    await expect(loginBtn).toHaveText('Logga in med Google');
 
-    // 2. Skapa rum och verifiera gästbannern i väntrummet
-    await page.locator('[data-arena-action="create-room"]').click();
-    await expect(page.locator('[data-testid="arena-room-code"]')).toBeVisible();
-
-    const waitingBanner = page.locator('[data-testid="arena-guest-banner"]');
-    await expect(waitingBanner).toBeVisible();
-    await expect(waitingBanner).toContainText('Gästläge:');
-    await expect(page.locator('[data-testid="arena-guest-login-btn"]')).toBeVisible();
+    // 2. Verifiera att lobbyn och matchskapande inte är tillgängliga
+    await expect(page.locator('[data-arena-action="create-room"]')).not.toBeVisible();
+    await expect(page.locator('main h1')).not.toContainText('Tävla i det nya kursmaterialet');
 
     expect(errors).toEqual([]);
   });

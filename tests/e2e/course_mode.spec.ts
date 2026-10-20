@@ -1,6 +1,15 @@
 import { test, expect } from '@playwright/test';
 import { buildAllCourseArenaQuestions } from '../../src/course/multiplayer/arena-questions.ts';
 
+test.beforeEach(async ({ page }) => {
+  await page.addInitScript(() => {
+    sessionStorage.setItem(
+      'japc11-mock-user',
+      JSON.stringify({ uid: 'mock-test-user', displayName: 'Testare', email: 'test@example.com' }),
+    );
+  });
+});
+
 test('Arena displays the actual length of a short focused match', async ({ page }) => {
   const count = buildAllCourseArenaQuestions('week-1').filter(
     (q) => q.category === 'grammar',

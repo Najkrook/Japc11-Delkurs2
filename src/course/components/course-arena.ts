@@ -44,10 +44,66 @@ export function renderArenaGuestBanner(host: CourseHostContext): CourseTemplate 
   `;
 }
 
+export function renderArenaAuthGate(
+  host: CourseHostContext,
+  onBackToHub: () => void,
+): CourseTemplate {
+  return html`
+    <section
+      class="course-module-section arena-section arena-auth-gate-section"
+      aria-label="Kurs-Arena kräver inloggning"
+      data-testid="arena-auth-gate"
+    >
+      <div class="course-module-topbar">
+        <button type="button" class="course-back-btn" @click=${onBackToHub}>
+          ← Tillbaka till studieplanen
+        </button>
+        <span class="arena-isolated-badge"> Lektion 6–9 · Kurs-Arena </span>
+      </div>
+
+      <div class="arena-auth-gate-card">
+        <div class="arena-auth-gate-icon" aria-hidden="true">🔒</div>
+        <span class="course-eyebrow">MULTIPLAYER · INLOGGNING KRÄVS</span>
+        <h1 class="arena-auth-gate-title">Logga in för att gå in i Kurs-Arena</h1>
+        <p class="arena-auth-gate-desc">
+          Kurs-Arena är en flerspelararena där du utmanar kurskamrater i realtid på glosor,
+          böjningar, kanji och grammatik från Genki I (Lektion 6–9).
+        </p>
+        <p class="arena-auth-gate-subdesc">
+          För att skapa matchrum, ansluta med rumskod och spela mot andra studenter behöver du logga
+          in med ditt Google-konto.
+        </p>
+
+        <div class="arena-auth-gate-actions">
+          <button
+            type="button"
+            class="course-btn-primary arena-auth-login-btn"
+            data-testid="arena-login-gate-btn"
+            @click=${() => (host.onLogin ? host.onLogin() : host.account())}
+          >
+            Logga in med Google
+          </button>
+          <button
+            type="button"
+            class="course-btn-sage-outline arena-auth-back-btn"
+            @click=${onBackToHub}
+          >
+            Tillbaka till studieplanen
+          </button>
+        </div>
+      </div>
+    </section>
+  `;
+}
+
 export function renderCourseArenaModule(
   host: CourseHostContext,
   onBackToHub: () => void,
 ): CourseTemplate {
+  if (!host.user) {
+    return renderArenaAuthGate(host, onBackToHub);
+  }
+
   const state = courseArenaManager.getState();
   const { room } = state;
   const error = state.errorMessage

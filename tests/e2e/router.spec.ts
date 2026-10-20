@@ -30,10 +30,11 @@ test.describe('Ticket 10: Hash-routing och delbara direktlänkar', () => {
     await expect(page).toHaveURL(/#\/vecka\/week-2$/);
     await expect(page.locator('main h1')).toContainText('Vecka 2 · Lektion 7');
 
-    // Click Kurs-Arena
+    // Click Kurs-Arena (visar spärrsida för gäst)
     await page.locator('[data-course-nav="arena"]').first().click();
     await expect(page).toHaveURL(/#\/arena/);
-    await expect(page.locator('main h1')).toContainText('Tävla i det nya kursmaterialet');
+    await expect(page.locator('[data-testid="arena-auth-gate"]')).toBeVisible();
+    await expect(page.locator('main h1')).toContainText('Logga in för att gå in i Kurs-Arena');
 
     // Click Extra studier
     await page.locator('[data-course-nav="extra-top"], [data-course-nav="extra"]').first().click();
@@ -100,11 +101,23 @@ test.describe('Ticket 10: Hash-routing och delbara direktlänkar', () => {
     await expect(page.locator('main h1')).toContainText('Träna verbens て-form steg för steg');
   });
 
-  test('Direktlänk med arenarumskod förifyller koden i Kurs-Arena', async ({ page }) => {
-    // Open direct link with room code 4821
+  test('Direktlänk med arenarumskod förifyller koden i Kurs-Arena när man loggar in', async ({
+    page,
+  }) => {
+    // Open direct link with room code 4821 som gäst
     await page.goto('/#/arena/4821');
 
     await expect(page).toHaveURL(/#\/arena\/4821/);
+    await expect(page.locator('[data-testid="arena-auth-gate"]')).toBeVisible();
+
+    // Logga in
+    await page.evaluate(() => {
+      (window as unknown as { __setMockUser: (u: unknown) => void }).__setMockUser({
+        uid: 'student-1',
+        displayName: 'Student One',
+      });
+    });
+
     await expect(page.locator('main h1')).toContainText('Tävla i det nya kursmaterialet');
 
     // Verify room code input is prefilled
@@ -116,6 +129,14 @@ test.describe('Ticket 10: Hash-routing och delbara direktlänkar', () => {
   test('Skapa rum uppdaterar URL till arenakod och att lämna återställer URL', async ({ page }) => {
     await page.goto('/#/arena');
     await expect(page).toHaveURL(/#\/arena/);
+
+    // Logga in
+    await page.evaluate(() => {
+      (window as unknown as { __setMockUser: (u: unknown) => void }).__setMockUser({
+        uid: 'student-1',
+        displayName: 'Student One',
+      });
+    });
 
     // Create room
     await page.locator('[data-arena-action="create-room"]').click();

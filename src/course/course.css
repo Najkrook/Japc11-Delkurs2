@@ -175,6 +175,26 @@
   margin-left: 6px;
   font-weight: 700;
   transition: all 140ms ease;
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+}
+
+.nav-lock-badge,
+.pill-lock-icon {
+  display: inline-flex;
+  align-items: center;
+  font-size: 11px;
+  line-height: 1;
+  opacity: 0.9;
+}
+
+.course-top-link.arena-nav-pill.is-locked {
+  border-style: dashed;
+}
+
+.course-sidebar-arena-pill.is-locked {
+  border-style: dashed;
 }
 
 .course-top-link.arena-nav-pill:hover {
@@ -1837,15 +1857,41 @@
 }
 
 .dojo-choice-btn {
+  display: flex;
+  align-items: baseline;
+  justify-content: center;
+  flex-wrap: wrap;
+  gap: 0;
   background: var(--c-surface);
   border: 2px solid var(--c-line);
   border-radius: 14px;
-  padding: 16px;
+  padding: 16px 18px;
   font-size: 20px;
   font-weight: 700;
   color: var(--c-ink);
   cursor: pointer;
   transition: all 0.12s ease;
+  line-height: 1.3;
+}
+
+.dojo-choice-kana {
+  font-size: 1.35rem;
+  font-weight: 700;
+  letter-spacing: 0.03em;
+}
+
+.dojo-choice-sep {
+  margin: 0 10px;
+  font-size: 1.05rem;
+  font-weight: 400;
+  opacity: 0.45;
+  user-select: none;
+}
+
+.dojo-choice-kanji {
+  font-size: 1.05rem;
+  font-weight: 600;
+  opacity: 0.85;
 }
 
 .dojo-choice-btn:hover:not(:disabled) {
@@ -1856,6 +1902,16 @@
 .dojo-choice-btn.correct {
   background: var(--c-success-bg);
   border-color: var(--c-success);
+  color: var(--c-success);
+}
+
+.dojo-choice-btn.correct .dojo-choice-sep {
+  opacity: 0.55;
+  color: var(--c-success);
+}
+
+.dojo-choice-btn.correct .dojo-choice-kanji {
+  opacity: 0.9;
   color: var(--c-success);
 }
 
@@ -3351,6 +3407,115 @@
     gap: 12px;
   }
   .arena-guest-login-btn {
+    width: 100%;
+    text-align: center;
+  }
+}
+
+.arena-auth-gate-section {
+  display: flex;
+  flex-direction: column;
+  width: 100%;
+}
+
+.arena-auth-gate-card {
+  max-width: 580px;
+  width: 100%;
+  margin: 32px auto 48px;
+  background: var(--c-surface);
+  border: 1px solid var(--c-line);
+  border-radius: 24px;
+  padding: 44px 36px;
+  text-align: center;
+  box-shadow: 0 12px 36px rgba(20, 63, 46, 0.08);
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  box-sizing: border-box;
+}
+
+.course-app-shell[data-course-theme='sakura'] .arena-auth-gate-card {
+  box-shadow: 0 12px 36px rgba(214, 51, 108, 0.09);
+  border-color: rgba(214, 51, 108, 0.22);
+}
+
+.arena-auth-gate-icon {
+  width: 72px;
+  height: 72px;
+  border-radius: 50%;
+  background: rgba(43, 91, 70, 0.08);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 32px;
+  margin-bottom: 18px;
+}
+
+.course-app-shell[data-course-theme='sakura'] .arena-auth-gate-icon {
+  background: rgba(214, 51, 108, 0.1);
+}
+
+.arena-auth-gate-title {
+  font-size: 1.65rem;
+  font-weight: 800;
+  color: var(--c-ink);
+  margin: 10px 0 14px;
+  line-height: 1.25;
+}
+
+.arena-auth-gate-desc {
+  font-size: 1.02rem;
+  line-height: 1.6;
+  color: var(--c-ink);
+  margin: 0 0 10px;
+  max-width: 460px;
+}
+
+.arena-auth-gate-subdesc {
+  font-size: 0.92rem;
+  line-height: 1.5;
+  color: var(--c-muted);
+  margin: 0 0 28px;
+  max-width: 440px;
+}
+
+.arena-auth-gate-actions {
+  display: flex;
+  gap: 12px;
+  align-items: center;
+  justify-content: center;
+  flex-wrap: wrap;
+}
+
+.arena-auth-login-btn {
+  padding: 12px 28px;
+  font-size: 15px;
+  font-weight: 700;
+  border-radius: 999px;
+  cursor: pointer;
+}
+
+.arena-auth-back-btn {
+  padding: 11px 22px;
+  font-size: 14px;
+  border-radius: 999px;
+  cursor: pointer;
+}
+
+@media (max-width: 640px) {
+  .arena-auth-gate-card {
+    padding: 30px 18px;
+    margin: 16px auto 32px;
+  }
+  .arena-auth-gate-title {
+    font-size: 1.35rem;
+  }
+  .arena-auth-gate-actions {
+    width: 100%;
+    flex-direction: column;
+  }
+  .arena-auth-login-btn,
+  .arena-auth-back-btn {
     width: 100%;
     text-align: center;
   }

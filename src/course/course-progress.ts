@@ -104,7 +104,15 @@ export function createCourseProgress(
     if (nextUid !== uid) {
       uid = nextUid;
       generation++;
+      const currentActiveWeekId = data.activeWeekId;
+      const currentActiveSubView = data.activeSubView;
       data = persistence.readLocal(uid);
+      if (currentActiveSubView && currentActiveSubView !== 'hub') {
+        data.activeSubView = currentActiveSubView;
+      }
+      if (currentActiveWeekId && currentActiveWeekId !== 'week-1') {
+        data.activeWeekId = currentActiveWeekId;
+      }
       sessionBaseline = structuredClone(data);
       pending = [];
       loading = undefined;

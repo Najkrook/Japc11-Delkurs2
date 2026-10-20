@@ -418,15 +418,26 @@ export function renderTeFormDojo(
                     if (isAnswer) stateClass = 'correct';
                     else if (isSelected) stateClass = 'wrong';
                   }
+                  const showKanjiVariant =
+                    state.revealed &&
+                    isAnswer &&
+                    Boolean(expected.kanji) &&
+                    expected.kanji !== choice;
                   return html`<button
                     type="button"
                     class="dojo-choice-btn ${stateClass}"
                     ?disabled=${state.revealed}
                     lang="ja"
                     @click=${() => submitAnswer(choice)}
+                    aria-label="${showKanjiVariant ? `${choice} / ${expected.kanji}` : choice}"
                   >
                     <span class="dojo-choice-kana">${choice}</span>
-                    ${state.revealed && isAnswer ? html`<small>${expected.kanji}</small>` : ''}
+                    ${
+                      showKanjiVariant
+                        ? html`<span class="dojo-choice-sep" aria-hidden="true">/</span
+                            ><span class="dojo-choice-kanji">${expected.kanji}</span>`
+                        : ''
+                    }
                   </button>`;
                 })}
               </div>`

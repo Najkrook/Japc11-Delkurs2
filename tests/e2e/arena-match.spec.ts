@@ -5,6 +5,12 @@ test('solo arena advances through five rounds, shows results and starts a fresh 
 }) => {
   const errors: string[] = [];
   page.on('pageerror', (error) => errors.push(error.message));
+  await page.addInitScript(() => {
+    sessionStorage.setItem(
+      'japc11-mock-user',
+      JSON.stringify({ uid: 'mock-test-user', displayName: 'Testare', email: 'test@example.com' }),
+    );
+  });
   await page.goto('/');
   await page.locator('[data-course-nav="arena"]').click();
   await page.getByRole('button', { name: '5 frågor', exact: true }).click();
