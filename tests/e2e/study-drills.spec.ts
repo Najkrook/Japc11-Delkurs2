@@ -12,7 +12,13 @@ test('typed Dojo answers persist mastery and next verb clears input and feedback
   await page.goto('/');
   await page.getByRole('button', { name: 'Skriv själv', exact: true }).click();
   const first = courseWeeks[0].conjugations[0];
-  await page.locator('#dojo-input').fill(` ${first.teFormKanji} `);
+  const dojoInput = page.locator('#dojo-input');
+  await expect(dojoInput).toHaveAttribute('placeholder', 'Skriv て-form i kana eller kanji...');
+  const placeholderText = await dojoInput.getAttribute('placeholder');
+  expect(placeholderText).not.toContain(first.teFormKana);
+  await expect(page.locator('.dojo-rules-grid')).toContainText('ぐ → いで');
+  await expect(page.locator('.dojo-rules-grid')).not.toContainText('いde');
+  await dojoInput.fill(` ${first.teFormKanji} `);
   await page.getByRole('button', { name: 'Kontrollera て-form', exact: true }).click();
   await expect(page.locator('.dojo-feedback-box.ok')).toBeVisible();
   await expect(page.locator('#dojo-input')).toBeDisabled();
@@ -64,4 +70,40 @@ test('weekly quiz completes, persists its score and restarts with unanswered fir
   await expect(page.locator('.course-quiz-prompt')).toHaveText(week.quiz[0].prompt);
   await expect(page.locator('.dojo-feedback-box')).toHaveCount(0);
   await expect(page.locator('.dojo-choice-btn').first()).toBeEnabled();
+});
+
+test('Dojo does not leak expected conjugation form in placeholder or card metadata before reveal', async ({
+  page,
+}) => {
+  const progress = {
+    ...createFreshCourseProgress(),
+    activeWeekId: 'week-3',
+    activeSubView: 'dojo',
+  };
+  await page.addInitScript((data) => {
+    localStorage.setItem('japc11-dk2-course-v1-guest', JSON.stringify(data));
+  }, progress);
+  await page.goto('/');
+
+  const week3 = courseWeeks[2];
+  const first = week3.conjugations[0];
+  const expectedKana = first.naiFormKana!;
+
+  // Card metadata (.dojo-verb-sub) must not display the target nai-form before reveal
+  await expect(page.locator('.dojo-verb-sub')).not.toContainText(expectedKana);
+
+  // Switch to write mode to verify placeholder does not leak answer
+  await page.getByRole('button', { name: 'Skriv själv', exact: true }).click();
+  const input = page.locator('#dojo-input');
+  await expect(input).toHaveAttribute('placeholder', 'Skriv ない-form i kana eller kanji...');
+  const placeholderText = await input.getAttribute('placeholder');
+  expect(placeholderText).not.toContain(expectedKana);
+
+  // Submit correct answer to reveal card
+  await input.fill(expectedKana);
+  await page.getByRole('button', { name: 'Kontrollera ない-form', exact: true }).click();
+  await expect(page.locator('.dojo-feedback-box.ok')).toBeVisible();
+
+  // Once revealed, the card metadata displays the target form
+  await expect(page.locator('.dojo-verb-sub')).toContainText(expectedKana);
 });

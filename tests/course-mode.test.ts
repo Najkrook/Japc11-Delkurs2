@@ -13,7 +13,8 @@ import {
   toggleKanjiMastered,
   toggleVocabMastered,
 } from '../src/course/course-state.ts';
-import { getDojoExpectedForm } from '../src/course/study-drills.ts';
+import { getDojoExpectedForm, studyDrills } from '../src/course/study-drills.ts';
+import { renderTeFormDojo, setDojoPreferences } from '../src/course/components/te-form-dojo.ts';
 import {
   buildAllCourseArenaQuestions,
   generateArenaQuestionDeck,
@@ -70,7 +71,7 @@ test('JAPC11 Delkurs 2 Data: Contains 4 structured Genki weeks (Lessons 6–9) w
   const w4 = getCourseWeekById('week-4');
   assert.equal(w4.lessonNumber, 9);
   assert.ok(w4.vocab.length >= 20, 'Lesson 9 has complete vocabulary');
-  assert.ok(w4.kanji.length >= 12, 'Lesson 9 has complete kanji list');
+  assert.equal(w4.kanji.length, 15, 'Genki Lesson 9 has 15 authentic kanji');
   assert.ok(w4.conjugations.length >= 10, 'Lesson 9 has complete conjugations');
   assert.ok(w4.quiz.length >= 10, 'Lesson 9 has complete weekly quiz');
   // Check preserved IDs
@@ -237,4 +238,230 @@ test('Dojo Target Forms: Adapts expected conjugation forms across weeks (te, nai
   const v4 = w4.conjugations[0]; // Odoru
   const exp4 = getDojoExpectedForm(v4);
   assert.equal(exp4.kana, 'おどった', 'Week 4 targets ta-form');
+});
+
+function renderTemplateToString(t: unknown): string {
+  if (t === null || t === undefined || typeof t === 'boolean') return '';
+  if (typeof t === 'string' || typeof t === 'number') return String(t);
+  if (Array.isArray(t)) return t.map(renderTemplateToString).join('');
+  if (
+    typeof t === 'object' &&
+    t &&
+    'strings' in t &&
+    Array.isArray((t as { strings: unknown }).strings)
+  ) {
+    const tmpl = t as { strings: string[]; values: unknown[] };
+    let out = '';
+    for (let i = 0; i < tmpl.strings.length; i++) {
+      out += tmpl.strings[i];
+      if (i < tmpl.values.length) {
+        out += renderTemplateToString(tmpl.values[i]);
+      }
+    }
+    return out;
+  }
+  return '';
+}
+
+test('Dojo Facit Protection & Cheatsheet: No answer leaks in placeholder or card metadata before reveal, correct hiragana in cheatsheet', () => {
+  const host = { render: () => {}, speak: () => {}, tts: false };
+
+  // 1. Cheatsheet has ぐ → いで and nowhere has Latin いde
+  const w1 = getCourseWeekById('week-1');
+  const p1 = createFreshCourseProgress();
+  setDojoPreferences({ showRuleSheet: true });
+  const html1 = renderTemplateToString(
+    renderTeFormDojo(
+      w1,
+      p1,
+      host,
+      () => {},
+      () => {},
+    ),
+  );
+  assert.ok(html1.includes('ぐ → いで'), 'Cheatsheet must contain ぐ → いで in hiragana');
+  assert.ok(!html1.includes('いde'), 'Cheatsheet must not contain typo いde');
+
+  // 2. In write mode, placeholder is neutral and never contains expected answer
+  setDojoPreferences({ inputMode: 'write' });
+  for (const weekId of ['week-1', 'week-2', 'week-3', 'week-4']) {
+    const w = getCourseWeekById(weekId);
+    const p = createFreshCourseProgress();
+    studyDrills.reset();
+    const cur = studyDrills.dojo.read(w, courseWeeks, p).current;
+    const exp = getDojoExpectedForm(cur);
+    const html = renderTemplateToString(
+      renderTeFormDojo(
+        w,
+        p,
+        host,
+        () => {},
+        () => {},
+      ),
+    );
+
+    assert.ok(
+      !html.includes(exp.kana),
+      `${weekId} write mode before reveal must not contain expected answer (${exp.kana}) anywhere in DOM`,
+    );
+    assert.ok(html.includes('placeholder="Skriv '), `${weekId} has neutral input placeholder`);
+  }
+
+  // 3. Week 3 (nai-form): card metadata (.dojo-verb-sub) hides target form before reveal, shows after
+  const w3 = getCourseWeekById('week-3');
+  const p3 = createFreshCourseProgress();
+  studyDrills.reset();
+  const cur3 = studyDrills.dojo.read(w3, courseWeeks, p3).current;
+  const exp3 = getDojoExpectedForm(cur3);
+  setDojoPreferences({ inputMode: 'choices' });
+
+  const html3Before = renderTemplateToString(
+    renderTeFormDojo(
+      w3,
+      p3,
+      host,
+      () => {},
+      () => {},
+    ),
+  );
+  const sub3Before = html3Before.split('class="dojo-verb-sub"')[1]?.split('</div>')[0] ?? '';
+  assert.ok(
+    !sub3Before.includes(exp3.kana),
+    'Week 3 verb card metadata must not display nai-form before reveal',
+  );
+
+  studyDrills.dojo.submit(exp3.kana);
+  const html3After = renderTemplateToString(
+    renderTeFormDojo(
+      w3,
+      p3,
+      host,
+      () => {},
+      () => {},
+    ),
+  );
+  const sub3After = html3After.split('class="dojo-verb-sub"')[1]?.split('</div>')[0] ?? '';
+  assert.ok(
+    sub3After.includes(exp3.kana),
+    'Week 3 verb card metadata displays nai-form after card is revealed',
+  );
+
+  // 4. Week 4 (ta-form): card metadata (.dojo-verb-sub) hides target form before reveal, shows after
+  const w4 = getCourseWeekById('week-4');
+  const p4 = createFreshCourseProgress();
+  studyDrills.reset();
+  const cur4 = studyDrills.dojo.read(w4, courseWeeks, p4).current;
+  const exp4 = getDojoExpectedForm(cur4);
+
+  const html4Before = renderTemplateToString(
+    renderTeFormDojo(
+      w4,
+      p4,
+      host,
+      () => {},
+      () => {},
+    ),
+  );
+  const sub4Before = html4Before.split('class="dojo-verb-sub"')[1]?.split('</div>')[0] ?? '';
+  assert.ok(
+    !sub4Before.includes(exp4.kana),
+    'Week 4 verb card metadata must not display ta-form before reveal',
+  );
+
+  studyDrills.dojo.submit(exp4.kana);
+  const html4After = renderTemplateToString(
+    renderTeFormDojo(
+      w4,
+      p4,
+      host,
+      () => {},
+      () => {},
+    ),
+  );
+  const sub4After = html4After.split('class="dojo-verb-sub"')[1]?.split('</div>')[0] ?? '';
+  assert.ok(
+    sub4After.includes(exp4.kana),
+    'Week 4 verb card metadata displays ta-form after card is revealed',
+  );
+
+  // Reset preferences
+  setDojoPreferences({ inputMode: 'choices' });
+  studyDrills.reset();
+});
+
+test('Genki Lesson 9 Content: 15 authentic kanji, 書く nakatta-form, and duplicate-free quiz questions', () => {
+  const w4 = getCourseWeekById('week-4');
+
+  // 1. 15 authentic Genki I Lesson 9 kanji
+  const expectedL9Kanji = [
+    '午',
+    '前',
+    '後',
+    '名',
+    '白',
+    '雨',
+    '書',
+    '友',
+    '間',
+    '家',
+    '話',
+    '少',
+    '古',
+    '知',
+    '来',
+  ];
+  assert.equal(w4.kanji.length, 15, 'Genki Lesson 9 has exactly 15 kanji');
+  const actualL9Kanji = w4.kanji.map((k) => k.kanji);
+  assert.deepEqual(
+    actualL9Kanji,
+    expectedL9Kanji,
+    'Kanji list matches authentic Genki I L9 kanji in order',
+  );
+
+  // Verify that later/duplicate kanji are not in L9
+  const forbiddenKanji = ['朝', '昼', '夜', '医', '者', '乗', '降', '開', '閉', '出', '入'];
+  for (const fk of forbiddenKanji) {
+    assert.ok(!actualL9Kanji.includes(fk), `Lesson 9 must not contain non-L9 kanji ${fk}`);
+  }
+
+  // Verify fields for each kanji
+  for (const k of w4.kanji) {
+    assert.ok(k.strokes > 0, `${k.kanji} has stroke count > 0`);
+    assert.ok(k.onyomi.length > 0 || k.kunyomi.length > 0, `${k.kanji} has readings`);
+    assert.ok(k.meaningSv.trim().length > 0, `${k.kanji} has Swedish meaning`);
+    assert.ok(k.mnemonicSv.trim().length > 0, `${k.kanji} has Swedish mnemonic`);
+    assert.ok(k.compounds.length >= 2, `${k.kanji} has at least 2 compounds`);
+    for (const c of k.compounds) {
+      assert.ok(c.word && c.reading && c.sv, `${k.kanji} compound has word, reading and sv`);
+    }
+  }
+
+  // 2. 書く has correct nakatta-form (かかなかった)
+  const kaku = w4.conjugations.find((c) => c.dictionaryKanji === '書く');
+  assert.ok(kaku, '書く verb exists in Week 4 conjugations');
+  assert.equal(kaku.nakattaFormKana, 'かかなかった', '書く nakattaFormKana is かかなかった');
+  assert.equal(kaku.nakattaFormKanji, '書かなかった');
+
+  // 3. All quiz questions across all course weeks have unique choices
+  for (const week of courseWeeks) {
+    for (const q of week.quiz) {
+      const choiceSet = new Set(q.choices);
+      assert.equal(
+        choiceSet.size,
+        q.choices.length,
+        `Quiz question ${q.id} in ${week.id} must have unique choices without duplicates`,
+      );
+      assert.ok(
+        q.choices.includes(q.answer),
+        `Quiz question ${q.id} choices must include the correct answer`,
+      );
+    }
+  }
+
+  // 4. Week 4 w4-q08 specifically
+  const q08 = w4.quiz.find((q) => q.id === 'w4-q08');
+  assert.ok(q08, 'w4-q08 exists');
+  assert.equal(q08.choices.length, 4, 'w4-q08 has 4 choices');
+  assert.equal(new Set(q08.choices).size, 4, 'w4-q08 has 4 unique choices');
+  assert.equal(q08.answer, 'いかなかった (行かなかった)');
 });

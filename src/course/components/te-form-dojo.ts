@@ -15,6 +15,10 @@ const preferences: { inputMode: 'choices' | 'write'; showRuleSheet: boolean } = 
   showRuleSheet: true,
 };
 
+export function setDojoPreferences(prefs: Partial<typeof preferences>): void {
+  Object.assign(preferences, prefs);
+}
+
 if (
   typeof window !== 'undefined' &&
   !(window as unknown as { __dojoEnterAttached?: boolean }).__dojoEnterAttached
@@ -291,7 +295,7 @@ export function renderTeFormDojo(
                       <span>読む → 読んで · 遊ぶ → 遊んで · 死ぬ → 死んで</span>
                     </div>
                     <div class="dojo-rule-chip">
-                      <strong>く → いて (ぐ → いde)</strong>
+                      <strong>く → いて (ぐ → いで)</strong>
                       <span>書く → 書いて · 急ぐ → 急いで</span>
                     </div>
                     <div class="dojo-rule-chip highlight">
@@ -353,14 +357,14 @@ export function renderTeFormDojo(
             <span>ます-form: <strong lang="ja">${current.politeMasu}</strong></span>
             <span>Betydelse: <strong>${current.sv}</strong></span>
             ${
-              current.naiFormKana
+              current.naiFormKana && (targetFormName !== 'ない-form' || state.revealed)
                 ? html`<span
                     >ない-form (L8): <strong lang="ja">${current.naiFormKana}</strong></span
                   >`
                 : ''
             }
             ${
-              current.taFormKana
+              current.taFormKana && (targetFormName !== 'た-form' || state.revealed)
                 ? html`<span>た-form (L9): <strong lang="ja">${current.taFormKana}</strong></span>`
                 : ''
             }
@@ -417,7 +421,7 @@ export function renderTeFormDojo(
                   type="text"
                   lang="ja"
                   class="dojo-text-input"
-                  placeholder="Skriv ${targetFormName} i kana eller kanji (t.ex. ${expected.kana})..."
+                  placeholder="Skriv ${targetFormName} i kana eller kanji..."
                   .value=${state.typedAnswer}
                   ?disabled=${state.revealed}
                   @input=${(e: Event) => {
