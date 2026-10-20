@@ -454,6 +454,19 @@ test('Dojo Choices: Hiragana in focus, clear slash separator and kanji variant o
     );
   }
 
+  // 4. Input mode switch (Flerval / Skriv själv) is rendered inside .dojo-arena-meta
+  const metaSection =
+    htmlBefore.split('class="dojo-arena-meta"')[1]?.split('<div class="dojo-verb-showcase">')[0] ??
+    '';
+  assert.ok(
+    metaSection.includes('aria-label="Svarsläge"'),
+    'Svarsläge switch is placed in arena meta header',
+  );
+  assert.ok(
+    metaSection.includes('Flerval') && metaSection.includes('Skriv själv'),
+    'Svarsläge buttons are inside arena meta',
+  );
+
   // Reset
   studyDrills.reset();
 });

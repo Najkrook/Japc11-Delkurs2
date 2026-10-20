@@ -464,3 +464,42 @@ test('Quiz Choices: Choices are shuffled so the correct answer is not always in 
     'Reset session answers must also be distributed and not stuck at index 0',
   );
 });
+
+test('Dojo Choices: Choices are shuffled so the correct answer position is randomized across boxes', () => {
+  const week = courseWeeks[0];
+  const { drills, dojo } = setup(week);
+
+  // 1. Traverse all 14 verbs of the week and collect the index of the correct answer
+  const answerIndices: number[] = [];
+  for (let i = 0; i < week.conjugations.length; i++) {
+    const state = dojo();
+    const expected = getDojoExpectedForm(state.current, state.targetForm).kana;
+    const answerIndex = state.choices.indexOf(expected);
+    assert.ok(answerIndex >= 0 && answerIndex < 4, 'Expected answer must be one of the 4 choices');
+    answerIndices.push(answerIndex);
+
+    // Stability check: re-reading while answering must NOT change choice positions
+    const secondRead = dojo();
+    assert.deepEqual(
+      secondRead.choices,
+      state.choices,
+      'Choices must stay stable during active card review',
+    );
+
+    // Submit answer and move
+    drills.dojo.submit(expected);
+    drills.dojo.move(1);
+  }
+
+  // 2. Answer positions must be distributed across different boxes (not all in the same box)
+  const uniquePositions = new Set(answerIndices);
+  assert.ok(
+    uniquePositions.size > 1,
+    'Correct answers should be distributed across multiple boxes, not fixed to a single box',
+  );
+
+  // 3. Reset clears cache and re-shuffles choices
+  drills.reset();
+  const resetState = dojo();
+  assert.equal(resetState.choices.length, 4);
+});

@@ -196,28 +196,6 @@ export function renderTeFormDojo(
               ⚠️ Svaga verb (${state.mistakeCount})
             </button>
           </div>
-          <div class="course-pill-switch" role="group" aria-label="Svarsläge">
-            <button
-              type="button"
-              class=${preferences.inputMode === 'choices' ? 'active' : ''}
-              @click=${() => {
-                preferences.inputMode = 'choices';
-                host.render();
-              }}
-            >
-              Flerval
-            </button>
-            <button
-              type="button"
-              class=${preferences.inputMode === 'write' ? 'active' : ''}
-              @click=${() => {
-                preferences.inputMode = 'write';
-                host.render();
-              }}
-            >
-              Skriv själv
-            </button>
-          </div>
         </div>
       </div>
 
@@ -353,13 +331,37 @@ export function renderTeFormDojo(
         }}
       >
         <div class="dojo-arena-meta">
-          <span class="dojo-step-counter">Verb ${safeIndex + 1} av ${total}</span>
-          <span class="dojo-verb-group-badge ${current.group}">${groupBadgeLabel}</span>
-          ${
-            progress.masteredDojoIds[current.id]
-              ? html`<span class="dojo-mastered-tag">✓ Bemästrad</span>`
-              : ''
-          }
+          <div class="dojo-arena-meta-left">
+            <span class="dojo-step-counter">Verb ${safeIndex + 1} av ${total}</span>
+            <span class="dojo-verb-group-badge ${current.group}">${groupBadgeLabel}</span>
+            ${
+              progress.masteredDojoIds[current.id]
+                ? html`<span class="dojo-mastered-tag">✓ Bemästrad</span>`
+                : ''
+            }
+          </div>
+          <div class="course-pill-switch" role="group" aria-label="Svarsläge">
+            <button
+              type="button"
+              class=${preferences.inputMode === 'choices' ? 'active' : ''}
+              @click=${() => {
+                preferences.inputMode = 'choices';
+                host.render();
+              }}
+            >
+              Flerval
+            </button>
+            <button
+              type="button"
+              class=${preferences.inputMode === 'write' ? 'active' : ''}
+              @click=${() => {
+                preferences.inputMode = 'write';
+                host.render();
+              }}
+            >
+              Skriv själv
+            </button>
+          </div>
         </div>
 
         <div class="dojo-verb-showcase">

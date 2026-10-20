@@ -212,7 +212,7 @@ function createVocabDrill() {
   };
 }
 
-function createDojoDrill() {
+function createDojoDrill(rng: () => number = Math.random) {
   let weekId = '';
   let weekFilter: 'current' | 'all' | 'mistakes' = 'current';
   let explicitTargetForm: DojoTargetForm | 'auto' = 'auto';
@@ -221,6 +221,7 @@ function createDojoDrill() {
   let selectedAnswer: string | null = null;
   let typedAnswer = '';
   let isCorrect: boolean | null = null;
+  const choicesCache = new Map<string, string[]>();
   function clearAnswer() {
     selectedAnswer = null;
     typedAnswer = '';
@@ -231,9 +232,14 @@ function createDojoDrill() {
     pool = [];
     index = 0;
     explicitTargetForm = 'auto';
+    choicesCache.clear();
     clearAnswer();
   }
   function move(delta: number) {
+    const prev = pool[index];
+    if (prev && selectedAnswer !== null) {
+      choicesCache.delete(`${prev.id}:${currentTargetForm()}`);
+    }
     index = wrap(index + delta, pool.length);
     clearAnswer();
   }
@@ -273,6 +279,17 @@ function createDojoDrill() {
       const current = pool[index];
       const form = currentTargetForm();
       const expected = current ? getDojoExpectedForm(current, form) : { kana: '', kanji: '' };
+      let cardChoices: string[] = [];
+      if (current) {
+        const cacheKey = `${current.id}:${form}`;
+        const existing = choicesCache.get(cacheKey);
+        if (existing) {
+          cardChoices = existing;
+        } else {
+          cardChoices = shuffleArray(buildDojoChoices(current, form), rng);
+          choicesCache.set(cacheKey, cardChoices);
+        }
+      }
       return {
         current,
         index,
@@ -284,7 +301,7 @@ function createDojoDrill() {
         typedAnswer,
         isCorrect,
         revealed: selectedAnswer !== null,
-        choices: current ? buildDojoChoices(current, form) : [],
+        choices: cardChoices,
         masteredCount: pool.filter((item) => progress.masteredDojoIds[item.id]).length,
         mistakeCount: mistakeVerbs.length,
       };
@@ -292,10 +309,12 @@ function createDojoDrill() {
     selectFilter(next: 'current' | 'all' | 'mistakes') {
       weekFilter = next;
       index = 0;
+      choicesCache.clear();
       clearAnswer();
     },
     selectTargetForm(form: DojoTargetForm | 'auto') {
       explicitTargetForm = form;
+      choicesCache.clear();
       clearAnswer();
     },
     setInput(value: string) {
@@ -379,7 +398,7 @@ function createQuizDrill(rng: () => number = Math.random) {
 /** In-process Study Drills: transient sessions, returning commands for Course Progress. */
 export function createStudyDrills(rng: () => number = Math.random) {
   const vocab = createVocabDrill();
-  const dojo = createDojoDrill();
+  const dojo = createDojoDrill(rng);
   const quiz = createQuizDrill(rng);
   return {
     vocab,
