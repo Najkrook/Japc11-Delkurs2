@@ -10,6 +10,15 @@ import type {
 const wrap = (index: number, length: number) => (length ? ((index % length) + length) % length : 0);
 const normalizeJp = (answer: string) => answer.trim().replace(/\s+/g, '');
 
+export function shuffleArray<T>(items: readonly T[], rng: () => number = Math.random): T[] {
+  const arr = [...items];
+  for (let i = arr.length - 1; i > 0; i--) {
+    const j = Math.floor(rng() * (i + 1));
+    [arr[i], arr[j]] = [arr[j], arr[i]];
+  }
+  return arr;
+}
+
 /** Shared by solo Dojo and Arena; no rendering or browser dependencies. */
 export function buildTeChoices(item: VerbConjugationItem): string[] {
   const stem = item.dictionaryKana.slice(0, -1);
@@ -304,7 +313,7 @@ function createDojoDrill() {
   };
 }
 
-function createQuizDrill() {
+function createQuizDrill(rng: () => number = Math.random) {
   let weekId = '';
   let questions: CourseQuizQuestion[] = [];
   let index = 0;
@@ -321,8 +330,15 @@ function createQuizDrill() {
   return {
     reset,
     read(week: CourseWeek) {
-      if (weekId !== week.id) reset(week.id);
-      questions = week.quiz;
+      if (weekId !== week.id || questions.length !== week.quiz.length) {
+        reset(week.id);
+      }
+      if (questions.length === 0 && week.quiz.length > 0) {
+        questions = week.quiz.map((q) => ({
+          ...q,
+          choices: shuffleArray(q.choices, rng),
+        }));
+      }
       index = Math.min(index, Math.max(0, questions.length - 1));
       const current = questions[index];
       return {
@@ -361,10 +377,10 @@ function createQuizDrill() {
 }
 
 /** In-process Study Drills: transient sessions, returning commands for Course Progress. */
-export function createStudyDrills() {
+export function createStudyDrills(rng: () => number = Math.random) {
   const vocab = createVocabDrill();
   const dojo = createDojoDrill();
-  const quiz = createQuizDrill();
+  const quiz = createQuizDrill(rng);
   return {
     vocab,
     dojo,

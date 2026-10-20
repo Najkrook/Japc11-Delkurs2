@@ -415,3 +415,52 @@ test('Misstagsbank: Substring kana overlaps without IDs produce zero mistake ban
   assert.deepEqual(snapshot.mistakeVocabIds || {}, {});
   assert.deepEqual(snapshot.mistakeDojoIds || {}, {});
 });
+
+test('Quiz Choices: Choices are shuffled so the correct answer is not always in the top-left position', () => {
+  const week = courseWeeks[0];
+  const { drills, quiz } = setup(week);
+  const state = quiz();
+
+  assert.equal(state.questions.length, week.quiz.length);
+
+  // 1. All questions keep their choices, answer and content intact
+  for (let i = 0; i < state.questions.length; i++) {
+    const q = state.questions[i];
+    const original = week.quiz[i];
+    assert.equal(q.id, original.id);
+    assert.equal(q.answer, original.answer);
+    assert.equal(q.choices.length, original.choices.length);
+    assert.deepEqual(new Set(q.choices), new Set(original.choices));
+    assert.ok(q.choices.includes(q.answer));
+  }
+
+  // 2. Answer positions are not all at index 0 (top-left)
+  const answerIndices = state.questions.map((q) => q.choices.indexOf(q.answer));
+  assert.ok(
+    answerIndices.some((idx) => idx !== 0),
+    'Correct answers must not all be placed at index 0 (top-left corner)',
+  );
+  const uniquePositions = new Set(answerIndices);
+  assert.ok(
+    uniquePositions.size > 1,
+    'Correct answers should be distributed across multiple choice positions',
+  );
+
+  // 3. Choices remain stable during an ongoing quiz session (between reads/re-renders)
+  const secondRead = quiz();
+  assert.deepEqual(
+    secondRead.questions.map((q) => q.choices),
+    state.questions.map((q) => q.choices),
+    'Choices must not reshuffle mid-session while user is answering',
+  );
+
+  // 4. Calling reset re-shuffles choices for the next session
+  drills.quiz.reset(week.id);
+  const resetRead = quiz();
+  assert.equal(resetRead.questions.length, week.quiz.length);
+  const resetAnswerIndices = resetRead.questions.map((q) => q.choices.indexOf(q.answer));
+  assert.ok(
+    resetAnswerIndices.some((idx) => idx !== 0),
+    'Reset session answers must also be distributed and not stuck at index 0',
+  );
+});
