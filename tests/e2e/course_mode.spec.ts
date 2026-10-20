@@ -60,7 +60,10 @@ test('JAPC11 Delkurs 2 standalone app: Vecka för vecka, Te-Form Dojo, Flashcard
   await expect(page.locator('.taekim-arc-card')).toHaveCount(6);
 
   // Start Arc 1 continuous flow
-  const firstArcResumeBtn = page.locator('.taekim-arc-card').first().locator('[data-arc-action="start-resume"]');
+  const firstArcResumeBtn = page
+    .locator('.taekim-arc-card')
+    .first()
+    .locator('[data-arc-action="start-resume"]');
   await expect(firstArcResumeBtn).toContainText('Starta Arc 1');
   await firstArcResumeBtn.click();
 

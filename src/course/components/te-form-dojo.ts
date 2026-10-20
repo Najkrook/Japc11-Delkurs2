@@ -45,7 +45,11 @@ export function renderTeFormDojo(
   const { current, index: safeIndex, choices, masteredCount, total } = state;
   const expected = current ? getDojoExpectedForm(current) : { kana: '', kanji: '' };
   const targetFormName =
-    current?.weekId === 'week-3' ? 'ない-form' : current?.weekId === 'week-4' ? 'た-form' : 'て-form';
+    current?.weekId === 'week-3'
+      ? 'ない-form'
+      : current?.weekId === 'week-4'
+        ? 'た-form'
+        : 'て-form';
 
   if (!current) {
     return html`<div class="course-empty-card">
@@ -86,8 +90,7 @@ export function renderTeFormDojo(
       if (command.type === 'mastery' && !command.mastered && current) {
         const matchVocab = week.vocab.find(
           (v) =>
-            v.kana === current.dictionaryKana ||
-            (v.kanji && v.kanji === current.dictionaryKanji),
+            v.kana === current.dictionaryKana || (v.kanji && v.kanji === current.dictionaryKanji),
         );
         if (matchVocab) {
           updateProgress({ type: 'mistake', kind: 'vocab', id: matchVocab.id, mistake: true });
@@ -210,13 +213,16 @@ export function renderTeFormDojo(
             host.render();
           }}
         >
-          <span>🎵 Minnesschema: ${
-            week.lessonNumber === 8
-              ? 'Böjningsregler för kortform nekande (ない-form)'
-              : week.lessonNumber === 9
-                ? 'Böjningsregler för dåtid i kortform (た-form)'
-                : 'Alla て-form-regler på 10 sekunder'
-          }</span>
+          <span
+            >🎵 Minnesschema:
+            ${
+              week.lessonNumber === 8
+                ? 'Böjningsregler för kortform nekande (ない-form)'
+                : week.lessonNumber === 9
+                  ? 'Böjningsregler för dåtid i kortform (た-form)'
+                  : 'Alla て-form-regler på 10 sekunder'
+            }</span
+          >
           <small>${preferences.showRuleSheet ? 'Dölj' : 'Visa'}</small>
         </summary>
         <div class="dojo-rules-grid">
@@ -363,7 +369,11 @@ export function renderTeFormDojo(
 
         ${
           preferences.inputMode === 'choices'
-            ? html`<div class="dojo-choices-grid" role="group" aria-label="Välj rätt ${targetFormName}">
+            ? html`<div
+                class="dojo-choices-grid"
+                role="group"
+                aria-label="Välj rätt ${targetFormName}"
+              >
                 ${choices.map((choice) => {
                   const isSelected = state.selectedAnswer === choice;
                   const isAnswer = choice === expected.kana;
@@ -431,9 +441,11 @@ export function renderTeFormDojo(
                     ${state.isCorrect ? '✨ Helt rätt!' : '💡 Inte riktigt — se ljudregeln:'}
                   </strong>
                   <div class="dojo-feedback-tags">
-                    ${!state.isCorrect
-                      ? html`<span class="dojo-mistake-pill">⚠️ Sparat i misstagsbanken</span>`
-                      : ''}
+                    ${
+                      !state.isCorrect
+                        ? html`<span class="dojo-mistake-pill">⚠️ Sparat i misstagsbanken</span>`
+                        : ''
+                    }
                     <span class="dojo-rule-pill">${current.ruleLabelSv}</span>
                   </div>
                 </div>

@@ -88,6 +88,7 @@ export function renderVocabModule(
           ['mistakes', `⚠️ Svaga ord (${state.mistakeCount})`],
           ['verb-u', 'U-verb'],
           ['verb-ru', 'Ru-verb'],
+          ['verb-irr', 'Oregelbundna verb'],
           ['adjective', 'Adjektiv'],
           ['noun', 'Substantiv'],
           ['expression', 'Uttryck'],

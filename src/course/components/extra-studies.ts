@@ -12,10 +12,7 @@ import {
   type TaeKimCard,
   type TaeKimSearchResult,
 } from '../data/taeKimData.ts';
-import {
-  taeKimSrs,
-  type TaeKimReviewRating,
-} from '../tae-kim-srs.ts';
+import { taeKimSrs, type TaeKimReviewRating } from '../tae-kim-srs.ts';
 
 type ExtraStudiesViewMode = 'arcs' | 'study' | 'finished';
 
@@ -271,7 +268,10 @@ function renderArcsOverview(host: CourseHostContext, onBackToHub: () => void): C
   };
 
   return html`
-    <section class="course-module-section taekim-section" aria-label="Tae Kim Anime Immersion Extra Studier">
+    <section
+      class="course-module-section taekim-section"
+      aria-label="Tae Kim Anime Immersion Extra Studier"
+    >
       <!-- Top Navigation & Return -->
       <div class="course-module-topbar">
         <button
@@ -315,9 +315,9 @@ function renderArcsOverview(host: CourseHostContext, onBackToHub: () => void): C
 
         <h1 class="course-editorial-title">Extra studier · Tae Kim Anime Immersion</h1>
         <p class="course-hero-desc">
-          2 075 autentiska meningar och glosor från anime, indelade i 6 stora Arcs efter Tae Kims grammatiska
-          ordning. Hoppa in och ut när du vill – din position sparas automatiskt på varje kort, och kort du har
-          svårt för samlas i en egen övningshög för varje Arc.
+          2 075 autentiska meningar och glosor från anime, indelade i 6 stora Arcs efter Tae Kims
+          grammatiska ordning. Hoppa in och ut när du vill – din position sparas automatiskt på
+          varje kort, och kort du har svårt för samlas i en egen övningshög för varje Arc.
         </p>
 
         <!-- Overall SRS Stats Strip -->
@@ -366,42 +366,50 @@ function renderArcsOverview(host: CourseHostContext, onBackToHub: () => void): C
 
         <!-- Quick Launch Action Strip (Due cards & Bookmarks) -->
         <div class="taekim-quick-actions">
-          ${dueIndices.length > 0
-            ? html`
-                <button
-                  type="button"
-                  class="course-btn-mistakes"
-                  @click=${() =>
-                    startCustomSession(
-                      'Dagens Repetition',
-                      `${dueIndices.length} förfallna kort i SM-2`,
-                      dueIndices,
-                      host,
-                    )}
-                >
-                  ⚡ Repetera förfallna kort (${dueIndices.length}) →
-                </button>
-              `
-            : html`
-                <span class="taekim-due-clear-badge">
-                  ✓ Inga förfallna kort idag! Välj en Arc nedan för att fortsätta studera.
-                </span>
-              `}
-
-          ${overallStats.bookmarkedCount > 0
-            ? html`
-                <button
-                  type="button"
-                  class="taekim-star-filter-btn"
-                  @click=${() => {
-                    const saved = Object.keys(taeKimSrs.getState().bookmarks).map(Number);
-                    startCustomSession('Mina Sparade Favoriter', `${saved.length} stjärnmärkta kort`, saved, host);
-                  }}
-                >
-                  ⭐ Sparade favoriter (${overallStats.bookmarkedCount})
-                </button>
-              `
-            : ''}
+          ${
+            dueIndices.length > 0
+              ? html`
+                  <button
+                    type="button"
+                    class="course-btn-mistakes"
+                    @click=${() =>
+                      startCustomSession(
+                        'Dagens Repetition',
+                        `${dueIndices.length} förfallna kort i SM-2`,
+                        dueIndices,
+                        host,
+                      )}
+                  >
+                    ⚡ Repetera förfallna kort (${dueIndices.length}) →
+                  </button>
+                `
+              : html`
+                  <span class="taekim-due-clear-badge">
+                    ✓ Inga förfallna kort idag! Välj en Arc nedan för att fortsätta studera.
+                  </span>
+                `
+          }
+          ${
+            overallStats.bookmarkedCount > 0
+              ? html`
+                  <button
+                    type="button"
+                    class="taekim-star-filter-btn"
+                    @click=${() => {
+                      const saved = Object.keys(taeKimSrs.getState().bookmarks).map(Number);
+                      startCustomSession(
+                        'Mina Sparade Favoriter',
+                        `${saved.length} stjärnmärkta kort`,
+                        saved,
+                        host,
+                      );
+                    }}
+                  >
+                    ⭐ Sparade favoriter (${overallStats.bookmarkedCount})
+                  </button>
+                `
+              : ''
+          }
         </div>
       </header>
 
@@ -419,49 +427,56 @@ function renderArcsOverview(host: CourseHostContext, onBackToHub: () => void): C
           @input=${handleSearchInput}
         />
 
-        ${searchQuery.trim() && searchResults.length > 0
-          ? html`
-              <div class="taekim-search-results">
-                <span class="search-count">${searchResults.length} träffar:</span>
-                <div class="search-results-list">
-                  ${searchResults.map((res) => {
-                    const arc = TAE_KIM_ARCS.find(
-                      (a) => res.globalIndex >= getArcStartIndex(a) && res.globalIndex < getArcEndIndex(a),
-                    ) || TAE_KIM_ARCS[0];
-                    const arcOffset = res.globalIndex - getArcStartIndex(arc);
+        ${
+          searchQuery.trim() && searchResults.length > 0
+            ? html`
+                <div class="taekim-search-results">
+                  <span class="search-count">${searchResults.length} träffar:</span>
+                  <div class="search-results-list">
+                    ${searchResults.map((res) => {
+                      const arc =
+                        TAE_KIM_ARCS.find(
+                          (a) =>
+                            res.globalIndex >= getArcStartIndex(a) &&
+                            res.globalIndex < getArcEndIndex(a),
+                        ) || TAE_KIM_ARCS[0];
+                      const arcOffset = res.globalIndex - getArcStartIndex(arc);
 
-                    return html`
-                      <div class="search-result-row">
-                        <div class="search-result-main" lang="ja">
-                          <strong>${res.card.kanji || res.card.hiragana}</strong>
-                          <small>${res.card.hiragana} · ${res.card.romaji}</small>
-                          <span class="search-def">${extractShortMeaning(res.card.meaning)}</span>
+                      return html`
+                        <div class="search-result-row">
+                          <div class="search-result-main" lang="ja">
+                            <strong>${res.card.kanji || res.card.hiragana}</strong>
+                            <small>${res.card.hiragana} · ${res.card.romaji}</small>
+                            <span class="search-def">${extractShortMeaning(res.card.meaning)}</span>
+                          </div>
+                          <div class="search-result-side">
+                            <span class="search-source-tag"
+                              >${formatAnimeSource(res.card.source)}</span
+                            >
+                            <span class="arc-search-badge" style="color: ${arc.accentColor}">
+                              Arc ${arc.arcNumber} · Kort ${arcOffset + 1}
+                            </span>
+                            <button
+                              type="button"
+                              class="course-btn-primary search-open-btn"
+                              @click=${() => {
+                                taeKimSrs.setArcPosition(arc.id, arcOffset);
+                                startArcContinuousSession(arc, host);
+                              }}
+                            >
+                              Hoppa hit i Arc ${arc.arcNumber} →
+                            </button>
+                          </div>
                         </div>
-                        <div class="search-result-side">
-                          <span class="search-source-tag">${formatAnimeSource(res.card.source)}</span>
-                          <span class="arc-search-badge" style="color: ${arc.accentColor}">
-                            Arc ${arc.arcNumber} · Kort ${arcOffset + 1}
-                          </span>
-                          <button
-                            type="button"
-                            class="course-btn-primary search-open-btn"
-                            @click=${() => {
-                              taeKimSrs.setArcPosition(arc.id, arcOffset);
-                              startArcContinuousSession(arc, host);
-                            }}
-                          >
-                            Hoppa hit i Arc ${arc.arcNumber} →
-                          </button>
-                        </div>
-                      </div>
-                    `;
-                  })}
+                      `;
+                    })}
+                  </div>
                 </div>
-              </div>
-            `
-          : searchQuery.trim()
-            ? html`<p class="search-empty">Inga kort matchade "${searchQuery}".</p>`
-            : ''}
+              `
+            : searchQuery.trim()
+              ? html`<p class="search-empty">Inga kort matchade "${searchQuery}".</p>`
+              : ''
+        }
       </div>
 
       <!-- 6 Arcs Container (Continuous Flow Cards) -->
@@ -470,8 +485,8 @@ function renderArcsOverview(host: CourseHostContext, onBackToHub: () => void): C
           <div>
             <h2>Välj Arc att studera</h2>
             <p class="taekim-arcs-subtitle">
-              Varje Arc är ett sammanhängande kapitel. Tryck "Fortsätt" för att hoppa rakt in där du avslutade,
-              eller öva på korten du haft svårt för.
+              Varje Arc är ett sammanhängande kapitel. Tryck "Fortsätt" för att hoppa rakt in där du
+              avslutade, eller öva på korten du haft svårt för.
             </p>
           </div>
           <span class="taekim-arc-count-pill">6 Stora Arcs · 2 075 Kort</span>
@@ -499,7 +514,9 @@ function renderArcsOverview(host: CourseHostContext, onBackToHub: () => void): C
                 </div>
 
                 <div class="arc-card-titles">
-                  <strong class="arc-title">${arc.titleSv.split(':')[1]?.trim() || arc.titleSv}</strong>
+                  <strong class="arc-title"
+                    >${arc.titleSv.split(':')[1]?.trim() || arc.titleSv}</strong
+                  >
                   <div class="arc-subtitles" lang="ja">
                     <span class="arc-jap-title">${arc.titleJap}</span>
                     <span class="arc-romaji-title">· ${arc.romajiTitle}</span>
@@ -512,102 +529,120 @@ function renderArcsOverview(host: CourseHostContext, onBackToHub: () => void): C
                 <div class="arc-progress-section">
                   <div class="arc-progress-meta">
                     <span class="arc-progress-label">
-                      ${hasStarted
-                        ? html`Kort <strong>${stats.currentPosition}</strong> av ${arc.totalCards}`
-                        : html`Ej påbörjad`}
+                      ${
+                        hasStarted
+                          ? html`Kort <strong>${stats.currentPosition}</strong> av ${arc.totalCards}`
+                          : html`Ej påbörjad`
+                      }
                     </span>
                     <span class="arc-progress-pct">${stats.progressPercent}%</span>
                   </div>
 
                   <div class="arc-progress-bar">
-                    <span style="width: ${stats.progressPercent}%; background: ${arc.accentColor}"></span>
+                    <span
+                      style="width: ${stats.progressPercent}%; background: ${arc.accentColor}"
+                    ></span>
                   </div>
 
                   <div class="arc-stats-pills">
-                    ${stats.masteredCards > 0
-                      ? html`
-                          <span class="arc-pill mastered" title="Kort med SM-2 intervall >= 21 dagar">
-                            ✓ ${stats.masteredCards} bemästrade
-                          </span>
-                        `
-                      : ''}
-                    ${weakCount > 0
-                      ? html`
-                          <span class="arc-pill weak" title="Kort du har haft svårt för i denna Arc">
-                            ⚠️ ${weakCount} svaga kort
-                          </span>
-                        `
-                      : ''}
+                    ${
+                      stats.masteredCards > 0
+                        ? html`
+                            <span
+                              class="arc-pill mastered"
+                              title="Kort med SM-2 intervall >= 21 dagar"
+                            >
+                              ✓ ${stats.masteredCards} bemästrade
+                            </span>
+                          `
+                        : ''
+                    }
+                    ${
+                      weakCount > 0
+                        ? html`
+                            <span
+                              class="arc-pill weak"
+                              title="Kort du har haft svårt för i denna Arc"
+                            >
+                              ⚠️ ${weakCount} svaga kort
+                            </span>
+                          `
+                        : ''
+                    }
                   </div>
                 </div>
 
                 <!-- Arc Action Buttons -->
                 <div class="taekim-arc-actions">
-                  ${!hasStarted
-                    ? html`
-                        <button
-                          type="button"
-                          class="course-btn-primary taekim-resume-btn"
-                          data-arc-action="start-resume"
-                          @click=${() => startArcContinuousSession(arc, host)}
-                        >
-                          ▶ Starta Arc ${arc.arcNumber}
-                        </button>
-                      `
-                    : isFinished
+                  ${
+                    !hasStarted
                       ? html`
-                          <button
-                            type="button"
-                            class="course-btn-primary taekim-resume-btn completed"
-                            data-arc-action="start-resume"
-                            @click=${() => startArcContinuousSession(arc, host, true)}
-                          >
-                            ↺ Repetera Arc ${arc.arcNumber}
-                          </button>
-                        `
-                      : html`
                           <button
                             type="button"
                             class="course-btn-primary taekim-resume-btn"
                             data-arc-action="start-resume"
                             @click=${() => startArcContinuousSession(arc, host)}
                           >
-                            ▶ Fortsätt från kort ${stats.currentPosition + 1}
+                            ▶ Starta Arc ${arc.arcNumber}
                           </button>
-                        `}
-
-                  ${weakCount > 0
-                    ? html`
-                        <button
-                          type="button"
-                          class="course-btn-mistakes secondary taekim-weak-btn"
-                          data-arc-action="weak-cards"
-                          @click=${() => startArcWeakSession(arc, host)}
-                          title="Öva enbart på de ${weakCount} kort du svarat Igen eller Svårt på i Arc ${arc.arcNumber}"
-                        >
-                          ⚠️ Öva svaga kort (${weakCount})
-                        </button>
-                      `
-                    : ''}
-
-                  ${hasStarted
-                    ? html`
-                        <button
-                          type="button"
-                          class="taekim-reset-btn"
-                          data-arc-action="reset"
-                          @click=${() => {
-                            if (confirm(`Vill du börja om Arc ${arc.arcNumber} från kort 1?`)) {
-                              taeKimSrs.resetArcPosition(arc.id);
-                              host.render();
-                            }
-                          }}
-                          title="Återställ positionen till kort 1"
-                        >
-                          ↺ Börja om
-                        </button>
-                      `
-                    : ''}
+                        `
+                      : isFinished
+                        ? html`
+                            <button
+                              type="button"
+                              class="course-btn-primary taekim-resume-btn completed"
+                              data-arc-action="start-resume"
+                              @click=${() => startArcContinuousSession(arc, host, true)}
+                            >
+                              ↺ Repetera Arc ${arc.arcNumber}
+                            </button>
+                          `
+                        : html`
+                            <button
+                              type="button"
+                              class="course-btn-primary taekim-resume-btn"
+                              data-arc-action="start-resume"
+                              @click=${() => startArcContinuousSession(arc, host)}
+                            >
+                              ▶ Fortsätt från kort ${stats.currentPosition + 1}
+                            </button>
+                          `
+                  }
+                  ${
+                    weakCount > 0
+                      ? html`
+                          <button
+                            type="button"
+                            class="course-btn-mistakes secondary taekim-weak-btn"
+                            data-arc-action="weak-cards"
+                            @click=${() => startArcWeakSession(arc, host)}
+                            title="Öva enbart på de ${weakCount} kort du svarat Igen eller Svårt på i Arc ${arc.arcNumber}"
+                          >
+                            ⚠️ Öva svaga kort (${weakCount})
+                          </button>
+                        `
+                      : ''
+                  }
+                  ${
+                    hasStarted
+                      ? html`
+                          <button
+                            type="button"
+                            class="taekim-reset-btn"
+                            data-arc-action="reset"
+                            @click=${() => {
+                              if (confirm(`Vill du börja om Arc ${arc.arcNumber} från kort 1?`)) {
+                                taeKimSrs.resetArcPosition(arc.id);
+                                host.render();
+                              }
+                            }}
+                            title="Återställ positionen till kort 1"
+                          >
+                            ↺ Börja om
+                          </button>
+                        `
+                      : ''
+                  }
                 </div>
               </article>
             `;
@@ -748,18 +783,24 @@ function renderStudyScreen(host: CourseHostContext): CourseTemplate {
         class="anki-stage-card taekim-card-stage ${isFlipped ? 'flipped' : ''}"
         tabindex="0"
         role="button"
-        aria-label=${isFlipped
-          ? 'Kort baksida. Klicka för att vända tillbaka.'
-          : 'Kort framsida. Klicka för att visa svar.'}
+        aria-label=${
+          isFlipped
+            ? 'Kort baksida. Klicka för att vända tillbaka.'
+            : 'Kort framsida. Klicka för att visa svar.'
+        }
         @click=${handleFlip}
       >
         <!-- Card Header Badges -->
         <div class="anki-card-badge-row">
           <span class="search-source-tag">🎬 ${formatAnimeSource(card.source)}</span>
           <div class="stage-right-badges">
-            ${cardProgress?.status
-              ? html`<span class="anki-status-tag ${cardProgress.status}">${cardProgress.status.toUpperCase()}</span>`
-              : html`<span class="anki-status-tag new">NYTT</span>`}
+            ${
+              cardProgress?.status
+                ? html`<span class="anki-status-tag ${cardProgress.status}"
+                    >${cardProgress.status.toUpperCase()}</span
+                  >`
+                : html`<span class="anki-status-tag new">NYTT</span>`
+            }
             <button
               type="button"
               class="mini-audio-btn anki-audio-play-btn ${isAudioPlaying ? 'playing' : ''}"
@@ -782,96 +823,105 @@ function renderStudyScreen(host: CourseHostContext): CourseTemplate {
         </div>
 
         <!-- Back Side Content (revealed on flip) -->
-        ${isFlipped
-          ? html`
-              <div class="anki-card-answer-revealed">
-                <hr class="anki-reveal-divider" />
+        ${
+          isFlipped
+            ? html`
+                <div class="anki-card-answer-revealed">
+                  <hr class="anki-reveal-divider" />
 
-                <!-- Anime Image Screenshot if available -->
-                ${card.image
-                  ? html`
-                      <div class="taekim-image-wrapper">
-                        <img
-                          class="taekim-screenshot"
-                          src="/images/anki/${card.image}"
-                          alt="${formatAnimeSource(card.source)}"
-                          loading="eager"
-                        />
-                      </div>
-                    `
-                  : ''}
+                  <!-- Anime Image Screenshot if available -->
+                  ${
+                    card.image
+                      ? html`
+                          <div class="taekim-image-wrapper">
+                            <img
+                              class="taekim-screenshot"
+                              src="/images/anki/${card.image}"
+                              alt="${formatAnimeSource(card.source)}"
+                              loading="eager"
+                            />
+                          </div>
+                        `
+                      : ''
+                  }
 
-                <!-- English Definition & Tae Kim Explanation -->
-                <div class="taekim-meaning-box">
-                  <h4 class="taekim-def-title">${extractShortMeaning(card.meaning)}</h4>
-                  <p class="taekim-full-meaning">${card.meaning}</p>
+                  <!-- English Definition & Tae Kim Explanation -->
+                  <div class="taekim-meaning-box">
+                    <h4 class="taekim-def-title">${extractShortMeaning(card.meaning)}</h4>
+                    <p class="taekim-full-meaning">${card.meaning}</p>
+                  </div>
                 </div>
-              </div>
-            `
-          : html`
-              <div class="anki-card-prompt-hint">
-                <span>Tryck <strong>Mellanslag</strong> eller klicka för att visa svar och anime-bild</span>
-              </div>
-            `}
+              `
+            : html`
+                <div class="anki-card-prompt-hint">
+                  <span
+                    >Tryck <strong>Mellanslag</strong> eller klicka för att visa svar och
+                    anime-bild</span
+                  >
+                </div>
+              `
+        }
       </article>
 
       <!-- Rating Tray (when flipped) or Show Answer CTA (when front) -->
       <div class="anki-rating-tray" aria-label="Bedöm ditt minne med SuperMemo SM-2">
-        ${isFlipped
-          ? html`
-              <button
-                type="button"
-                class="anki-rate-btn rate-again"
-                @click=${() => handleRate('again')}
-                title="Kom inte ihåg (Tangent 1)"
-              >
-                <span class="rate-key-hint">[1]</span>
-                <span class="rate-interval">${intervals.again.label}</span>
-                <strong class="rate-label">Igen</strong>
-              </button>
+        ${
+          isFlipped
+            ? html`
+                <button
+                  type="button"
+                  class="anki-rate-btn rate-again"
+                  @click=${() => handleRate('again')}
+                  title="Kom inte ihåg (Tangent 1)"
+                >
+                  <span class="rate-key-hint">[1]</span>
+                  <span class="rate-interval">${intervals.again.label}</span>
+                  <strong class="rate-label">Igen</strong>
+                </button>
 
-              <button
-                type="button"
-                class="anki-rate-btn rate-hard"
-                @click=${() => handleRate('hard')}
-                title="Svårt men mindes (Tangent 2)"
-              >
-                <span class="rate-key-hint">[2]</span>
-                <span class="rate-interval">${intervals.hard.label}</span>
-                <strong class="rate-label">Svårt</strong>
-              </button>
+                <button
+                  type="button"
+                  class="anki-rate-btn rate-hard"
+                  @click=${() => handleRate('hard')}
+                  title="Svårt men mindes (Tangent 2)"
+                >
+                  <span class="rate-key-hint">[2]</span>
+                  <span class="rate-interval">${intervals.hard.label}</span>
+                  <strong class="rate-label">Svårt</strong>
+                </button>
 
-              <button
-                type="button"
-                class="anki-rate-btn rate-good"
-                @click=${() => handleRate('good')}
-                title="Mindes bra (Tangent 3)"
-              >
-                <span class="rate-key-hint">[3]</span>
-                <span class="rate-interval">${intervals.good.label}</span>
-                <strong class="rate-label">Bra</strong>
-              </button>
+                <button
+                  type="button"
+                  class="anki-rate-btn rate-good"
+                  @click=${() => handleRate('good')}
+                  title="Mindes bra (Tangent 3)"
+                >
+                  <span class="rate-key-hint">[3]</span>
+                  <span class="rate-interval">${intervals.good.label}</span>
+                  <strong class="rate-label">Bra</strong>
+                </button>
 
-              <button
-                type="button"
-                class="anki-rate-btn rate-easy"
-                @click=${() => handleRate('easy')}
-                title="Satt direkt (Tangent 4)"
-              >
-                <span class="rate-key-hint">[4]</span>
-                <span class="rate-interval">${intervals.easy.label}</span>
-                <strong class="rate-label">Lätt</strong>
-              </button>
-            `
-          : html`
-              <button
-                type="button"
-                class="course-btn-primary anki-show-answer-btn"
-                @click=${handleFlip}
-              >
-                Visa svar (Mellanslag) →
-              </button>
-            `}
+                <button
+                  type="button"
+                  class="anki-rate-btn rate-easy"
+                  @click=${() => handleRate('easy')}
+                  title="Satt direkt (Tangent 4)"
+                >
+                  <span class="rate-key-hint">[4]</span>
+                  <span class="rate-interval">${intervals.easy.label}</span>
+                  <strong class="rate-label">Lätt</strong>
+                </button>
+              `
+            : html`
+                <button
+                  type="button"
+                  class="course-btn-primary anki-show-answer-btn"
+                  @click=${handleFlip}
+                >
+                  Visa svar (Mellanslag) →
+                </button>
+              `
+        }
       </div>
     </section>
   `;
@@ -890,23 +940,31 @@ function renderFinishedScreen(host: CourseHostContext): CourseTemplate {
 
   if (mode === 'weak') {
     return html`
-      <section class="course-module-section taekim-finished-section" aria-label="Svaga kort session slutförd">
+      <section
+        class="course-module-section taekim-finished-section"
+        aria-label="Svaga kort session slutförd"
+      >
         <div class="taekim-finished-card">
-          <span class="course-eyebrow">SVAGA KORT · ${currentArc?.titleSv.toUpperCase() || 'TAE KIM ANKI'}</span>
-          ${weakCount === 0
-            ? html`
-                <h1>🌟 Alla problemkort bemästrade!</h1>
-                <p class="taekim-finished-sub">
-                  Fantastiskt! Du har klarat alla tidigare svaga kort i denna Arc och de har graderats ut ur
-                  svaghetskortleken.
-                </p>
-              `
-            : html`
-                <h1>💪 Bra övningspass!</h1>
-                <p class="taekim-finished-sub">
-                  Du repeterade ${reviewedCount} kort. Det finns ${weakCount} kort kvar i denna Arcs svaghetshög.
-                </p>
-              `}
+          <span class="course-eyebrow"
+            >SVAGA KORT · ${currentArc?.titleSv.toUpperCase() || 'TAE KIM ANKI'}</span
+          >
+          ${
+            weakCount === 0
+              ? html`
+                  <h1>🌟 Alla problemkort bemästrade!</h1>
+                  <p class="taekim-finished-sub">
+                    Fantastiskt! Du har klarat alla tidigare svaga kort i denna Arc och de har
+                    graderats ut ur svaghetskortleken.
+                  </p>
+                `
+              : html`
+                  <h1>💪 Bra övningspass!</h1>
+                  <p class="taekim-finished-sub">
+                    Du repeterade ${reviewedCount} kort. Det finns ${weakCount} kort kvar i denna
+                    Arcs svaghetshög.
+                  </p>
+                `
+          }
 
           <div class="taekim-finished-metrics">
             <div class="finished-stat">
@@ -917,39 +975,45 @@ function renderFinishedScreen(host: CourseHostContext): CourseTemplate {
               <strong>${goodCount}</strong>
               <span>Klarade (Bra/Lätt)</span>
             </div>
-            ${weakCount > 0
-              ? html`
-                  <div class="finished-stat warning">
-                    <strong>${weakCount}</strong>
-                    <span>Kvar att nöta</span>
-                  </div>
-                `
-              : ''}
+            ${
+              weakCount > 0
+                ? html`
+                    <div class="finished-stat warning">
+                      <strong>${weakCount}</strong>
+                      <span>Kvar att nöta</span>
+                    </div>
+                  `
+                : ''
+            }
           </div>
 
           <div class="taekim-finished-actions">
-            ${weakCount > 0 && currentArc
-              ? html`
-                  <button
-                    type="button"
-                    class="course-btn-mistakes secondary"
-                    @click=${() => startArcWeakSession(currentArc, host)}
-                  >
-                    ⚠️ Öva de ${weakCount} kvarvarande svaga korten →
-                  </button>
-                `
-              : ''}
-            ${currentArc && currentPos < currentArc.totalCards
-              ? html`
-                  <button
-                    type="button"
-                    class="course-btn-primary"
-                    @click=${() => startArcContinuousSession(currentArc, host)}
-                  >
-                    ▶ Fortsätt Arc ${currentArc.arcNumber} från kort ${currentPos + 1} →
-                  </button>
-                `
-              : ''}
+            ${
+              weakCount > 0 && currentArc
+                ? html`
+                    <button
+                      type="button"
+                      class="course-btn-mistakes secondary"
+                      @click=${() => startArcWeakSession(currentArc, host)}
+                    >
+                      ⚠️ Öva de ${weakCount} kvarvarande svaga korten →
+                    </button>
+                  `
+                : ''
+            }
+            ${
+              currentArc && currentPos < currentArc.totalCards
+                ? html`
+                    <button
+                      type="button"
+                      class="course-btn-primary"
+                      @click=${() => startArcContinuousSession(currentArc, host)}
+                    >
+                      ▶ Fortsätt Arc ${currentArc.arcNumber} från kort ${currentPos + 1} →
+                    </button>
+                  `
+                : ''
+            }
 
             <button
               type="button"
@@ -973,7 +1037,9 @@ function renderFinishedScreen(host: CourseHostContext): CourseTemplate {
       <div class="taekim-finished-card">
         <span class="course-eyebrow">PASS AVKLARAT · TAE KIM ANKI</span>
         <h1>🎉 Strålande jobbat!</h1>
-        <p class="taekim-finished-sub">${title} är färdigrepeterat och uppdaterat i din SM-2 glömskekurva.</p>
+        <p class="taekim-finished-sub">
+          ${title} är färdigrepeterat och uppdaterat i din SM-2 glömskekurva.
+        </p>
 
         <div class="taekim-finished-metrics">
           <div class="finished-stat">
@@ -984,50 +1050,58 @@ function renderFinishedScreen(host: CourseHostContext): CourseTemplate {
             <strong>${goodCount}</strong>
             <span>Bra / Lätta svar</span>
           </div>
-          ${againCount > 0
-            ? html`
-                <div class="finished-stat warning">
-                  <strong>${againCount}</strong>
-                  <span>Tillagda i svaghetshög</span>
-                </div>
-              `
-            : ''}
+          ${
+            againCount > 0
+              ? html`
+                  <div class="finished-stat warning">
+                    <strong>${againCount}</strong>
+                    <span>Tillagda i svaghetshög</span>
+                  </div>
+                `
+              : ''
+          }
         </div>
 
         <div class="taekim-finished-actions">
-          ${weakCount > 0 && currentArc
-            ? html`
-                <button
-                  type="button"
-                  class="course-btn-mistakes secondary"
-                  @click=${() => startArcWeakSession(currentArc, host)}
-                >
-                  ⚠️ Öva de ${weakCount} svaga korten nu →
-                </button>
-              `
-            : ''}
-          ${nextArc
-            ? html`
-                <button
-                  type="button"
-                  class="course-btn-primary"
-                  @click=${() => startArcContinuousSession(nextArc, host)}
-                >
-                  Starta nästa Arc (Arc ${nextArc.arcNumber}) →
-                </button>
-              `
-            : ''}
-          ${currentArc
-            ? html`
-                <button
-                  type="button"
-                  class="course-btn-secondary"
-                  @click=${() => startArcContinuousSession(currentArc, host, true)}
-                >
-                  ↺ Börja om Arc ${currentArc.arcNumber} från kort 1
-                </button>
-              `
-            : ''}
+          ${
+            weakCount > 0 && currentArc
+              ? html`
+                  <button
+                    type="button"
+                    class="course-btn-mistakes secondary"
+                    @click=${() => startArcWeakSession(currentArc, host)}
+                  >
+                    ⚠️ Öva de ${weakCount} svaga korten nu →
+                  </button>
+                `
+              : ''
+          }
+          ${
+            nextArc
+              ? html`
+                  <button
+                    type="button"
+                    class="course-btn-primary"
+                    @click=${() => startArcContinuousSession(nextArc, host)}
+                  >
+                    Starta nästa Arc (Arc ${nextArc.arcNumber}) →
+                  </button>
+                `
+              : ''
+          }
+          ${
+            currentArc
+              ? html`
+                  <button
+                    type="button"
+                    class="course-btn-secondary"
+                    @click=${() => startArcContinuousSession(currentArc, host, true)}
+                  >
+                    ↺ Börja om Arc ${currentArc.arcNumber} från kort 1
+                  </button>
+                `
+              : ''
+          }
 
           <button
             type="button"

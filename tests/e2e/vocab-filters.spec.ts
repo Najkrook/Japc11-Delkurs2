@@ -25,7 +25,7 @@ test('remaining cards advance without skipping and end with an empty state', asy
 });
 
 test('empty word category does not fall back to all words', async ({ page }) => {
-  const week = courseWeeks.find((w) => !w.vocab.some((v) => v.category === 'expression'))!;
+  const week = courseWeeks.find((w) => !w.vocab.some((v) => v.category === 'verb-irr'))!;
   expect(week).toBeTruthy();
   const progress = createFreshCourseProgress();
   progress.activeWeekId = week.id;
@@ -34,7 +34,7 @@ test('empty word category does not fall back to all words', async ({ page }) => 
     localStorage.setItem('japc11-dk2-course-v1-guest', JSON.stringify(data));
   }, progress);
   await page.goto('/');
-  await page.getByRole('button', { name: 'Uttryck', exact: true }).click();
+  await page.getByRole('button', { name: 'Oregelbundna verb', exact: true }).click();
   await expect(page.getByText('Inga glosor matchar det valda filtret.')).toBeVisible();
   await expect(page.locator('.course-flashcard')).toHaveCount(0);
 });

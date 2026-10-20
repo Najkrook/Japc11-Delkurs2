@@ -1,0 +1,23 @@
+# Build output and dependencies
+dist/
+node_modules/
+
+# Local cache and temporary files
+.firebase/
+tmp/
+test-results/
+playwright-report/
+*.log
+
+# Agent & scratch artifacts
+.agents/
+.scratch/
+
+# Package lock
+package-lock.json
+
+# Large media and external dataset assets
+public/audio/
+public/images/
+src/course/data/taeKimAnkiData.json
+Material/

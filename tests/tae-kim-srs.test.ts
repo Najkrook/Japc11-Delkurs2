@@ -83,4 +83,3 @@ test('Tae Kim SRS: Arc weak cards track errors and graduate upon good/easy ratin
   const weakIndices2 = taeKimSrs.getArcWeakCardIndices(arcId);
   assert.ok(!weakIndices2.includes(cardIndex));
 });
-

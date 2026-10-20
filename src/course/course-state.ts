@@ -100,8 +100,7 @@ export function getWeekProgressSummary(
 
   const rawQuizBest = progress.quizBestResults[week.id];
   const quizTotal = week.quiz.length;
-  const quizBest =
-    rawQuizBest && rawQuizBest.total === quizTotal ? rawQuizBest : null;
+  const quizBest = rawQuizBest && rawQuizBest.total === quizTotal ? rawQuizBest : null;
   const quizScore = quizBest ? quizBest.score : null;
 
   const totalItems = vocabTotal + kanjiTotal + dojoTotal + quizTotal;

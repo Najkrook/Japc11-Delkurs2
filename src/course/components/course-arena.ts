@@ -61,9 +61,7 @@ function renderArenaLobby(
         <button type="button" class="course-back-btn" @click=${onBackToHub}>
           ← Tillbaka till veckoöversikten
         </button>
-        <span class="arena-isolated-badge">
-          Lektion 6–9 · Kurs-Arena
-        </span>
+        <span class="arena-isolated-badge"> Lektion 6–9 · Kurs-Arena </span>
       </div>
 
       <div class="dojo-header-banner arena-hero-banner">
@@ -71,7 +69,8 @@ function renderArenaLobby(
           <span class="course-eyebrow">KURS-ARENA · MULTIPLAYER</span>
           <h1>Tävla i det nya kursmaterialet</h1>
           <p>
-            Utmana kursare i realtid med 4-siffrig rumskod, eller kör en snabbduell mot en studie-bot.
+            Utmana kursare i realtid med 4-siffrig rumskod, eller kör en snabbduell mot en
+            studie-bot.
           </p>
         </div>
       </div>
@@ -157,7 +156,11 @@ function renderArenaLobby(
 
           <div class="arena-form-group">
             <span class="arena-label">Antal frågor</span>
-            <div class="arena-segmented-control arena-segmented-control-compact" role="group" aria-label="Välj antal rundor">
+            <div
+              class="arena-segmented-control arena-segmented-control-compact"
+              role="group"
+              aria-label="Välj antal rundor"
+            >
               ${([5, 10, 15] as ArenaRoundCount[]).map(
                 (cnt) => html`
                   <button
@@ -202,7 +205,9 @@ function renderArenaLobby(
             <span class="bento-stat-pill">4 siffror</span>
           </div>
           <h2>Gå med via rumskod</h2>
-          <p class="arena-card-sub">Skriv in den 4-siffriga koden för att ansluta till ett skapat rum:</p>
+          <p class="arena-card-sub">
+            Skriv in den 4-siffriga koden för att ansluta till ett skapat rum:
+          </p>
 
           <form
             class="arena-code-form"

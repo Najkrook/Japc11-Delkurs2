@@ -219,8 +219,7 @@ function createDojoDrill() {
     if (!current || !clean || selectedAnswer !== null) return null;
     selectedAnswer = answer;
     const expected = getDojoExpectedForm(current);
-    isCorrect =
-      clean === normalizeJp(expected.kana) || clean === normalizeJp(expected.kanji);
+    isCorrect = clean === normalizeJp(expected.kana) || clean === normalizeJp(expected.kanji);
     return {
       type: 'mastery',
       kind: 'dojo',

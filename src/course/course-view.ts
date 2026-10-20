@@ -168,28 +168,36 @@ export function renderCourseShell(host: CourseHostContext): CourseTemplate {
               class="course-account-btn ${host.user ? 'logged-in' : ''} ${host.user?.photoURL ? 'has-avatar' : ''}"
               ?disabled=${host.authBusy}
               @click=${host.account}
-              title=${host.user
-                ? `Inloggad som ${host.user.displayName || host.user.email || 'användare'} · Klicka för att logga ut`
-                : 'Logga in med Google'}
+              title=${
+                host.user
+                  ? `Inloggad som ${host.user.displayName || host.user.email || 'användare'} · Klicka för att logga ut`
+                  : 'Logga in med Google'
+              }
             >
-              ${host.user
-                ? html`
-                    ${host.user.photoURL
-                      ? html`<img
-                          class="course-account-avatar"
-                          src=${host.user.photoURL}
-                          alt=""
-                          referrerpolicy="no-referrer"
-                          loading="lazy"
-                        />`
-                      : html`<span class="course-account-fallback-avatar">
-                          ${host.user.displayName
-                            ? host.user.displayName.trim().charAt(0).toUpperCase()
-                            : '👤'}
-                        </span>`}
-                    <span class="course-account-name">${host.user.displayName || 'Konto'}</span>
-                  `
-                : 'Logga in'}
+              ${
+                host.user
+                  ? html`
+                      ${
+                        host.user.photoURL
+                          ? html`<img
+                              class="course-account-avatar"
+                              src=${host.user.photoURL}
+                              alt=""
+                              referrerpolicy="no-referrer"
+                              loading="lazy"
+                            />`
+                          : html`<span class="course-account-fallback-avatar">
+                              ${
+                                host.user.displayName
+                                  ? host.user.displayName.trim().charAt(0).toUpperCase()
+                                  : '👤'
+                              }
+                            </span>`
+                      }
+                      <span class="course-account-name">${host.user.displayName || 'Konto'}</span>
+                    `
+                  : 'Logga in'
+              }
             </button>
           </div>
         </div>
@@ -242,7 +250,8 @@ export function renderCourseShell(host: CourseHostContext): CourseTemplate {
                     class="course-week-tab ${isActive ? 'active' : ''} ${w.isPreview ? 'preview' : ''}"
                     @click=${() => {
                       selectCourseWeek(w.id, host);
-                      if (subView === 'arena' || subView === 'extra') selectCourseSubView('hub', host);
+                      if (subView === 'arena' || subView === 'extra')
+                        selectCourseSubView('hub', host);
                     }}
                   >
                     <div class="week-tab-row">
@@ -255,8 +264,7 @@ export function renderCourseShell(host: CourseHostContext): CourseTemplate {
                             Vecka ${w.weekNumber} · Lektion ${w.lessonNumber}
                           </strong>
                           <span class="week-tab-pct">
-                            ${renderMiniStamp(wSum.medal)}
-                            ${wSum.overallPercent}%
+                            ${renderMiniStamp(wSum.medal)} ${wSum.overallPercent}%
                           </span>
                         </div>
                         <span class="week-tab-sub">${shortTitle}</span>
@@ -453,11 +461,7 @@ function renderWeekBentoHub(
           <span>Vecka ${week.weekNumber} av 4</span>
           <span class="sep">/</span>
           <strong class="crumb-current">Genki I Kapitel ${week.lessonNumber}</strong>
-          ${
-            week.isPreview
-              ? html`<span class="course-badge-preview">Förhandsvisning</span>`
-              : ''
-          }
+          ${week.isPreview ? html`<span class="course-badge-preview">Förhandsvisning</span>` : ''}
         </div>
 
         <div class="course-quick-pill-bar">
@@ -533,7 +537,8 @@ function renderWeekBentoHub(
           <div class="dojo-hero-badges">
             <span class="badge-dagens-fokus">DAGENS FOKUS</span>
             <span class="badge-sub">
-              Genki I Lektion ${week.lessonNumber} · Verbkonjugation (${week.conjugations.length} verb)
+              Genki I Lektion ${week.lessonNumber} · Verbkonjugation (${week.conjugations.length}
+              verb)
             </span>
           </div>
           <h2>${heroConfig.heading}</h2>
@@ -563,10 +568,7 @@ function renderWeekBentoHub(
     ${
       summary.mistakeVocabCount > 0 || summary.mistakeDojoCount > 0
         ? html`
-            <section
-              class="course-misstagsbank-banner"
-              aria-label="Din personliga misstagsbank"
-            >
+            <section class="course-misstagsbank-banner" aria-label="Din personliga misstagsbank">
               <div class="misstagsbank-left">
                 <span class="misstagsbank-icon">⚠️</span>
                 <div>
@@ -582,34 +584,38 @@ function renderWeekBentoHub(
                 </div>
               </div>
               <div class="misstagsbank-actions">
-                ${summary.mistakeVocabCount > 0
-                  ? html`
-                      <button
-                        type="button"
-                        class="course-btn-mistakes"
-                        @click=${() => {
-                          studyDrills.vocab.selectFilter('mistakes');
-                          selectCourseSubView('vocab', host);
-                        }}
-                      >
-                        Repetera svaga ord (${summary.mistakeVocabCount}) →
-                      </button>
-                    `
-                  : ''}
-                ${summary.mistakeDojoCount > 0
-                  ? html`
-                      <button
-                        type="button"
-                        class="course-btn-mistakes secondary"
-                        @click=${() => {
-                          studyDrills.dojo.selectFilter('mistakes');
-                          selectCourseSubView('dojo', host);
-                        }}
-                      >
-                        Nöt svaga verb (${summary.mistakeDojoCount}) →
-                      </button>
-                    `
-                  : ''}
+                ${
+                  summary.mistakeVocabCount > 0
+                    ? html`
+                        <button
+                          type="button"
+                          class="course-btn-mistakes"
+                          @click=${() => {
+                            studyDrills.vocab.selectFilter('mistakes');
+                            selectCourseSubView('vocab', host);
+                          }}
+                        >
+                          Repetera svaga ord (${summary.mistakeVocabCount}) →
+                        </button>
+                      `
+                    : ''
+                }
+                ${
+                  summary.mistakeDojoCount > 0
+                    ? html`
+                        <button
+                          type="button"
+                          class="course-btn-mistakes secondary"
+                          @click=${() => {
+                            studyDrills.dojo.selectFilter('mistakes');
+                            selectCourseSubView('dojo', host);
+                          }}
+                        >
+                          Nöt svaga verb (${summary.mistakeDojoCount}) →
+                        </button>
+                      `
+                    : ''
+                }
               </div>
             </section>
           `
@@ -626,11 +632,13 @@ function renderWeekBentoHub(
               <h2>Veckans glosor</h2>
             </div>
             <div class="bento-header-badges">
-              ${summary.mistakeVocabCount > 0
-                ? html`<span class="bento-stat-pill weak-pill"
-                    >⚠️ ${summary.mistakeVocabCount} svaga</span
-                  >`
-                : ''}
+              ${
+                summary.mistakeVocabCount > 0
+                  ? html`<span class="bento-stat-pill weak-pill"
+                      >⚠️ ${summary.mistakeVocabCount} svaga</span
+                    >`
+                  : ''
+              }
               <span class="bento-stat-pill">
                 ${summary.vocabDone} / ${summary.vocabTotal} klara
               </span>
@@ -671,20 +679,22 @@ function renderWeekBentoHub(
         </div>
 
         <div class="bento-card-actions ${summary.mistakeVocabCount > 0 ? 'split' : ''}">
-          ${summary.mistakeVocabCount > 0
-            ? html`
-                <button
-                  type="button"
-                  class="course-btn-mistakes-mini"
-                  @click=${() => {
-                    studyDrills.vocab.selectFilter('mistakes');
-                    selectCourseSubView('vocab', host);
-                  }}
-                >
-                  ⚠️ Nöt ${summary.mistakeVocabCount} svaga ord
-                </button>
-              `
-            : ''}
+          ${
+            summary.mistakeVocabCount > 0
+              ? html`
+                  <button
+                    type="button"
+                    class="course-btn-mistakes-mini"
+                    @click=${() => {
+                      studyDrills.vocab.selectFilter('mistakes');
+                      selectCourseSubView('vocab', host);
+                    }}
+                  >
+                    ⚠️ Nöt ${summary.mistakeVocabCount} svaga ord
+                  </button>
+                `
+              : ''
+          }
           <button
             type="button"
             class="course-btn-primary ${summary.mistakeVocabCount > 0 ? '' : 'full-width'}"
@@ -739,9 +749,7 @@ function renderWeekBentoHub(
             <div class="bento-col-title">
               <h2>Veckotest</h2>
             </div>
-            <span class="bento-stat-pill exam-pill">
-              Tentafokus · L${week.lessonNumber}
-            </span>
+            <span class="bento-stat-pill exam-pill"> Tentafokus · L${week.lessonNumber} </span>
           </div>
 
           <div class="bento-exam-summary">

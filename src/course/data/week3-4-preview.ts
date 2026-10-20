@@ -672,7 +672,8 @@ export const week3Lesson8: CourseWeek = {
       lesson: 8,
       title: '4. Tycke och färdigheter (～のが好きです / ～のが上手です)',
       patternJp: '[Verb ordboksform] + のが好きです / 上手です / 下手です',
-      summarySv: 'Gör ett verb till substantiv med の för att uttrycka vad du gillar eller är bra på.',
+      summarySv:
+        'Gör ett verb till substantiv med の för att uttrycka vad du gillar eller är bra på.',
       explanationSv:
         'Eftersom 好きです (gilla), 嫌いです (ogilla), 上手です (duktig på) och 下手です (dålig på) tar substantiv som objekt via partikeln が, måste ett verb nominaliseras med partikeln の innan det kopplas ihop.',
       formationRules: [
@@ -961,14 +962,10 @@ export const week3Lesson8: CourseWeek = {
       weekId: 'week-3',
       category: 'grammar',
       prompt: 'Vilken form krävs före ～と思います (jag tror att...)?',
-      choices: [
-        'Kortform (普通形)',
-        'Polite ます-form',
-        'て-form',
-        'Stamform utan ändelse',
-      ],
+      choices: ['Kortform (普通形)', 'Polite ます-form', 'て-form', 'Stamform utan ändelse'],
       answer: 'Kortform (普通形)',
-      explanationSv: 'Satsen före citat- och tankepartikeln と står alltid i kortform (t.ex. 行くと思います).',
+      explanationSv:
+        'Satsen före citat- och tankepartikeln と står alltid i kortform (t.ex. 行くと思います).',
     },
     {
       id: 'w3-q08',
@@ -977,7 +974,8 @@ export const week3Lesson8: CourseWeek = {
       prompt: 'Hur kopplas ett な-adjektiv i jakande nutid (t.ex. 暇, ledig) till ～と思います?',
       choices: ['暇だと思います', '暇なと思います', '暇と思います', '暇いと思います'],
       answer: '暇だと思います',
-      explanationSv: 'Substantiv och な-adjektiv kräver だ i jakande nutid före と思います (暇だと思います).',
+      explanationSv:
+        'Substantiv och な-adjektiv kräver だ i jakande nutid före と思います (暇だと思います).',
     },
     {
       id: 'w3-q09',
@@ -993,7 +991,12 @@ export const week3Lesson8: CourseWeek = {
       weekId: 'week-3',
       category: 'kanji',
       prompt: 'Vilket ord bildas av kanji-tecknen 電 + 車?',
-      choices: ['電車 (でんしゃ) · tåg', '電話 (でんわ) · telefon', '電気 (でんき) · el', '自転 (じてん) · cykel'],
+      choices: [
+        '電車 (でんしゃ) · tåg',
+        '電話 (でんわ) · telefon',
+        '電気 (でんき) · el',
+        '自転 (じてん) · cykel',
+      ],
       answer: '電車 (でんしゃ) · tåg',
       explanationSv: '電 (el) + 車 (fordon) = 電車 (でんしゃ), elektriskt tåg.',
     },
@@ -1004,14 +1007,20 @@ export const week3Lesson8: CourseWeek = {
       prompt: 'Vad betyder frasen お風呂に入る (おふろにはいる)?',
       choices: ['att bada / ta ett bad', 'att diska', 'att gå och lägga sig', 'att tvätta kläder'],
       answer: 'att bada / ta ett bad',
-      explanationSv: 'お風呂 (bad) + に入る (gå in i) är standarduttrycket för att ta ett bad i Japan.',
+      explanationSv:
+        'お風呂 (bad) + に入る (gå in i) är standarduttrycket för att ta ett bad i Japan.',
     },
     {
       id: 'w3-q12',
       weekId: 'week-3',
       category: 'te-form',
       prompt: 'Vad är ない-formen av 待つ (まつ, att vänta)?',
-      choices: ['またない (待たない)', 'まちない (待ちない)', 'まらない (待らない)', 'まってない (待ってない)'],
+      choices: [
+        'またない (待たない)',
+        'まちない (待ちない)',
+        'まらない (待らない)',
+        'まってない (待ってない)',
+      ],
       answer: 'またない (待たない)',
       explanationSv: 'U-verb på つ byter つ mot a-ljudet た + ない (待つ → 待たない).',
     },
@@ -1539,7 +1548,8 @@ export const week4Lesson9: CourseWeek = {
       group: 'u-verb',
       ruleId: 'iku-exception',
       ruleLabelSv: 'Undantag 行く → 行った (いった)',
-      ruleExplanationSv: '行く är ett undantag: 行って i て-form och 行った i た-form (inte いいた).',
+      ruleExplanationSv:
+        '行く är ett undantag: 行って i て-form och 行った i た-form (inte いいた).',
       sv: 'att gå',
       exampleJp: '去年日本へ行った時の写真です。',
       exampleSv: 'Det här är foton från när jag åkte till Japan förra året.',
@@ -1623,7 +1633,8 @@ export const week4Lesson9: CourseWeek = {
       lesson: 9,
       title: '3. Beskriva substantiv med bisatser (Relativsatser)',
       patternJp: '[Kortformssats] + 名詞 (Substantiv)',
-      summarySv: 'Placera en hel verbhandling direkt framför ett substantiv för att specificera det.',
+      summarySv:
+        'Placera en hel verbhandling direkt framför ett substantiv för att specificera det.',
       explanationSv:
         'I japanska sätts den beskrivande bisatsen alltid direkt framför substantivet (till skillnad från svenska "som jag träffade igår"). Bisatsens predikat måste stå i kortform (普通形). Subjektet inuti bisatsen markeras med が.',
       formationRules: [
@@ -1978,30 +1989,33 @@ export const week4Lesson9: CourseWeek = {
         'いきませんでした (行きませんでした)',
       ].slice(0, 4),
       answer: 'いかなかった (行かなかった)',
-      explanationSv: 'Dåtid nekande i kortform bildas genom att byta ない mot なかった (行かない → 行かなかった).',
+      explanationSv:
+        'Dåtid nekande i kortform bildas genom att byta ない mot なかった (行かない → 行かなかった).',
     },
     {
       id: 'w4-q09',
       weekId: 'week-4',
       category: 'grammar',
       prompt: 'Vad är dåtid i kortform av い-adjektivet おもしろい (rolig / intressant)?',
-      choices: [
-        'おもしろかった',
-        'おもしろいだった',
-        'おもしろでした',
-        'おもしろかったです',
-      ],
+      choices: ['おもしろかった', 'おもしろいだった', 'おもしろでした', 'おもしろかったです'],
       answer: 'おもしろかった',
-      explanationSv: 'い-adjektiv i dåtid kortform byter sista い mot かった (おもしろい → おもしろかった).',
+      explanationSv:
+        'い-adjektiv i dåtid kortform byter sista い mot かった (おもしろい → おもしろかった).',
     },
     {
       id: 'w4-q10',
       weekId: 'week-4',
       category: 'grammar',
       prompt: 'Vad är dåtid i kortform av な-adjektivet 暇 (ひま, ledig)?',
-      choices: ['ひまだった (暇だった)', 'ひまかった (暇かった)', 'ひまなだった (暇なだった)', 'ひまだったです (暇だったです)'],
+      choices: [
+        'ひまだった (暇だった)',
+        'ひまかった (暇かった)',
+        'ひまなだった (暇なだった)',
+        'ひまだったです (暇だったです)',
+      ],
       answer: 'ひまだった (暇だった)',
-      explanationSv: 'な-adjektiv och substantiv i jakande dåtid kortform tar だった (暇だった, 学生だった).',
+      explanationSv:
+        'な-adjektiv och substantiv i jakande dåtid kortform tar だった (暇だった, 学生だった).',
     },
     {
       id: 'w4-q11',

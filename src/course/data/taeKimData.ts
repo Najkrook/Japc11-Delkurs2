@@ -176,7 +176,10 @@ export function extractShortMeaning(meaning: string | undefined): string {
 
 export function formatAnimeSource(source: string | undefined): string {
   if (!source) return '';
-  return source.replace(/_/g, ' ').replace(/\(JP\+Eng\)/gi, '').trim();
+  return source
+    .replace(/_/g, ' ')
+    .replace(/\(JP\+Eng\)/gi, '')
+    .trim();
 }
 
 export function getArcStartIndex(arc: TaeKimArc): number {
@@ -204,7 +207,7 @@ export function getAllChapters(): TaeKimChapter[] {
       itemCount: endIndex - startIndex,
       startIndex,
       endIndex,
-      previewWord: firstCard ? (firstCard.kanji || firstCard.hiragana) : '',
+      previewWord: firstCard ? firstCard.kanji || firstCard.hiragana : '',
       previewMeaning: firstCard ? extractShortMeaning(firstCard.meaning) : '',
     };
   });
