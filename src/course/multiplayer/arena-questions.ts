@@ -1,5 +1,5 @@
 import { courseWeeks } from '../data/index.ts';
-import { buildDojoChoices } from '../study-drills.ts';
+import { buildTeChoices } from '../study-drills.ts';
 import type { ArenaQuestion, ArenaRoomConfig, ArenaWeekFilter } from './arena-types.ts';
 import type { CourseWeek } from '../types.ts';
 
@@ -67,7 +67,7 @@ export function buildAllCourseArenaQuestions(
 
     // 2. Generated Te-Form conjugation questions
     for (const conj of week.conjugations) {
-      const choices = shuffleArray(buildDojoChoices(conj), rng);
+      const choices = shuffleArray(buildTeChoices(conj), rng);
       bank.push({
         id: `aq-te-${conj.id}`,
         weekId: week.id,

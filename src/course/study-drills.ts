@@ -11,7 +11,7 @@ const wrap = (index: number, length: number) => (length ? ((index % length) + le
 const normalizeJp = (answer: string) => answer.trim().replace(/\s+/g, '');
 
 /** Shared by solo Dojo and Arena; no rendering or browser dependencies. */
-export function buildDojoChoices(item: VerbConjugationItem): string[] {
+export function buildTeChoices(item: VerbConjugationItem): string[] {
   const stem = item.dictionaryKana.slice(0, -1);
   const candidates = new Set([item.teFormKana]);
   for (const choice of [
@@ -27,6 +27,70 @@ export function buildDojoChoices(item: VerbConjugationItem): string[] {
     if (choice !== item.teFormKana && choice.length >= 2) candidates.add(choice);
   }
   return [...candidates].sort((a, b) => a.localeCompare(b, 'ja'));
+}
+
+export function buildNaiChoices(item: VerbConjugationItem): string[] {
+  const target = item.naiFormKana || `${item.dictionaryKana.slice(0, -1)}ない`;
+  const stem = item.dictionaryKana.slice(0, -1);
+  const candidates = new Set([target]);
+  for (const choice of [
+    `${stem}わない`,
+    `${stem}らない`,
+    `${stem}かない`,
+    `${stem}さない`,
+    `${stem}たない`,
+    `${stem}まない`,
+    `${stem}ばない`,
+    `${stem}ない`,
+    `${stem}いない`,
+    `${stem}あない`,
+    `${stem}しない`,
+    `${stem}こない`,
+  ]) {
+    if (candidates.size >= 4) break;
+    if (choice !== target && choice.length >= 2) candidates.add(choice);
+  }
+  return [...candidates].sort((a, b) => a.localeCompare(b, 'ja'));
+}
+
+export function buildTaChoices(item: VerbConjugationItem): string[] {
+  const target = item.taFormKana || `${item.dictionaryKana.slice(0, -1)}た`;
+  const stem = item.dictionaryKana.slice(0, -1);
+  const candidates = new Set([target]);
+  for (const choice of [
+    `${stem}った`,
+    `${stem}んだ`,
+    `${stem}いた`,
+    `${stem}いだ`,
+    `${stem}した`,
+    `${stem}た`,
+    `${stem}だ`,
+    `${item.dictionaryKana}た`,
+  ]) {
+    if (candidates.size >= 4) break;
+    if (choice !== target && choice.length >= 2) candidates.add(choice);
+  }
+  return [...candidates].sort((a, b) => a.localeCompare(b, 'ja'));
+}
+
+export function getDojoExpectedForm(item: VerbConjugationItem): { kana: string; kanji: string } {
+  if (item.weekId === 'week-3' && item.naiFormKana) {
+    return { kana: item.naiFormKana, kanji: item.naiFormKanji || item.naiFormKana };
+  }
+  if (item.weekId === 'week-4' && item.taFormKana) {
+    return { kana: item.taFormKana, kanji: item.taFormKanji || item.taFormKana };
+  }
+  return { kana: item.teFormKana, kanji: item.teFormKanji };
+}
+
+export function buildDojoChoices(item: VerbConjugationItem): string[] {
+  if (item.weekId === 'week-3' && item.naiFormKana) {
+    return buildNaiChoices(item);
+  }
+  if (item.weekId === 'week-4' && item.taFormKana) {
+    return buildTaChoices(item);
+  }
+  return buildTeChoices(item);
 }
 
 function createVocabDrill() {
@@ -154,8 +218,9 @@ function createDojoDrill() {
     const clean = normalizeJp(answer);
     if (!current || !clean || selectedAnswer !== null) return null;
     selectedAnswer = answer;
+    const expected = getDojoExpectedForm(current);
     isCorrect =
-      clean === normalizeJp(current.teFormKana) || clean === normalizeJp(current.teFormKanji);
+      clean === normalizeJp(expected.kana) || clean === normalizeJp(expected.kanji);
     return {
       type: 'mastery',
       kind: 'dojo',

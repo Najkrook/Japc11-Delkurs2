@@ -3980,3 +3980,314 @@
     border-width: 2px;
   }
 }
+
+
+/* ==========================================================================
+   JAPANESE SENSEI STAMPS & MEDALS (HANKO / SIGILL)
+   ========================================================================== */
+
+.course-mini-stamp {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 22px;
+  height: 22px;
+  border-radius: 50%;
+  font-size: 10px;
+  font-weight: 800;
+  line-height: 1;
+  margin-right: 4px;
+  vertical-align: middle;
+  border: 1.5px solid currentColor;
+  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.12);
+  transform: rotate(-3deg);
+  transition: transform 0.2s ease;
+}
+
+.course-mini-stamp:hover {
+  transform: rotate(0deg) scale(1.1);
+}
+
+.course-mini-stamp.bronze {
+  color: #cd7f32;
+  background: rgba(205, 127, 50, 0.12);
+  border-color: #cd7f32;
+}
+
+.course-mini-stamp.silver {
+  color: #8a9ba8;
+  background: rgba(192, 200, 208, 0.18);
+  border-color: #a0acb8;
+}
+
+.course-mini-stamp.gold {
+  color: #c98a0c;
+  background: rgba(229, 184, 57, 0.2);
+  border-color: #e5b839;
+}
+
+[data-course-theme='sakura'] .course-mini-stamp.gold {
+  color: #b87a00;
+  border-color: #d49a18;
+}
+
+/* Hub Stamp Banner */
+.course-hub-stamp-container {
+  display: flex;
+  align-items: center;
+  gap: 24px;
+  margin-top: 20px;
+  padding: 18px 24px;
+  border-radius: 16px;
+  border: 1px solid var(--c-line);
+  background: rgba(255, 255, 255, 0.65);
+  backdrop-filter: blur(8px);
+  -webkit-backdrop-filter: blur(8px);
+  transition: all 0.3s ease;
+}
+
+[data-course-theme='sakura'] .course-hub-stamp-container {
+  background: rgba(255, 250, 252, 0.85);
+}
+
+.course-hub-stamp-container.empty {
+  border-style: dashed;
+  background: rgba(0, 0, 0, 0.015);
+}
+
+.course-hub-stamp-container.awarded.gold {
+  border-color: rgba(229, 184, 57, 0.45);
+  background: linear-gradient(135deg, rgba(255, 252, 240, 0.85) 0%, rgba(255, 246, 220, 0.65) 100%);
+  box-shadow: 0 4px 16px rgba(229, 184, 57, 0.15);
+}
+
+.course-hub-stamp-container.awarded.silver {
+  border-color: rgba(192, 200, 208, 0.5);
+  background: linear-gradient(135deg, rgba(248, 250, 252, 0.85) 0%, rgba(240, 244, 248, 0.65) 100%);
+  box-shadow: 0 4px 14px rgba(160, 175, 190, 0.12);
+}
+
+.course-hub-stamp-container.awarded.bronze {
+  border-color: rgba(205, 127, 50, 0.4);
+  background: linear-gradient(135deg, rgba(255, 249, 245, 0.85) 0%, rgba(255, 242, 235, 0.65) 100%);
+  box-shadow: 0 4px 14px rgba(205, 127, 50, 0.12);
+}
+
+/* Authentic Japanese Teacher Hanko Seal */
+.course-hanko-seal {
+  position: relative;
+  width: 96px;
+  height: 96px;
+  min-width: 96px;
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  transform: rotate(-3deg);
+  background: radial-gradient(circle, rgba(201, 58, 43, 0.06) 0%, rgba(201, 58, 43, 0.02) 70%, transparent 100%);
+  color: #c93a2b;
+  font-family: 'Yu Mincho', 'Hiragino Mincho ProN', 'Source Han Serif', serif;
+  user-select: none;
+}
+
+.course-hanko-seal.placeholder {
+  color: var(--c-muted);
+  transform: none;
+  background: none;
+}
+
+.hanko-outer-ring {
+  position: absolute;
+  inset: 0;
+  border-radius: 50%;
+  border: 3px solid #c93a2b;
+  box-shadow: inset 0 0 0 2px var(--stamp-rim-color, #c93a2b);
+}
+
+.hanko-outer-ring.dashed {
+  border-style: dashed;
+  border-color: var(--c-line);
+  box-shadow: none;
+}
+
+.hanko-inner-ring {
+  position: absolute;
+  inset: 6px;
+  border-radius: 50%;
+  border: 1.5px solid #c93a2b;
+}
+
+.hanko-inner-ring.dashed {
+  border-style: dotted;
+  border-color: var(--c-line);
+}
+
+.hanko-sakura-rosette {
+  position: absolute;
+  top: -8px;
+  right: -8px;
+  font-size: 20px;
+  filter: drop-shadow(0 2px 4px rgba(0, 0, 0, 0.15));
+}
+
+.hanko-seal-content {
+  position: relative;
+  z-index: 1;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  text-align: center;
+  padding: 4px;
+}
+
+.hanko-kanji-glyph {
+  font-size: 22px;
+  font-weight: 700;
+  letter-spacing: 2px;
+  color: var(--c-muted);
+}
+
+.hanko-sub-text {
+  font-size: 10px;
+  font-weight: 600;
+  color: var(--c-muted);
+  margin-top: 2px;
+}
+
+.hanko-top-kanji {
+  font-size: 11px;
+  font-weight: 900;
+  letter-spacing: 2px;
+  color: #c93a2b;
+  line-height: 1;
+  margin-bottom: 2px;
+}
+
+.hanko-main-calligraphy {
+  font-size: 13px;
+  font-weight: 900;
+  letter-spacing: 1px;
+  color: #c93a2b;
+  line-height: 1.25;
+  text-shadow: 0.5px 0.5px 0px rgba(160, 30, 20, 0.4);
+}
+
+.stamp-bronze .hanko-main-calligraphy {
+  font-size: 14px;
+}
+
+.hanko-sub-seal {
+  font-size: 9px;
+  font-weight: 700;
+  letter-spacing: 0.5px;
+  color: #a02a1d;
+  margin-top: 2px;
+}
+
+/* Stamp Metadata */
+.stamp-meta-copy {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+  flex: 1;
+}
+
+.stamp-tier-header {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  flex-wrap: wrap;
+}
+
+.stamp-tier-badge {
+  display: inline-flex;
+  align-items: center;
+  gap: 5px;
+  padding: 3px 10px;
+  border-radius: 999px;
+  font-size: 12px;
+  font-weight: 700;
+  line-height: 1.2;
+}
+
+.stamp-tier-badge.pending {
+  background: var(--c-surface);
+  color: var(--c-muted);
+  border: 1px solid var(--c-line);
+}
+
+.stamp-tier-badge.bronze {
+  background: rgba(205, 127, 50, 0.15);
+  color: #9c581c;
+  border: 1px solid rgba(205, 127, 50, 0.35);
+}
+
+.stamp-tier-badge.silver {
+  background: rgba(160, 175, 190, 0.18);
+  color: #4a5b68;
+  border: 1px solid rgba(160, 175, 190, 0.35);
+}
+
+.stamp-tier-badge.gold {
+  background: rgba(229, 184, 57, 0.22);
+  color: #926402;
+  border: 1px solid rgba(229, 184, 57, 0.45);
+}
+
+.stamp-next-hint {
+  font-size: 12px;
+  font-weight: 600;
+  color: var(--c-muted);
+}
+
+.stamp-jp-phrase {
+  font-size: 16px;
+  font-weight: 800;
+  color: var(--c-text);
+  font-family: 'Yu Mincho', 'Hiragino Mincho ProN', 'Source Han Serif', serif;
+}
+
+.stamp-motivation-text {
+  font-size: 13px;
+  line-height: 1.45;
+  color: var(--c-muted);
+  margin: 0;
+}
+
+/* ==========================================================================
+   STAMP IMPRINT ANIMATION
+   ========================================================================== */
+
+@keyframes stamp-imprint {
+  0% {
+    opacity: 0;
+    transform: scale(2.2) rotate(-15deg);
+    filter: blur(4px);
+  }
+  50% {
+    opacity: 0.9;
+    transform: scale(0.92) rotate(-2deg);
+    filter: blur(0px);
+  }
+  75% {
+    transform: scale(1.05) rotate(-4deg);
+  }
+  100% {
+    opacity: 1;
+    transform: scale(1.0) rotate(-3deg);
+  }
+}
+
+.course-hanko-seal.imprint-animate {
+  animation: stamp-imprint 0.65s cubic-bezier(0.175, 0.885, 0.32, 1.275) forwards;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .course-hanko-seal.imprint-animate {
+    animation: none !important;
+  }
+  .course-mini-stamp {
+    transition: none !important;
+  }
+}

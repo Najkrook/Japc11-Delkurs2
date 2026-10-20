@@ -5,7 +5,7 @@ import type {
   CourseTemplate,
   CourseWeek,
 } from '../types.ts';
-import { studyDrills } from '../study-drills.ts';
+import { getDojoExpectedForm, studyDrills } from '../study-drills.ts';
 import { courseWeeks } from '../data/index.ts';
 import type { UpdateCourseProgress } from '../course-progress.ts';
 
@@ -43,6 +43,9 @@ export function renderTeFormDojo(
 ): CourseTemplate {
   const state = dojoDrill.read(week, courseWeeks, progress);
   const { current, index: safeIndex, choices, masteredCount, total } = state;
+  const expected = current ? getDojoExpectedForm(current) : { kana: '', kanji: '' };
+  const targetFormName =
+    current?.weekId === 'week-3' ? 'ない-form' : current?.weekId === 'week-4' ? 'た-form' : 'て-form';
 
   if (!current) {
     return html`<div class="course-empty-card">
@@ -207,34 +210,98 @@ export function renderTeFormDojo(
             host.render();
           }}
         >
-          <span>🎵 Minnesschema: Alla て-form-regler på 10 sekunder</span>
+          <span>🎵 Minnesschema: ${
+            week.lessonNumber === 8
+              ? 'Böjningsregler för kortform nekande (ない-form)'
+              : week.lessonNumber === 9
+                ? 'Böjningsregler för dåtid i kortform (た-form)'
+                : 'Alla て-form-regler på 10 sekunder'
+          }</span>
           <small>${preferences.showRuleSheet ? 'Dölj' : 'Visa'}</small>
         </summary>
         <div class="dojo-rules-grid">
-          <div class="dojo-rule-chip">
-            <strong>う・つ・る → って</strong>
-            <span>買う → 買って · 待つ → 待って · 座る → 座って</span>
-          </div>
-          <div class="dojo-rule-chip">
-            <strong>む・ぶ・ぬ → んで</strong>
-            <span>読む → 読んで · 遊ぶ → 遊んで · 死ぬ → 死んで</span>
-          </div>
-          <div class="dojo-rule-chip">
-            <strong>く → いて (ぐ → いで)</strong>
-            <span>書く → 書いて · 急ぐ → 急いで</span>
-          </div>
-          <div class="dojo-rule-chip highlight">
-            <strong>⚠️ Undantag: 行く → 行って</strong>
-            <span>行く blir いって (inte いいて)! 入る & 帰る & 知る = u-verb!</span>
-          </div>
-          <div class="dojo-rule-chip">
-            <strong>す → して</strong>
-            <span>話す → 話して · 返す → 返して</span>
-          </div>
-          <div class="dojo-rule-chip">
-            <strong>Ru-verb & Oregelbundna</strong>
-            <span>開ける → 開けて · する → して · 来る(くる) → 来て(きて)</span>
-          </div>
+          ${
+            week.lessonNumber === 8
+              ? html`
+                  <div class="dojo-rule-chip">
+                    <strong>う → わない</strong>
+                    <span>買う → 買わない · 会う → 会わない · 言う → 言わない</span>
+                  </div>
+                  <div class="dojo-rule-chip">
+                    <strong>つ・る → たない・らない</strong>
+                    <span>待つ → 待たない · 帰る → 帰らない · 取る → 取らない</span>
+                  </div>
+                  <div class="dojo-rule-chip">
+                    <strong>む・ぶ・ぬ → まない・ばない・なない</strong>
+                    <span>飲む → 飲まない · 遊ぶ → 遊ばない · 死ぬ → 死なない</span>
+                  </div>
+                  <div class="dojo-rule-chip">
+                    <strong>く・ぐ・す → かない・がない・さない</strong>
+                    <span>書く → 書かない · 泳ぐ → 泳がない · 話す → 話さない</span>
+                  </div>
+                  <div class="dojo-rule-chip">
+                    <strong>Ru-verb (Ichidan): る bort + ない</strong>
+                    <span>食べる → 食べない · 見る → 見ない · 忘れる → 忘れない</span>
+                  </div>
+                  <div class="dojo-rule-chip highlight">
+                    <strong>⚠️ Oregelbundna verb</strong>
+                    <span>する → しない · 来る(くる) → こない · ある → ない</span>
+                  </div>
+                `
+              : week.lessonNumber === 9
+                ? html`
+                    <div class="dojo-rule-chip">
+                      <strong>う・つ・る → った</strong>
+                      <span>買う → 買った · 待つ → 待った · 帰る → 帰った</span>
+                    </div>
+                    <div class="dojo-rule-chip">
+                      <strong>む・ぶ・ぬ → んだ</strong>
+                      <span>読む → 読んだ · 遊ぶ → 遊んだ · 飲む → 飲んだ</span>
+                    </div>
+                    <div class="dojo-rule-chip">
+                      <strong>く → いた (ぐ → いだ)</strong>
+                      <span>書く → 書いた · 泳ぐ → 泳いだ</span>
+                    </div>
+                    <div class="dojo-rule-chip highlight">
+                      <strong>⚠️ Undantag: 行く → 行った</strong>
+                      <span>行く blir いった (inte いいた)!</span>
+                    </div>
+                    <div class="dojo-rule-chip">
+                      <strong>す → した</strong>
+                      <span>話す → 話した · 出す → 出した</span>
+                    </div>
+                    <div class="dojo-rule-chip">
+                      <strong>Ru-verb & Oregelbundna</strong>
+                      <span>食べる → 食べた · する → した · 来る → 来た(きた)</span>
+                    </div>
+                  `
+                : html`
+                    <div class="dojo-rule-chip">
+                      <strong>う・つ・る → って</strong>
+                      <span>買う → 買って · 待つ → 待って · 座る → 座って</span>
+                    </div>
+                    <div class="dojo-rule-chip">
+                      <strong>む・ぶ・ぬ → んで</strong>
+                      <span>読む → 読んで · 遊ぶ → 遊んで · 死ぬ → 死んで</span>
+                    </div>
+                    <div class="dojo-rule-chip">
+                      <strong>く → いて (ぐ → いde)</strong>
+                      <span>書く → 書いて · 急ぐ → 急いで</span>
+                    </div>
+                    <div class="dojo-rule-chip highlight">
+                      <strong>⚠️ Undantag: 行く → 行って</strong>
+                      <span>行く blir いって (inte いいて)! 入る & 帰る & 知る = u-verb!</span>
+                    </div>
+                    <div class="dojo-rule-chip">
+                      <strong>す → して</strong>
+                      <span>話す → 話して · 返す → 返して</span>
+                    </div>
+                    <div class="dojo-rule-chip">
+                      <strong>Ru-verb & Oregelbundna</strong>
+                      <span>開ける → 開けて · する → して · 来る(くる) → 来て(きて)</span>
+                    </div>
+                  `
+          }
         </div>
       </details>
 
@@ -296,10 +363,10 @@ export function renderTeFormDojo(
 
         ${
           preferences.inputMode === 'choices'
-            ? html`<div class="dojo-choices-grid" role="group" aria-label="Välj rätt て-form">
+            ? html`<div class="dojo-choices-grid" role="group" aria-label="Välj rätt ${targetFormName}">
                 ${choices.map((choice) => {
                   const isSelected = state.selectedAnswer === choice;
-                  const isAnswer = choice === current.teFormKana;
+                  const isAnswer = choice === expected.kana;
                   let stateClass = '';
                   if (state.revealed) {
                     if (isAnswer) stateClass = 'correct';
@@ -313,7 +380,7 @@ export function renderTeFormDojo(
                     @click=${() => submitAnswer(choice)}
                   >
                     <span class="dojo-choice-kana">${choice}</span>
-                    ${state.revealed && isAnswer ? html`<small>${current.teFormKanji}</small>` : ''}
+                    ${state.revealed && isAnswer ? html`<small>${expected.kanji}</small>` : ''}
                   </button>`;
                 })}
               </div>`
@@ -334,13 +401,13 @@ export function renderTeFormDojo(
                   }
                 }}
               >
-                <label for="dojo-input" class="sr-only">Skriv て-form på japanska</label>
+                <label for="dojo-input" class="sr-only">Skriv ${targetFormName} på japanska</label>
                 <input
                   id="dojo-input"
                   type="text"
                   lang="ja"
                   class="dojo-text-input"
-                  placeholder="Skriv て-form i kana eller kanji (t.ex. ${current.teFormKana})..."
+                  placeholder="Skriv ${targetFormName} i kana eller kanji (t.ex. ${expected.kana})..."
                   .value=${state.typedAnswer}
                   ?disabled=${state.revealed}
                   @input=${(e: Event) => {
@@ -350,7 +417,7 @@ export function renderTeFormDojo(
                 ${
                   !state.revealed
                     ? html`<button type="submit" class="course-btn-primary">
-                        Kontrollera て-form
+                        Kontrollera ${targetFormName}
                       </button>`
                     : ''
                 }
@@ -372,9 +439,10 @@ export function renderTeFormDojo(
                 </div>
                 <p class="dojo-conversion-line" lang="ja">
                   ${current.dictionaryKanji} (${current.dictionaryKana}) ➔
-                  <strong>${current.teFormKanji} (${current.teFormKana})</strong>
-                  ${current.naiFormKana ? html` · ない-form: <b>${current.naiFormKana}</b>` : ''}
-                  ${current.taFormKana ? html` · た-form: <b>${current.taFormKana}</b>` : ''}
+                  <strong>${expected.kanji} (${expected.kana})</strong>
+                  ${targetFormName !== 'て-form' ? html` · て-form: <b>${current.teFormKana}</b>` : ''}
+                  ${targetFormName !== 'ない-form' && current.naiFormKana ? html` · ない-form: <b>${current.naiFormKana}</b>` : ''}
+                  ${targetFormName !== 'た-form' && current.taFormKana ? html` · た-form: <b>${current.taFormKana}</b>` : ''}
                 </p>
                 <p>${current.ruleExplanationSv}</p>
                 <div class="dojo-example-strip">

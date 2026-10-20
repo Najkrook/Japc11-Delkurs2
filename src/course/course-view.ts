@@ -13,9 +13,41 @@ import {
 import { renderWeekQuizModule } from './components/week-quiz.ts';
 import { renderCourseArenaModule } from './components/course-arena.ts';
 import { renderExtraStudiesModule } from './components/extra-studies.ts';
+import { renderHubStampBadge, renderMiniStamp } from './components/stamp-medal.ts';
 import { courseProgressPersistence } from '../cloud.ts';
 
 export const courseProgress = createCourseProgress(courseProgressPersistence, studyDrills.reset);
+
+const sessionBaselineMedals = new Map<string, string | null>();
+let hasInitializedSessionBaseline = false;
+const newlyAwardedWeeks = new Set<string>();
+
+function rankMedal(m: string | null): number {
+  if (m === 'gold') return 3;
+  if (m === 'silver') return 2;
+  if (m === 'bronze') return 1;
+  return 0;
+}
+
+function updateMedalCelebration(progress: ReturnType<typeof courseProgress.snapshot>): void {
+  for (const w of courseWeeks) {
+    const sum = getWeekProgressSummary(progress, w);
+    const curr = sum.medal;
+    if (!hasInitializedSessionBaseline) {
+      sessionBaselineMedals.set(w.id, curr);
+    } else {
+      const prev = sessionBaselineMedals.get(w.id) ?? null;
+      if (rankMedal(curr) > rankMedal(prev)) {
+        newlyAwardedWeeks.add(w.id);
+        sessionBaselineMedals.set(w.id, curr);
+      } else if (rankMedal(curr) < rankMedal(prev)) {
+        sessionBaselineMedals.set(w.id, curr);
+        newlyAwardedWeeks.delete(w.id);
+      }
+    }
+  }
+  hasInitializedSessionBaseline = true;
+}
 
 export function selectCourseWeek(weekId: string, host?: CourseHostContext): void {
   courseProgress.update({ type: 'week', weekId });
@@ -29,6 +61,7 @@ export function selectCourseSubView(subView: CourseSubView, host?: CourseHostCon
 
 export function renderCourseShell(host: CourseHostContext): CourseTemplate {
   const progress = courseProgress.snapshot();
+  updateMedalCelebration(progress);
   const week = getCourseWeekById(progress.activeWeekId);
   const summary = getWeekProgressSummary(progress, week);
   const subView = progress.activeSubView;
@@ -221,7 +254,10 @@ export function renderCourseShell(host: CourseHostContext): CourseTemplate {
                           <strong class="week-tab-title">
                             Vecka ${w.weekNumber} · Lektion ${w.lessonNumber}
                           </strong>
-                          <span class="week-tab-pct">${wSum.overallPercent}%</span>
+                          <span class="week-tab-pct">
+                            ${renderMiniStamp(wSum.medal)}
+                            ${wSum.overallPercent}%
+                          </span>
                         </div>
                         <span class="week-tab-sub">${shortTitle}</span>
                         <div class="week-tab-bar">
@@ -399,6 +435,10 @@ function renderWeekBentoHub(
   const previewVocab = week.vocab[0];
   const topKanji = week.kanji.slice(0, 4);
   const heroConfig = getHeroDojoConfig(week);
+  const isNewlyAwarded = newlyAwardedWeeks.has(week.id);
+  if (isNewlyAwarded && typeof window !== 'undefined') {
+    window.setTimeout(() => newlyAwardedWeeks.delete(week.id), 2500);
+  }
 
   const vocabDonePct = Math.round((summary.vocabDone / Math.max(1, summary.vocabTotal)) * 100);
   const dojoDonePct = Math.round((summary.dojoDone / Math.max(1, summary.dojoTotal)) * 100);
@@ -479,6 +519,9 @@ function renderWeekBentoHub(
           </div>
         </div>
       </div>
+
+      <!-- Authentic Japanese Teacher Seal Stamp (Sensei Stamp / Hanko) -->
+      ${renderHubStampBadge(summary, week.weekNumber, isNewlyAwarded)}
     </section>
 
     <!-- ================= HERO BANNER: FOCUS MISSION ================= -->

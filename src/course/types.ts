@@ -40,7 +40,11 @@ export interface VerbConjugationItem {
   teFormKana: string;
   teFormKanji: string;
   naiFormKana?: string;
+  naiFormKanji?: string;
   taFormKana?: string;
+  taFormKanji?: string;
+  nakattaFormKana?: string;
+  nakattaFormKanji?: string;
   group: VerbGroup;
   ruleId: TeFormRuleId;
   ruleLabelSv: string;
@@ -116,6 +120,8 @@ export interface CourseWeek {
   kanji: CourseKanjiItem[];
   quiz: CourseQuizQuestion[];
 }
+
+export type WeekMedalTier = 'bronze' | 'silver' | 'gold' | null;
 
 export interface WeekQuizResult {
   score: number;

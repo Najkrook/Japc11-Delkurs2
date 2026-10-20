@@ -1,6 +1,6 @@
 import test from 'node:test';
 import assert from 'node:assert/strict';
-import { createStudyDrills } from '../src/course/study-drills.ts';
+import { createStudyDrills, getDojoExpectedForm } from '../src/course/study-drills.ts';
 import { createCourseProgress, type CourseProgressCommand } from '../src/course/course-progress.ts';
 import { createFreshCourseProgress } from '../src/course/course-state.ts';
 import { courseWeeks } from '../src/course/data/index.ts';
@@ -150,7 +150,8 @@ test('Dojo builds four distinct choices for every course verb and filters betwee
     seen.add(state.current.id);
     assert.equal(state.choices.length, 4);
     assert.equal(new Set(state.choices).size, 4);
-    assert.ok(state.choices.includes(state.current.teFormKana));
+    const expected = getDojoExpectedForm(state.current).kana;
+    assert.ok(state.choices.includes(expected));
     drills.dojo.move(1);
   }
   assert.equal(seen.size, total);

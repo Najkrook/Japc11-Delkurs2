@@ -1,4 +1,4 @@
-import type { CourseProgressData, CourseSubView, CourseWeek } from './types.ts';
+import type { CourseProgressData, CourseSubView, CourseWeek, WeekMedalTier } from './types.ts';
 
 export function courseStorageKey(uid?: string | null): string {
   return `japc11-dk2-course-v1-${uid || 'guest'}`;
@@ -70,6 +70,17 @@ export interface WeekProgressSummary {
   overallPercent: number;
   mistakeVocabCount: number;
   mistakeDojoCount: number;
+  medal: WeekMedalTier;
+  nextThresholdPercent: number | null;
+}
+
+export function getWeekMedalTier(completedItems: number, totalItems: number): WeekMedalTier {
+  if (totalItems <= 0) return null;
+  if (completedItems >= totalItems) return 'gold';
+  const ratio = completedItems / totalItems;
+  if (ratio >= 0.8) return 'silver';
+  if (ratio >= 0.6) return 'bronze';
+  return null;
 }
 
 export function getWeekProgressSummary(
@@ -87,8 +98,10 @@ export function getWeekProgressSummary(
   const dojoDone = week.conjugations.filter((c) => progress.masteredDojoIds[c.id]).length;
   const mistakeDojoCount = week.conjugations.filter((c) => progress.mistakeDojoIds?.[c.id]).length;
 
-  const quizBest = progress.quizBestResults[week.id];
+  const rawQuizBest = progress.quizBestResults[week.id];
   const quizTotal = week.quiz.length;
+  const quizBest =
+    rawQuizBest && rawQuizBest.total === quizTotal ? rawQuizBest : null;
   const quizScore = quizBest ? quizBest.score : null;
 
   const totalItems = vocabTotal + kanjiTotal + dojoTotal + quizTotal;
@@ -97,6 +110,10 @@ export function getWeekProgressSummary(
 
   const overallPercent =
     totalItems > 0 ? Math.min(100, Math.round((completedItems / totalItems) * 100)) : 0;
+
+  const medal = getWeekMedalTier(completedItems, totalItems);
+  const nextThresholdPercent =
+    medal === null ? 60 : medal === 'bronze' ? 80 : medal === 'silver' ? 100 : null;
 
   return {
     vocabDone,
@@ -110,6 +127,8 @@ export function getWeekProgressSummary(
     overallPercent,
     mistakeVocabCount,
     mistakeDojoCount,
+    medal,
+    nextThresholdPercent,
   };
 }
 
