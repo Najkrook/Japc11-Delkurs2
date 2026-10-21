@@ -10,7 +10,6 @@ import {
   GoogleAuthProvider,
   signInWithPopup,
   signInWithRedirect,
-  signInAnonymously,
   signOut,
   onAuthStateChanged,
   connectAuthEmulator,
@@ -57,16 +56,6 @@ export async function login(): Promise<unknown> {
 
 export const logout = (): Promise<void> => signOut(auth);
 export const watchUser = (cb: (user: User | null) => void) => onAuthStateChanged(auth, cb);
-
-export async function ensureAnonymousAuth(): Promise<User | null> {
-  try {
-    if (auth.currentUser) return auth.currentUser;
-    const cred = await signInAnonymously(auth);
-    return cred.user;
-  } catch {
-    return null;
-  }
-}
 
 export async function saveCloudCourseProgress(
   uid: string,

@@ -132,113 +132,59 @@ test('Ticket 11: Unauthenticated requests cannot read, create or modify rooms in
   }
 });
 
-test('Ticket 11: Anonymous guest authentication enables multiplayer across clients with concurrent answers from 3 players', async () => {
+test('Kurs-Arena is locked for anonymous Firebase sessions: they cannot read, create or join rooms', async () => {
   const [host, port] = process.env.FIRESTORE_EMULATOR_HOST!.split(':');
-  const userIds = ['anon-host', 'anon-p1', 'anon-p2'];
+  const userIds = ['locked-host', 'locked-anon'];
   const apps = userIds.map((uid) =>
-    initializeApp({ projectId: 'demo-japc11-delkurs2', apiKey: 'fake' }, `anon-rules-${uid}`),
+    initializeApp({ projectId: 'demo-japc11-delkurs2', apiKey: 'fake' }, `locked-rules-${uid}`),
   );
-  const databases = apps.map((app, i) => {
+  const [hostDb, anonDb] = apps.map((app, i) => {
     const database = getFirestore(app);
     connectFirestoreEmulator(database, host, Number(port), {
-      mockUserToken: {
-        sub: userIds[i],
-        provider_id: 'anonymous',
-        firebase: { sign_in_provider: 'anonymous' },
-      },
+      mockUserToken:
+        i === 0
+          ? { sub: userIds[i] }
+          : { sub: userIds[i], firebase: { sign_in_provider: 'anonymous', identities: {} } },
     });
     return database;
   });
-
-  const managers = databases.map(
-    (database, i) =>
-      new CourseArenaManager(
-        () => createCloudArenaStore(database),
-        undefined,
-        async () => userIds[i],
-      ),
-  );
-
-  // All 3 are unauthenticated students (guests)
-  managers.forEach((m) => m.bindHost(null, () => {}));
-
-  const [hostMgr, p1Mgr, p2Mgr] = managers;
-
+  const hostMgr = new CourseArenaManager(() => createCloudArenaStore(hostDb));
+  hostMgr.bindHost({ uid: 'locked-host', displayName: 'Host' }, () => {});
   try {
     const room = await hostMgr.createRoom();
     assert.ok(room, hostMgr.getState().errorMessage);
-    assert.equal(hostMgr.getState().localPlayerUid, 'anon-host');
-
-    // Both p1 and p2 join via room code / ID
-    assert.equal(await p1Mgr.joinRoomById(room.roomId), true, p1Mgr.getState().errorMessage);
-    assert.equal(p1Mgr.getState().localPlayerUid, 'anon-p1');
-
-    assert.equal(await p2Mgr.joinRoomById(room.roomId), true, p2Mgr.getState().errorMessage);
-    assert.equal(p2Mgr.getState().localPlayerUid, 'anon-p2');
-
-    // Host starts match
-    await hostMgr.startMatch();
-    assert.equal(hostMgr.getState().room!.status, 'question');
-
-    // Sync room state
-    await p1Mgr.joinRoomById(room.roomId);
-    await p2Mgr.joinRoomById(room.roomId);
-
-    const question = hostMgr.getState().room!.questions[0];
-    const answer = question.answer;
-
-    // Concurrently submit answers from all 3 players in the exact same millisecond
-    await Promise.all([
-      hostMgr.submitAnswer(answer),
-      p1Mgr.submitAnswer(answer),
-      p2Mgr.submitAnswer(answer),
-    ]);
-
-    const savedDoc = (await getDoc(doc(databases[0], 'courseRooms', room.roomId))).data()!;
-
-    // Verify all 3 answers are recorded independently without conflicts
-    assert.ok(savedDoc.roundAnswers['0']['anon-host'], 'host answer recorded');
-    assert.ok(savedDoc.roundAnswers['0']['anon-p1'], 'p1 answer recorded');
-    assert.ok(savedDoc.roundAnswers['0']['anon-p2'], 'p2 answer recorded');
-
-    // Verify all 3 scores were awarded correctly
-    assert.ok(savedDoc.players['anon-host'].score > 0, 'host scored');
-    assert.ok(savedDoc.players['anon-p1'].score > 0, 'p1 scored');
-    assert.ok(savedDoc.players['anon-p2'].score > 0, 'p2 scored');
-
-    assert.equal(savedDoc.players['anon-host'].streak, 1);
-    assert.equal(savedDoc.players['anon-p1'].streak, 1);
-    assert.equal(savedDoc.players['anon-p2'].streak, 1);
-
-    // Adversarial attempts by anonymous participant
-    const p1Ref = doc(databases[1], 'courseRooms', room.roomId);
+    const anonRef = doc(anonDb, 'courseRooms', room.roomId);
+    await assert.rejects(getDoc(anonRef), /permission/i, 'anonymous users cannot read rooms');
     await assert.rejects(
-      updateDoc(p1Ref, { 'players.anon-host.score': 999999 }),
+      updateDoc(anonRef, {
+        'players.locked-anon': {
+          uid: 'locked-anon',
+          name: 'Anon',
+          avatar: 'x',
+          score: 0,
+          streak: 0,
+          correctCount: 0,
+          joinedAt: Date.now(),
+        },
+      }),
       /permission/i,
-      'Participant cannot alter host score',
+      'anonymous users cannot join rooms',
     );
     await assert.rejects(
-      updateDoc(p1Ref, { 'roundAnswers.0.anon-host.choice': 'tampered' }),
+      setDoc(doc(anonDb, 'courseRooms', 'room-8888'), {
+        roomId: 'room-8888',
+        roomCode: '8888',
+        status: 'waiting',
+        hostUid: 'locked-anon',
+        players: { 'locked-anon': { uid: 'locked-anon' } },
+        roundAnswers: {},
+      }),
       /permission/i,
-      'Participant cannot alter host answer',
+      'anonymous users cannot create rooms',
     );
-    await assert.rejects(
-      updateDoc(p1Ref, { status: 'waiting' }),
-      /permission/i,
-      'Participant cannot alter room status',
-    );
-
-    // Cleanup: leave room
-    await p2Mgr.leaveRoom();
-    await p1Mgr.leaveRoom();
-    const afterLeaves = (await getDoc(doc(databases[0], 'courseRooms', room.roomId))).data()!;
-    assert.equal(afterLeaves.players['anon-p2'], undefined);
-    assert.equal(afterLeaves.players['anon-p1'], undefined);
-
     await hostMgr.leaveRoom();
-    assert.equal((await getDoc(doc(databases[0], 'courseRooms', room.roomId))).exists(), false);
   } finally {
-    managers.forEach((m) => m.dispose());
+    hostMgr.dispose();
     await Promise.all(apps.map(deleteApp));
   }
 });
@@ -252,22 +198,17 @@ test('Ticket 11: Normal network latency and rounding buffer are accepted without
   const databases = apps.map((app, i) => {
     const database = getFirestore(app);
     connectFirestoreEmulator(database, host, Number(port), {
-      mockUserToken: { sub: userIds[i], provider_id: 'anonymous' },
+      mockUserToken: { sub: userIds[i] },
     });
     return database;
   });
 
   const [a, b] = databases.map(
-    (database, i) =>
-      new CourseArenaManager(
-        () => createCloudArenaStore(database),
-        undefined,
-        async () => userIds[i],
-      ),
+    (database) => new CourseArenaManager(() => createCloudArenaStore(database)),
   );
 
-  a.bindHost(null, () => {});
-  b.bindHost(null, () => {});
+  a.bindHost({ uid: userIds[0], displayName: 'Host' }, () => {});
+  b.bindHost({ uid: userIds[1], displayName: 'Member' }, () => {});
 
   try {
     const room = await a.createRoom();

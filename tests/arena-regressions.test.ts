@@ -18,12 +18,10 @@ function storage() {
 test('two players keep both answers when their local room snapshots overlap', async () => {
   Object.defineProperty(globalThis, 'localStorage', { configurable: true, value: storage() });
   Object.defineProperty(globalThis, 'sessionStorage', { configurable: true, value: storage() });
-  sessionStorage.setItem('tentaplugg-arena-guest-uid', 'guest-a');
-  const a = new CourseArenaManager();
-  a.bindHost(null, () => {});
-  sessionStorage.setItem('tentaplugg-arena-guest-uid', 'guest-b');
-  const b = new CourseArenaManager();
-  b.bindHost(null, () => {});
+  const a = new CourseArenaManager(() => localArenaStore);
+  a.bindHost({ uid: 'player-a', displayName: 'A' }, () => {});
+  const b = new CourseArenaManager(() => localArenaStore);
+  b.bindHost({ uid: 'player-b', displayName: 'B' }, () => {});
   try {
     const room = await a.createRoom();
     assert.ok(room);
@@ -35,8 +33,8 @@ test('two players keep both answers when their local room snapshots overlap', as
     await Promise.all([a.submitAnswer(answer), b.submitAnswer(answer)]);
     await a.joinRoomById(room.roomId);
     const answers = a.getState().room!.roundAnswers['0'];
-    assert.ok(answers['guest-a'], 'first answer must survive the second write');
-    assert.ok(answers['guest-b'], 'second answer must also be saved');
+    assert.ok(answers['player-a'], 'first answer must survive the second write');
+    assert.ok(answers['player-b'], 'second answer must also be saved');
   } finally {
     await b.leaveRoom();
     await a.leaveRoom();
@@ -68,10 +66,10 @@ test('logout restores the guest identity, closes the room and cancels old listen
 
 test('a colliding room code never overwrites the existing room', async () => {
   Object.defineProperty(globalThis, 'localStorage', { configurable: true, value: storage() });
-  const first = new CourseArenaManager();
-  const second = new CourseArenaManager();
-  first.bindHost(null, () => {});
-  second.bindHost(null, () => {});
+  const first = new CourseArenaManager(() => localArenaStore);
+  const second = new CourseArenaManager(() => localArenaStore);
+  first.bindHost({ uid: 'player-first' }, () => {});
+  second.bindHost({ uid: 'player-second' }, () => {});
   const random = Math.random;
   try {
     Math.random = () => 0.25;
@@ -92,11 +90,10 @@ test('duplicate answers award points once and leaving removes the participant', 
   Object.defineProperty(globalThis, 'localStorage', { configurable: true, value: storage() });
   Object.defineProperty(globalThis, 'sessionStorage', { configurable: true, value: storage() });
   sessionStorage.setItem('tentaplugg-arena-guest-uid', 'guest-host');
-  const host = new CourseArenaManager();
-  host.bindHost(null, () => {});
-  sessionStorage.setItem('tentaplugg-arena-guest-uid', 'guest-member');
-  const member = new CourseArenaManager();
-  member.bindHost(null, () => {});
+  const host = new CourseArenaManager(() => localArenaStore);
+  host.bindHost({ uid: 'player-host' }, () => {});
+  const member = new CourseArenaManager(() => localArenaStore);
+  member.bindHost({ uid: 'player-member' }, () => {});
   try {
     const room = await host.createRoom();
     assert.ok(room);
@@ -105,14 +102,14 @@ test('duplicate answers award points once and leaving removes the participant', 
     const answer = host.getState().room!.questions[0].answer;
     await Promise.all([host.submitAnswer(answer), host.submitAnswer(answer)]);
     let saved = await localArenaStore.get(room.roomId);
-    assert.equal(saved!.players['guest-host'].correctCount, 1);
+    assert.equal(saved!.players['player-host'].correctCount, 1);
     assert.equal(
-      saved!.players['guest-host'].score,
-      saved!.roundAnswers['0']['guest-host'].pointsAwarded,
+      saved!.players['player-host'].score,
+      saved!.roundAnswers['0']['player-host'].pointsAwarded,
     );
     await member.leaveRoom();
     saved = await localArenaStore.get(room.roomId);
-    assert.equal(saved!.players['guest-member'], undefined);
+    assert.equal(saved!.players['player-member'], undefined);
   } finally {
     await host.leaveRoom();
     host.dispose();
@@ -141,11 +138,10 @@ test('a participant cannot start another player’s match', async () => {
   Object.defineProperty(globalThis, 'localStorage', { configurable: true, value: storage() });
   Object.defineProperty(globalThis, 'sessionStorage', { configurable: true, value: storage() });
   sessionStorage.setItem('tentaplugg-arena-guest-uid', 'guest-host');
-  const host = new CourseArenaManager();
-  host.bindHost(null, () => {});
-  sessionStorage.setItem('tentaplugg-arena-guest-uid', 'guest-member');
-  const member = new CourseArenaManager();
-  member.bindHost(null, () => {});
+  const host = new CourseArenaManager(() => localArenaStore);
+  host.bindHost({ uid: 'player-host' }, () => {});
+  const member = new CourseArenaManager(() => localArenaStore);
+  member.bindHost({ uid: 'player-member' }, () => {});
   try {
     const room = await host.createRoom();
     assert.ok(room);
@@ -157,5 +153,53 @@ test('a participant cannot start another player’s match', async () => {
     await host.leaveRoom();
     host.dispose();
     member.dispose();
+  }
+});
+
+test('a logged-in user whose cloud write fails gets an error instead of a silent local room', async () => {
+  Object.defineProperty(globalThis, 'localStorage', { configurable: true, value: storage() });
+  Object.defineProperty(globalThis, 'sessionStorage', { configurable: true, value: storage() });
+  const failingCloud = {
+    get: async () => null,
+    change: async () => {
+      throw new Error('offline');
+    },
+    watch: () => () => {},
+    watchOpen: () => () => {},
+  };
+  const manager = new CourseArenaManager((loggedIn) => (loggedIn ? failingCloud : localArenaStore));
+  try {
+    manager.bindHost({ uid: 'account-user', displayName: 'Account name' }, () => {});
+    const room = await manager.createRoom();
+    assert.equal(room, null);
+    assert.equal(manager.getState().room, null);
+    assert.ok(manager.getState().errorMessage, 'the user must be told the room was not saved');
+  } finally {
+    manager.dispose();
+  }
+});
+
+test('Kurs-Arena is locked for guests: they cannot create or join rooms', async () => {
+  Object.defineProperty(globalThis, 'localStorage', { configurable: true, value: storage() });
+  Object.defineProperty(globalThis, 'sessionStorage', { configurable: true, value: storage() });
+  const host = new CourseArenaManager(() => localArenaStore);
+  const guest = new CourseArenaManager(() => localArenaStore);
+  host.bindHost({ uid: 'account-host', displayName: 'Host' }, () => {});
+  guest.bindHost(null, () => {});
+  try {
+    assert.equal(await guest.createRoom(), null, 'guests must not be able to create a room');
+    assert.match(guest.getState().errorMessage, /Logga in/);
+    assert.equal(guest.getState().room, null);
+
+    const room = await host.createRoom();
+    assert.ok(room);
+    assert.equal(await guest.joinRoomById(room.roomId), false, 'guests must not join by id');
+    assert.equal(await guest.joinRoomByCode(room.roomCode), false, 'guests must not join by code');
+    const saved = await localArenaStore.get(room.roomId);
+    assert.deepEqual(Object.keys(saved!.players), ['account-host']);
+  } finally {
+    await host.leaveRoom();
+    host.dispose();
+    guest.dispose();
   }
 });

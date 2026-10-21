@@ -18,14 +18,29 @@ function readTheme(): 'classic' | 'sakura' {
   }
 }
 
+const MOCK_USER_STORAGE_KEY = 'japc11-mock-user';
+const viteEnv = (import.meta as unknown as { env?: { DEV?: boolean; MODE?: string } }).env;
+/** Mock auth is only for local development and E2E (`vite --mode test`), never production builds. */
+const MOCK_AUTH_ENABLED = Boolean(viteEnv?.DEV || viteEnv?.MODE === 'test');
+
+function hasMockUser(): boolean {
+  if (!MOCK_AUTH_ENABLED) return false;
+  try {
+    return Boolean(sessionStorage.getItem(MOCK_USER_STORAGE_KEY));
+  } catch {
+    return false;
+  }
+}
+
 function readInitialUser(): {
   uid: string;
   displayName?: string | null;
   email?: string | null;
   photoURL?: string | null;
 } | null {
+  if (!MOCK_AUTH_ENABLED) return null;
   try {
-    const raw = sessionStorage.getItem('japc11-mock-user');
+    const raw = sessionStorage.getItem(MOCK_USER_STORAGE_KEY);
     if (raw) return JSON.parse(raw);
   } catch {}
   return null;
@@ -209,7 +224,7 @@ function applyUser(
   draw();
 }
 
-if (typeof window !== 'undefined') {
+if (MOCK_AUTH_ENABLED && typeof window !== 'undefined') {
   (
     window as unknown as {
       __setMockUser?: (
@@ -227,9 +242,7 @@ if (typeof window !== 'undefined') {
 }
 
 watchUser((u) => {
-  try {
-    if (sessionStorage.getItem('japc11-mock-user')) return;
-  } catch {}
+  if (hasMockUser()) return;
   const isGoogleUser = Boolean(u && !u.isAnonymous);
   applyUser(
     isGoogleUser

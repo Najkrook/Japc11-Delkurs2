@@ -3362,64 +3362,6 @@
   box-shadow: 0 4px 16px rgba(166, 41, 41, 0.08);
 }
 
-.arena-guest-banner {
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
-  gap: 16px;
-  background: var(--c-surface);
-  border: 1px solid rgba(43, 91, 70, 0.25);
-  background: linear-gradient(135deg, rgba(43, 91, 70, 0.06) 0%, rgba(255, 255, 255, 0.96) 100%);
-  border-radius: 18px;
-  padding: 14px 20px;
-  margin-bottom: 20px;
-  box-shadow: 0 4px 16px rgba(20, 63, 46, 0.05);
-}
-
-.course-app-shell[data-course-theme='sakura'] .arena-guest-banner {
-  background: linear-gradient(135deg, rgba(214, 51, 108, 0.08) 0%, rgba(255, 255, 255, 0.96) 100%);
-  border-color: rgba(214, 51, 108, 0.28);
-}
-
-.arena-guest-banner-icon {
-  font-size: 22px;
-  flex-shrink: 0;
-}
-
-.arena-guest-banner-body {
-  font-size: 13.5px;
-  line-height: 1.45;
-  color: var(--c-ink);
-  flex: 1;
-}
-
-.arena-guest-banner-body strong {
-  color: var(--c-indigo);
-  font-weight: 700;
-}
-
-.arena-guest-login-btn {
-  white-space: nowrap;
-  flex-shrink: 0;
-  padding: 8px 18px;
-  font-size: 13px;
-  font-weight: 600;
-  border-radius: 999px;
-  cursor: pointer;
-}
-
-@media (max-width: 640px) {
-  .arena-guest-banner {
-    flex-direction: column;
-    align-items: flex-start;
-    gap: 12px;
-  }
-  .arena-guest-login-btn {
-    width: 100%;
-    text-align: center;
-  }
-}
-
 .arena-auth-gate-section {
   display: flex;
   flex-direction: column;

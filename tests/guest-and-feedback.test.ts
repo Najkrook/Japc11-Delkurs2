@@ -1,9 +1,6 @@
 import test from 'node:test';
 import assert from 'node:assert/strict';
-import {
-  renderCourseArenaModule,
-  renderArenaGuestBanner,
-} from '../src/course/components/course-arena.ts';
+import { renderCourseArenaModule } from '../src/course/components/course-arena.ts';
 import { renderCourseShell } from '../src/course/course-view.ts';
 import { courseArenaManager } from '../src/course/multiplayer/arena-service.ts';
 import { speak, resetVoiceForTesting } from '../src/speech.ts';
@@ -88,22 +85,7 @@ test('Arenans spärrsida renderas för oinloggade användare och låser ute lobb
   });
 
   try {
-    // 1. Standalone banner component
-    const bannerHtml = renderTemplateToString(renderArenaGuestBanner(guestHost));
-    const normalizedBanner = bannerHtml.replace(/\s+/g, ' ');
-    assert.ok(
-      bannerHtml.includes('arena-guest-banner'),
-      'Gästbannern ska ha css-klassen arena-guest-banner',
-    );
-    assert.ok(
-      normalizedBanner.includes('Gästläge:') &&
-        normalizedBanner.includes(
-          'Detta rum körs lokalt i din webbläsare. För att spela i realtid mot kurskamrater på andra mobiler och datorer, logga in med Google.',
-        ),
-      'Gästbannern ska innehålla den specificerade förklaringen',
-    );
-
-    // 2. För en oinloggad användare ska Arenan visa spärrsidan istället för lobbyn
+    // 1. För en oinloggad användare ska Arenan visa spärrsidan istället för lobbyn
     courseArenaManager.bindHost(null, () => {});
     const authGateHtml = renderTemplateToString(renderCourseArenaModule(guestHost, () => {}));
     assert.ok(
