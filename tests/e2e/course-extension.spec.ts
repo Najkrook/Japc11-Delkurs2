@@ -18,18 +18,18 @@ test('all seven week tabs are reachable and preview stays accessible on desktop 
   });
   await page.goto('/');
   await expect(page).toHaveTitle(/JAPC11/);
-  const tabs = page.getByRole('tablist', { name: 'Välj kursvecka', exact: true }).getByRole('tab');
+  const tabs = page.getByRole('tablist', { name: 'Välj kapitel', exact: true }).getByRole('tab');
   await expect(tabs).toHaveCount(7);
   for (const week of courseWeeks) {
-    const tab = tabs.filter({ hasText: `Vecka ${week.weekNumber} · Lektion ${week.lessonNumber}` });
+    const tab = tabs.filter({ hasText: `Kapitel ${week.lessonNumber}` });
     if (week.isPreview) await expect(tab).toHaveClass(/preview/);
     await tab.scrollIntoViewIfNeeded();
     await tab.click();
     await expect(page).toHaveURL(new RegExp(`#/vecka/${week.id}$`));
     await expect(page.locator('main h1')).toContainText(
-      `Vecka ${week.weekNumber} · Lektion ${week.lessonNumber}`,
+      `Kapitel ${week.lessonNumber}`,
     );
-    await expect(page.locator('main')).toContainText(`Vecka ${week.weekNumber} av 7`);
+    await expect(page.locator('main')).toContainText(`Genki I Kapitel ${week.lessonNumber}`);
     if (week.isPreview)
       await expect(page.locator('.course-badge-preview')).toHaveText('Förhandsvisning');
   }
@@ -116,14 +116,14 @@ test('Arena exposes and selects all new weeks', async ({ page }) => {
   await page.goto('/#/arena');
   for (const week of courseWeeks.slice(4)) {
     const button = page.getByRole('button', {
-      name: `Vecka ${week.weekNumber} (L${week.lessonNumber})`,
+      name: `Kapitel ${week.lessonNumber}`,
       exact: true,
     });
     await button.click();
     await expect(button).toHaveClass(/active/);
   }
-  await page.getByRole('button', { name: 'Alla (L6–L12)', exact: true }).click();
-  await expect(page.getByRole('button', { name: 'Alla (L6–L12)', exact: true })).toHaveClass(
+  await page.getByRole('button', { name: 'Alla (kapitel 6–12)', exact: true }).click();
+  await expect(page.getByRole('button', { name: 'Alla (kapitel 6–12)', exact: true })).toHaveClass(
     /active/,
   );
 });

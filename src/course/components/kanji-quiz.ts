@@ -23,7 +23,7 @@ export function renderKanjiQuizModule(
   if (!questions.length) {
     return html`
       <div class="course-empty-card">
-        <h2>Inga kanji att testa i denna vecka än.</h2>
+        <h2>Inga kanji att testa i detta kapitel än.</h2>
         <button class="course-btn-primary" @click=${onExitQuiz}>Tillbaka till Kanjibanken</button>
       </div>
     `;
@@ -44,10 +44,10 @@ export function renderKanjiQuizModule(
     const unmasteredCorrect = correctKanjiIds.filter((id) => !progress.masteredKanjiIds[id]);
 
     return html`
-      <section class="course-module-section" aria-label="Resultat för veckans kanji-quiz">
+      <section class="course-module-section" aria-label="Resultat för kapitlets kanji-quiz">
         <div class="course-quiz-result-card">
           <span class="course-eyebrow">
-            KANJI-QUIZ AVKLARAT · LEKTION ${week.lessonNumber}
+            KANJI-QUIZ AVKLARAT · KAPITEL ${week.lessonNumber}
           </span>
           <h1>
             ${pct >= 90 ? '🌟 Fantastiskt kanji-minne!' : pct >= 70 ? '🎉 Riktigt bra jobbat!' : '💪 Bra kämpat, övning ger färdighet!'}
@@ -59,7 +59,7 @@ export function renderKanjiQuizModule(
           <p>
             ${
               pct === 100
-                ? 'Full pott! Du har järnkoll på veckans kanji, läsningar och sammansättningar.'
+                ? 'Full pott! Du har järnkoll på kapitlets kanji, läsningar och sammansättningar.'
                 : 'Gå igenom förklaringarna nedan för att repetera tecknen och minnesreglerna.'
             }
           </p>
@@ -145,13 +145,13 @@ export function renderKanjiQuizModule(
   };
 
   return html`
-    <section class="course-module-section" aria-label="Veckans Kanji-Quiz">
+    <section class="course-module-section" aria-label="Kapitlets Kanji-Quiz">
       <div class="course-module-topbar">
         <button class="course-back-btn" @click=${onExitQuiz}>
           ← Avbryt och gå till Kanjibanken
         </button>
         <span class="course-quiz-progress-label">
-          Fråga ${safeIdx + 1} av ${total} · Kanji-Quiz Lektion ${week.lessonNumber}
+          Fråga ${safeIdx + 1} av ${total} · Kanji-Quiz Kapitel ${week.lessonNumber}
         </span>
       </div>
 
@@ -162,7 +162,7 @@ export function renderKanjiQuizModule(
       <div class="dojo-arena-card course-quiz-card">
         <div class="dojo-arena-meta">
           <span class="dojo-step-counter">Fråga ${safeIdx + 1} / ${total}</span>
-          <span class="course-cat-tag">Kanji · Lektion ${week.lessonNumber}</span>
+          <span class="course-cat-tag">Kanji · Kapitel ${week.lessonNumber}</span>
         </div>
 
         ${

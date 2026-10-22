@@ -1,10 +1,10 @@
-# JAPC11 · Delkurs 2 (Genki I Lektion 6–12)
+# JAPC11 · Delkurs 2 (Genki I Kapitel 6–12)
 
-Fristående, 100 % TypeScript-baserad studieplattform för **JAPC11 Delkurs 2** (_Genki I, Lektion 6–12_).
+Fristående, 100 % TypeScript-baserad studieplattform för **JAPC11 Delkurs 2** (_Genki I, Kapitel 6–12_).
 
 ## Innehåll
 
-- **Vecka för vecka (Lektion 6–12):** Sju veckor med て-form, pågående handling, kortformer, jämförelser, planer, önskemål, erfarenheter, förklaringar, råd och skyldigheter. Vecka 3–7 har preview-markering och låsikon; innehåll och övningar är tillgängliga precis som tidigare.
+- **Kapitel för kapitel (Kapitel 6–12):** Sju kapitel med て-form, pågående handling, kortformer, jämförelser, planer, önskemål, erfarenheter, förklaringar, råd och skyldigheter. Kapitel 8–12 har preview-markering och låsikon; innehåll och övningar är tillgängliga precis som tidigare.
 - **🥋 て-form Dojo:** Interaktiv böjningsträning med flervals- och skrivläge samt visuell lathund för alla 4 böjningsgrupperna (inklusive undantaget `行く → 行って`).
 - **🎴 Glosor & Kanji:** Vändbara flashcards med Apple Fluid Interface-fysik (1:1 svep, rubber-banding, momentum-projektion) och uttal via Web Speech API.
 - **⚔️ Kurs-Arena (Multiplayer):** Fristående realtids-multiplayer (Firestore `/courseRooms`) med 4-siffriga rumskoder, 15s Kahoot-liknande tidsbonus och valbara studie-bots (`Sakura-bot`, `Kenji-bot`, `Sensei-bot`).
@@ -13,7 +13,7 @@ Fristående, 100 % TypeScript-baserad studieplattform för **JAPC11 Delkurs 2** 
 
 Kapitel 10–12 följer Genki I, tredje upplagan. Kapitelindelning och kanji har kontrollerats mot förlagets [kursöversikt](https://bookclub2.japantimes.co.jp/download/files/genki3/genki-3rd_syllabus_E.pdf) och [kanjilista](https://bookclub2.japantimes.co.jp/download/files/genki3/genki-3rd_kanji_Fr.pdf). Förklaringar, minnesregler, exempel och frågor är eget studiematerial. Glosorna är ett tematiskt urval med repetition, inte en fullständig återgivning av bokens ordlistor.
 
-Vecka 5 tränar ない-form för nekande planer, vecka 6 tränar た-form för erfarenheter och aktivitetslistor, och vecka 7 tränar ない-form för råd och skyldigheter. Dojons formväljare finns kvar.
+Kapitel 10 tränar ない-form för nekande planer, kapitel 11 tränar た-form för erfarenheter och aktivitetslistor, och kapitel 12 tränar ない-form för råd och skyldigheter. Dojons formväljare finns kvar.
 
 ```bash
 npm install

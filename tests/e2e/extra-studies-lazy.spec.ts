@@ -59,6 +59,6 @@ test.describe('Ticket 09: Lazy loading av Extra studier (Tae Kim)', () => {
 
     // Return to main study plan hub
     await page.getByRole('button', { name: '← Tillbaka till studieplanen' }).click();
-    await expect(page.locator('main h1')).toContainText('Vecka 1 · Lektion 6');
+    await expect(page.locator('main h1')).toContainText('Kapitel 6');
   });
 });

@@ -77,7 +77,7 @@ export function renderTeFormDojo(
           }
         }}
       >
-        ${state.weekFilter === 'mistakes' ? 'Visa alla veckans verb' : 'Tillbaka till veckan'}
+        ${state.weekFilter === 'mistakes' ? 'Visa alla kapitlets verb' : 'Tillbaka till kapitlet'}
       </button>
     </div>`;
   }
@@ -173,7 +173,7 @@ export function renderTeFormDojo(
                 host.render();
               }}
             >
-              Denna vecka (${week.conjugations.length})
+              Detta kapitel (${week.conjugations.length})
             </button>
             <button
               type="button"
@@ -183,7 +183,7 @@ export function renderTeFormDojo(
                 host.render();
               }}
             >
-              Alla veckor (${courseWeeks.flatMap((w) => w.conjugations).length})
+              Alla kapitel (${courseWeeks.flatMap((w) => w.conjugations).length})
             </button>
             <button
               type="button"

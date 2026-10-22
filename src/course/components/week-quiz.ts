@@ -47,7 +47,7 @@ export function renderWeekQuizModule(
   const { questions, total, score } = state;
   if (!questions.length) {
     return html`<div class="course-empty-card">
-      <h2>Inga testfrågor i denna vecka än.</h2>
+      <h2>Inga testfrågor i detta kapitel än.</h2>
       <button class="course-btn-primary" @click=${onBackToHub}>Tillbaka</button>
     </div>`;
   }
@@ -55,10 +55,10 @@ export function renderWeekQuizModule(
   if (state.finished) {
     const pct = Math.round((score / total) * 100);
     return html`
-      <section class="course-module-section" aria-label="Resultat för veckans minitest">
+      <section class="course-module-section" aria-label="Resultat för kapitlets minitest">
         <div class="course-quiz-result-card">
           <span class="course-eyebrow"
-            >VECKANS MIXPASS AVKLARAT · LEKTION ${week.lessonNumber}</span
+            >KAPITLETS MIXPASS AVKLARAT · KAPITEL ${week.lessonNumber}</span
           >
           <h1>${pct >= 80 ? '🎉 Strålande jobbat!' : '💪 Bra kämpat!'}</h1>
           <div class="course-quiz-score-circle">
@@ -68,7 +68,7 @@ export function renderWeekQuizModule(
           <p>
             ${
               pct === 100
-                ? 'Full pott! Du har stenkoll på veckans moment.'
+                ? 'Full pott! Du har stenkoll på kapitlets moment.'
                 : 'Kika igenom förklaringarna nedan för de frågor du vill repetera.'
             }
           </p>
@@ -106,7 +106,7 @@ export function renderWeekQuizModule(
               🔄 Gör om testet
             </button>
             <button type="button" class="course-btn-primary" @click=${onBackToHub}>
-              Tillbaka till veckoöversikten →
+              Tillbaka till kapitelöversikten →
             </button>
           </div>
         </div>
@@ -131,11 +131,11 @@ export function renderWeekQuizModule(
   };
 
   return html`
-    <section class="course-module-section" aria-label="Veckans Mixpass">
+    <section class="course-module-section" aria-label="Kapitlets Mixpass">
       <div class="course-module-topbar">
         <button class="course-back-btn" @click=${onBackToHub}>← Avbryt och gå tillbaka</button>
         <span class="course-quiz-progress-label">
-          Fråga ${safeIdx + 1} av ${total} · Lektion ${week.lessonNumber}
+          Fråga ${safeIdx + 1} av ${total} · Kapitel ${week.lessonNumber}
         </span>
       </div>
 

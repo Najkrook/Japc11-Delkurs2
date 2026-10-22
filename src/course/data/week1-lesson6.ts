@@ -7,9 +7,9 @@ export const week1Lesson6: CourseWeek = {
   id: 'week-1',
   weekNumber: 1,
   lessonNumber: 6,
-  titleSv: 'Vecka 1 · Lektion 6: て-formen & Vardagsregler',
+  titleSv: 'Kapitel 6: て-formen & Vardagsregler',
   subtitleJp: '第6課 · ロバートさんの一日',
-  badgeText: 'AKTUELL VECKA · GENKI L6',
+  badgeText: 'GENKI I · KAPITEL 6',
   themeDescriptionSv:
     'Lär dig japanskans viktigaste verbböjning (て-form) för att be om tjänster (～てください), fråga om lov (～てもいいですか), uttrycka förbud (～てはいけません) och binda ihop flera meningar.',
   objectivesSv: [

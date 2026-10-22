@@ -8,14 +8,14 @@ import type {
 } from '../multiplayer/arena-types.ts';
 
 const WEEK_FILTER_LABELS: Record<ArenaWeekFilter, string> = {
-  'week-1': 'Vecka 1 · Lektion 6 (て-form)',
-  'week-2': 'Vecka 2 · Lektion 7 (～ています)',
-  'week-3': 'Vecka 3 · Lektion 8 (Kortform)',
-  'week-4': 'Vecka 4 · Lektion 9 (た-form)',
-  'week-5': 'Vecka 5 · Lektion 10 (Planer)',
-  'week-6': 'Vecka 6 · Lektion 11 (Erfarenheter)',
-  'week-7': 'Vecka 7 · Lektion 12 (Råd & skyldigheter)',
-  all: 'Alla veckor (Lektion 6–12 Mix)',
+  'week-1': 'Kapitel 6 (て-form)',
+  'week-2': 'Kapitel 7 (～ています)',
+  'week-3': 'Kapitel 8 (Kortform)',
+  'week-4': 'Kapitel 9 (た-form)',
+  'week-5': 'Kapitel 10 (Planer)',
+  'week-6': 'Kapitel 11 (Erfarenheter)',
+  'week-7': 'Kapitel 12 (Råd & skyldigheter)',
+  all: 'Alla kapitel (Kapitel 6–12 Mix)',
 };
 
 const FOCUS_MODE_LABELS: Record<ArenaFocusMode, string> = {
@@ -40,7 +40,7 @@ export function renderArenaAuthGate(
         <button type="button" class="course-back-btn" @click=${onBackToHub}>
           ← Tillbaka till studieplanen
         </button>
-        <span class="arena-isolated-badge"> Lektion 6–12 · Kurs-Arena </span>
+        <span class="arena-isolated-badge"> Kapitel 6–12 · Kurs-Arena </span>
       </div>
 
       <div class="arena-auth-gate-card">
@@ -49,7 +49,7 @@ export function renderArenaAuthGate(
         <h1 class="arena-auth-gate-title">Logga in för att gå in i Kurs-Arena</h1>
         <p class="arena-auth-gate-desc">
           Kurs-Arena är en flerspelararena där du utmanar kurskamrater i realtid på glosor,
-          böjningar, kanji och grammatik från Genki I (Lektion 6–12).
+          böjningar, kanji och grammatik från Genki I (Kapitel 6–12).
         </p>
         <p class="arena-auth-gate-subdesc">
           För att skapa matchrum, ansluta med rumskod och spela mot andra studenter behöver du logga
@@ -118,9 +118,9 @@ function renderArenaLobby(
     <section class="course-module-section arena-section" aria-label="Kurs-Arena Multiplayer">
       <div class="course-module-topbar">
         <button type="button" class="course-back-btn" @click=${onBackToHub}>
-          ← Tillbaka till veckoöversikten
+          ← Tillbaka till kapitelöversikten
         </button>
-        <span class="arena-isolated-badge"> Lektion 6–12 · Kurs-Arena </span>
+        <span class="arena-isolated-badge"> Kapitel 6–12 · Kurs-Arena </span>
       </div>
 
       <div class="dojo-header-banner arena-hero-banner">
@@ -164,18 +164,18 @@ function renderArenaLobby(
           </div>
 
           <div class="arena-form-group">
-            <span class="arena-label">Kursvecka</span>
-            <div class="arena-segmented-control" role="group" aria-label="Välj kursvecka">
+            <span class="arena-label">Kapitel</span>
+            <div class="arena-segmented-control" role="group" aria-label="Välj kapitel">
               ${(
                 [
-                  ['week-1', 'Vecka 1 (L6)'],
-                  ['week-2', 'Vecka 2 (L7)'],
-                  ['week-3', 'Vecka 3 (L8)'],
-                  ['week-4', 'Vecka 4 (L9)'],
-                  ['week-5', 'Vecka 5 (L10)'],
-                  ['week-6', 'Vecka 6 (L11)'],
-                  ['week-7', 'Vecka 7 (L12)'],
-                  ['all', 'Alla (L6–L12)'],
+                  ['week-1', 'Kapitel 6'],
+                  ['week-2', 'Kapitel 7'],
+                  ['week-3', 'Kapitel 8'],
+                  ['week-4', 'Kapitel 9'],
+                  ['week-5', 'Kapitel 10'],
+                  ['week-6', 'Kapitel 11'],
+                  ['week-7', 'Kapitel 12'],
+                  ['all', 'Alla (kapitel 6–12)'],
                 ] as Array<[ArenaWeekFilter, string]>
               ).map(
                 ([val, label]) => html`

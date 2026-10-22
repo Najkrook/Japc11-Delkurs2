@@ -145,12 +145,12 @@ export function renderCourseShell(host: CourseHostContext): CourseTemplate {
               type="button"
               class="course-brand-btn"
               @click=${goHub}
-              title="Gå till veckoöversikten"
+              title="Gå till kapitelöversikten"
             >
               <span class="course-brand-glyph" lang="ja">語</span>
               <span class="course-brand-text">
                 <strong>JAPC11 · Delkurs 2</strong>
-                <small>GENKI I · LEKTION 6–12</small>
+                <small>GENKI I · KAPITEL 6–12</small>
               </span>
             </button>
           </div>
@@ -298,9 +298,9 @@ export function renderCourseShell(host: CourseHostContext): CourseTemplate {
 
       <!-- ================= MAIN WORKSPACE WITH LEFT SIDEBAR ================= -->
       <div class="course-workspace-grid">
-        <aside class="course-sidebar" aria-label="Kursmeny och veckoplan">
+        <aside class="course-sidebar" aria-label="Kursmeny och kapitelöversikt">
           <div class="course-sidebar-top">
-            <!-- View Switcher Pill Tray (Veckoöversikt vs Kurs-Arena) -->
+            <!-- View Switcher Pill Tray (Kapitelöversikt vs Kurs-Arena) -->
             <div
               class="course-mode-switcher"
               role="group"
@@ -325,10 +325,10 @@ export function renderCourseShell(host: CourseHostContext): CourseTemplate {
               </button>
             </div>
 
-            <div class="course-sidebar-section-label">STUDIEPLAN · ${courseWeeks.length} VECKOR</div>
+            <div class="course-sidebar-section-label">KAPITEL 6–12</div>
 
             <!-- Vertical Navigation Timeline (Roadmap) -->
-            <div class="course-week-ribbon" role="tablist" aria-label="Välj kursvecka">
+            <div class="course-week-ribbon" role="tablist" aria-label="Välj kapitel">
               ${courseWeeks.map((w) => {
                 const wSum = getWeekProgressSummary(progress, w);
                 const isActive = subView !== 'extra' && subView !== 'arena' && w.id === week.id;
@@ -336,7 +336,7 @@ export function renderCourseShell(host: CourseHostContext): CourseTemplate {
                   ? w.titleSv.split(':')[1].trim()
                   : w.titleSv.includes('—')
                     ? w.titleSv.split('—')[1].trim()
-                    : `Lektion ${w.lessonNumber}`;
+                    : `Kapitel ${w.lessonNumber}`;
                 return html`
                   <button
                     type="button"
@@ -356,7 +356,7 @@ export function renderCourseShell(host: CourseHostContext): CourseTemplate {
                       <div class="week-tab-body">
                         <div class="week-tab-head">
                           <strong class="week-tab-title">
-                            Vecka ${w.weekNumber} · Lektion ${w.lessonNumber}
+                            Kapitel ${w.lessonNumber}
                           </strong>
                           <span class="week-tab-pct">
                             ${renderMiniStamp(wSum.medal)} ${wSum.overallPercent}%
@@ -431,7 +431,7 @@ export function renderCourseShell(host: CourseHostContext): CourseTemplate {
                 class="course-sidebar-link ${subView === 'quiz' ? 'active' : ''}"
                 @click=${() => selectCourseSubView('quiz', host)}
               >
-                Veckotest & Tentafokus
+                Kapiteltest & Tentafokus
               </button>
             </div>
           </div>
@@ -491,7 +491,7 @@ export function renderCourseShell(host: CourseHostContext): CourseTemplate {
       }
 
       <footer class="course-footer">
-        <span>${host.status} · JAPC11 Delkurs 2 (Genki I Lektion 6–12)</span>
+        <span>${host.status} · JAPC11 Delkurs 2 (Genki I Kapitel 6–12)</span>
         <div class="course-footer-links">
           <button
             type="button"
@@ -503,10 +503,10 @@ export function renderCourseShell(host: CourseHostContext): CourseTemplate {
           <button
             type="button"
             class="course-text-link"
-            title=${host.user ? 'Kurs-Arena (Multiplayer L6–L12)' : 'Kurs-Arena (Kräver inloggning)'}
+            title=${host.user ? 'Kurs-Arena (Multiplayer kapitel 6–12)' : 'Kurs-Arena (Kräver inloggning)'}
             @click=${() => selectCourseSubView('arena', host)}
           >
-            Kurs-Arena (Multiplayer L6–L12)${!host.user ? ' 🔒' : ''}
+            Kurs-Arena (Multiplayer kapitel 6–12)${!host.user ? ' 🔒' : ''}
           </button>
           <button
             type="button"
@@ -552,7 +552,7 @@ function getHeroDojoConfig(week: ReturnType<typeof getCourseWeekById>): {
       watermark: 'て',
       heading: 'て-form Dojo — Pågående handling & Tillstånd (～ています)',
       description:
-        'I Lektion 7 använder vi て-formen tillsammans med います för pågående aktiviteter (食べています) och resulterande tillstånd (結婚しています, 知っています) samt klädesverb.',
+        'I Kapitel 7 använder vi て-formen tillsammans med います för pågående aktiviteter (食べています) och resulterande tillstånd (結婚しています, 知っています) samt klädesverb.',
     };
   }
 
@@ -561,7 +561,7 @@ function getHeroDojoConfig(week: ReturnType<typeof getCourseWeekById>): {
       watermark: 'ない',
       heading: 'て-form & Kortform Dojo — Nutid & Nekande (ない-form)',
       description:
-        'I Lektion 8 kombinerar vi て-form med japanskans kortform (普通形) i nutid — särskilt nekande ない-form för att uttrycka åsikter (～と思います) och ～ないでください.',
+        'I Kapitel 8 kombinerar vi て-form med japanskans kortform (普通形) i nutid — särskilt nekande ない-form för att uttrycka åsikter (～と思います) och ～ないでください.',
     };
   }
 
@@ -570,7 +570,7 @@ function getHeroDojoConfig(week: ReturnType<typeof getCourseWeekById>): {
       watermark: 'た',
       heading: 'て-form & Dåtid Dojo — Kortform i dåtid (た-form)',
       description:
-        'Kan du て-formen kan du redan た-formen! I Lektion 9 byter vi bara て/de mot た/だ (買って → 買った, 読んで → 読んだ) för att bilda dåtid i kortform och bisatser.',
+        'Kan du て-formen kan du redan た-formen! I Kapitel 9 byter vi bara て/de mot た/だ (買って → 買った, 読んで → 読んだ) för att bilda dåtid i kortform och bisatser.',
     };
   }
 
@@ -605,8 +605,6 @@ function renderWeekBentoHub(
         <div class="course-breadcrumbs">
           <span>Universitetskurs: Japanska I</span>
           <span class="sep">/</span>
-          <span>Vecka ${week.weekNumber} av ${courseWeeks.length}</span>
-          <span class="sep">/</span>
           <strong class="crumb-current">Genki I Kapitel ${week.lessonNumber}</strong>
           ${week.isPreview ? html`<span class="course-badge-preview">Förhandsvisning</span>` : ''}
         </div>
@@ -619,7 +617,7 @@ function renderWeekBentoHub(
                   <button
                     type="button"
                     class="course-pill-icon-btn"
-                    title="Lyssna på veckans nyckelord"
+                    title="Lyssna på kapitlets nyckelord"
                     @click=${(e: Event) =>
                       host.speak(previewVocab.kana, e.currentTarget as HTMLElement)}
                   >
@@ -662,7 +660,7 @@ function renderWeekBentoHub(
 
         <div class="course-stat-cell">
           <div class="stat-meta">
-            <span class="stat-label">Veckoprogression</span>
+            <span class="stat-label">Kapitelframsteg</span>
             <strong class="stat-value ring-value">${summary.overallPercent}%</strong>
           </div>
           <div class="stat-bar-track">
@@ -672,7 +670,7 @@ function renderWeekBentoHub(
       </div>
 
       <!-- Authentic Japanese Teacher Seal Stamp (Sensei Stamp / Hanko) -->
-      ${renderHubStampBadge(summary, week.weekNumber, isNewlyAwarded)}
+      ${renderHubStampBadge(summary, week.lessonNumber, isNewlyAwarded)}
     </section>
 
     <!-- ================= HERO BANNER: FOCUS MISSION ================= -->
@@ -684,7 +682,7 @@ function renderWeekBentoHub(
           <div class="dojo-hero-badges">
             <span class="badge-dagens-fokus">DAGENS FOKUS</span>
             <span class="badge-sub">
-              Genki I Lektion ${week.lessonNumber} · Verbkonjugation (${week.conjugations.length}
+              Genki I Kapitel ${week.lessonNumber} · Verbkonjugation (${week.conjugations.length}
               verb)
             </span>
           </div>
@@ -770,13 +768,13 @@ function renderWeekBentoHub(
     }
 
     <!-- ================= 3-COLUMN STUDY MODULES ================= -->
-    <section class="course-three-col-grid" aria-label="Veckans tre studiemoduler">
-      <!-- COLUMN 1: VECKANS GLOSOR -->
+    <section class="course-three-col-grid" aria-label="Kapitlets tre studiemoduler">
+      <!-- COLUMN 1: KAPITLETS GLOSOR -->
       <article class="course-bento-card bento-vocab">
         <div class="bento-card-main">
           <div class="bento-col-header">
             <div class="bento-col-title">
-              <h2>Veckans glosor</h2>
+              <h2>Kapitlets glosor</h2>
             </div>
             <div class="bento-header-badges">
               ${
@@ -894,7 +892,7 @@ function renderWeekBentoHub(
         <div class="bento-card-main">
           <div class="bento-col-header">
             <div class="bento-col-title">
-              <h2>Veckotest</h2>
+              <h2>Kapiteltest</h2>
             </div>
             <span class="bento-stat-pill exam-pill"> Tentafokus · L${week.lessonNumber} </span>
           </div>
@@ -904,9 +902,9 @@ function renderWeekBentoHub(
               <span class="exam-tag">Diagnostiskt delprov</span>
               <span class="exam-time">${week.quiz.length} frågor</span>
             </div>
-            <h3>Lektion ${week.lessonNumber} Veckokontroll</h3>
+            <h3>Kapitel ${week.lessonNumber} Kunskapskontroll</h3>
             <p>
-              Testa om veckans glosor, verbböjningar, partiklar och läsförståelse sitter med direkt
+              Testa om kapitlets glosor, verbböjningar, partiklar och läsförståelse sitter med direkt
               förklaring efter varje fråga.
             </p>
 
@@ -929,7 +927,7 @@ function renderWeekBentoHub(
             class="course-btn-primary full-width"
             @click=${() => selectCourseSubView('quiz', host)}
           >
-            Starta veckans minitest (${week.quiz.length} frågor) →
+            Starta kapitlets minitest (${week.quiz.length} frågor) →
           </button>
         </div>
       </article>

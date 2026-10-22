@@ -186,9 +186,9 @@ export const week2Lesson7: CourseWeek = {
   id: 'week-2',
   weekNumber: 2,
   lessonNumber: 7,
-  titleSv: 'Vecka 2 · Lektion 7: ～ています, Familj & Beskrivningar',
+  titleSv: 'Kapitel 7: ～ています, Familj & Beskrivningar',
   subtitleJp: '第7課 · 家族の写真',
-  badgeText: 'VECKA 2 · GENKI L7',
+  badgeText: 'GENKI I · KAPITEL 7',
   themeDescriptionSv:
     'Uttryck pågående handlingar och nuvarande tillstånd med ～ています, beskriv personers utseende och klädsel (着る / 履く / かぶる / かける), samt bind ihop adjektiv och substantiv.',
   objectivesSv: [

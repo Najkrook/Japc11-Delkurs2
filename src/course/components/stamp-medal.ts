@@ -19,7 +19,7 @@ export const STAMP_CONFIGS: Record<NonNullable<WeekMedalTier>, StampConfig> = {
     titleJp: '大変よくできました',
     subJp: '満点合格 · 免許皆伝',
     labelSv: 'Guldmedalj',
-    meaningSv: 'Superbt genomfört! Hela veckans kursmaterial är bemästrat.',
+    meaningSv: 'Superbt genomfört! Hela kapitlets kursmaterial är bemästrat.',
     rimColor: '#e5b839',
     glowColor: 'rgba(229, 184, 57, 0.45)',
     badgeEmoji: '🥇',
@@ -29,7 +29,7 @@ export const STAMP_CONFIGS: Record<NonNullable<WeekMedalTier>, StampConfig> = {
     titleJp: 'よくできました',
     subJp: '優秀 · 合格達成',
     labelSv: 'Silvermedalj',
-    meaningSv: 'Mycket väl godkänt! Över 80 % av veckan är avklarad.',
+    meaningSv: 'Mycket väl godkänt! Över 80 % av kapitlet är avklarat.',
     rimColor: '#c0c8d0',
     glowColor: 'rgba(192, 200, 208, 0.4)',
     badgeEmoji: '🥈',
@@ -70,7 +70,7 @@ export function renderMiniStamp(medal: WeekMedalTier): CourseTemplate | string {
  */
 export function renderHubStampBadge(
   summary: WeekProgressSummary,
-  weekNumber: number,
+  chapterNumber: number,
   isNewlyAwarded = false,
 ): CourseTemplate {
   const { medal, overallPercent, nextThresholdPercent } = summary;
@@ -80,7 +80,7 @@ export function renderHubStampBadge(
     return html`
       <div
         class="course-hub-stamp-container empty"
-        aria-label="Ingen medaljstämpel uppnådd än för vecka ${weekNumber}. Brons kräver 60 %."
+        aria-label="Ingen medaljstämpel uppnådd än för kapitel ${chapterNumber}. Brons kräver 60 %."
       >
         <div class="course-hanko-seal placeholder" aria-hidden="true">
           <div class="hanko-outer-ring dashed"></div>
@@ -93,7 +93,7 @@ export function renderHubStampBadge(
         <div class="stamp-meta-copy">
           <span class="stamp-tier-badge pending">🥉 Nästa mål: Brons (60 %)</span>
           <p class="stamp-motivation-text">
-            Nå 60 % för att föräras med veckans japanska lärarstämpel
+            Nå 60 % för att föräras med kapitlets japanska lärarstämpel
             <em>(合格 / がんばりました)</em>. ${remainingPct}% kvar!
           </p>
         </div>
@@ -111,7 +111,7 @@ export function renderHubStampBadge(
     <div
       class="course-hub-stamp-container awarded ${medal} ${isNewlyAwarded ? 'just-awarded' : ''}"
       role="status"
-      aria-label="Vecka ${weekNumber}: ${config.labelSv} uppnådd! Japansk lärarstämpel: ${config.titleJp}."
+      aria-label="Kapitel ${chapterNumber}: ${config.labelSv} uppnådd! Japansk lärarstämpel: ${config.titleJp}."
     >
       <div
         class="course-hanko-seal stamp-${medal} ${isNewlyAwarded ? 'imprint-animate' : ''}"
