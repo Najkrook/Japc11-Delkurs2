@@ -15,6 +15,7 @@ import { renderWeekQuizModule } from './components/week-quiz.ts';
 import { renderCourseArenaModule } from './components/course-arena.ts';
 import { renderHubStampBadge, renderMiniStamp } from './components/stamp-medal.ts';
 import { courseProgressPersistence } from '../cloud.ts';
+import { isSushiEntryAvailable } from './sushi-game/config.ts';
 
 type ExtraStudiesModule = typeof import('./components/extra-studies.ts');
 let extraStudiesModule: ExtraStudiesModule | null = null;
@@ -77,6 +78,131 @@ function renderExtraStudiesPlaceholder(host: CourseHostContext): CourseTemplate 
   `;
 }
 
+type SushiGameModule = typeof import('./sushi-game/sushi-view.ts');
+let sushiGameModule: SushiGameModule | null = null;
+let sushiGameLoadingPromise: Promise<SushiGameModule> | null = null;
+let sushiGameLoadError: Error | null = null;
+
+export function loadSushiGameModule(host?: CourseHostContext): Promise<SushiGameModule> {
+  if (sushiGameModule) {
+    return Promise.resolve(sushiGameModule);
+  }
+  if (sushiGameLoadingPromise) {
+    return sushiGameLoadingPromise;
+  }
+  sushiGameLoadError = null;
+  sushiGameLoadingPromise = import('./sushi-game/sushi-view.ts')
+    .then((mod) => {
+      sushiGameModule = mod;
+      sushiGameLoadingPromise = null;
+      host?.render();
+      return mod;
+    })
+    .catch((err) => {
+      sushiGameLoadError = err instanceof Error ? err : new Error(String(err));
+      sushiGameLoadingPromise = null;
+      host?.render();
+      throw err;
+    });
+  return sushiGameLoadingPromise;
+}
+
+export function resetSushiGameModuleForTesting(): void {
+  sushiGameModule = null;
+  sushiGameLoadingPromise = null;
+  sushiGameLoadError = null;
+}
+
+function renderSushiLoadingPlaceholder(
+  host: CourseHostContext,
+  onBack: () => void,
+): CourseTemplate {
+  return html`
+    <div class="sushi-shell sushi-loading-shell" data-theme=${host.theme}>
+      <header class="sushi-topbar">
+        <div class="sushi-topbar-inner">
+          <div class="sushi-topbar-left">
+            <button
+              type="button"
+              class="sushi-back-btn"
+              data-testid="sushi-loading-back-btn"
+              @click=${onBack}
+            >
+              ← Tillbaka till studierna
+            </button>
+          </div>
+          <div class="sushi-topbar-center">
+            <h1 class="sushi-title" lang="ja">🍣 Sushirestaurang</h1>
+          </div>
+          <div class="sushi-topbar-right"></div>
+        </div>
+      </header>
+      <main class="sushi-main">
+        <div class="sushi-loading" role="status" aria-live="polite">
+          <div class="sushi-loading-spinner" aria-hidden="true"></div>
+          <div>Laddar sushirestaurangen...</div>
+        </div>
+      </main>
+    </div>
+  `;
+}
+
+function renderSushiLoadingError(host: CourseHostContext, onBack: () => void): CourseTemplate {
+  return html`
+    <div class="sushi-shell sushi-error-shell" data-theme=${host.theme}>
+      <header class="sushi-topbar">
+        <div class="sushi-topbar-inner">
+          <div class="sushi-topbar-left">
+            <button
+              type="button"
+              class="sushi-back-btn"
+              data-testid="sushi-error-back-btn"
+              @click=${onBack}
+            >
+              ← Tillbaka till studierna
+            </button>
+          </div>
+          <div class="sushi-topbar-center">
+            <h1 class="sushi-title" lang="ja">🍣 Sushirestaurang</h1>
+          </div>
+          <div class="sushi-topbar-right"></div>
+        </div>
+      </header>
+      <main class="sushi-main">
+        <div
+          class="sushi-loading sushi-loading-error"
+          role="alert"
+          data-testid="sushi-loading-error"
+        >
+          <p>Kunde inte ladda sushirestaurangen.</p>
+          <div class="sushi-error-actions">
+            <button
+              type="button"
+              class="sushi-btn-primary"
+              data-testid="sushi-retry-btn"
+              @click=${() => {
+                sushiGameLoadError = null;
+                loadSushiGameModule(host).catch(() => {});
+                host.render();
+              }}
+            >
+              Försök igen
+            </button>
+            <button
+              type="button"
+              class="sushi-btn-secondary"
+              data-testid="sushi-error-back-btn-action"
+              @click=${onBack}
+            >
+              ← Tillbaka till studierna
+            </button>
+          </div>
+        </div>
+      </main>
+    </div>
+  `;
+}
+
 export const courseProgress = createCourseProgress(courseProgressPersistence, studyDrills.reset);
 
 const sessionBaselineMedals = new Map<string, string | null>();
@@ -123,6 +249,9 @@ export function selectCourseSubView(subView: CourseSubView, host?: CourseHostCon
   if (subView === 'extra' && !extraStudiesModule) {
     loadExtraStudiesModule(host).catch(() => {});
   }
+  if (subView === 'sushi' && !sushiGameModule) {
+    loadSushiGameModule(host).catch(() => {});
+  }
   host?.render();
 }
 
@@ -132,6 +261,21 @@ export function renderCourseShell(host: CourseHostContext): CourseTemplate {
   const week = getCourseWeekById(progress.activeWeekId);
   const summary = getWeekProgressSummary(progress, week);
   const subView = progress.activeSubView;
+
+  if (subView === 'sushi') {
+    const goBackToStudies = () => {
+      selectCourseSubView('hub', host);
+    };
+
+    if (sushiGameLoadError) {
+      return renderSushiLoadingError(host, goBackToStudies);
+    }
+    if (!sushiGameModule) {
+      loadSushiGameModule(host).catch(() => {});
+      return renderSushiLoadingPlaceholder(host, goBackToStudies);
+    }
+    return sushiGameModule.renderSushiShell(host, goBackToStudies);
+  }
 
   const goHub = () => selectCourseSubView('hub', host);
 
@@ -216,6 +360,21 @@ export function renderCourseShell(host: CourseHostContext): CourseTemplate {
               Kurs-Arena
               ${!host.user ? html`<span class="nav-lock-badge" aria-hidden="true">🔒</span>` : ''}
             </button>
+            ${
+              isSushiEntryAvailable()
+                ? html`
+                    <button
+                      type="button"
+                      class="course-top-link sushi-nav-pill"
+                      data-course-nav="sushi"
+                      title="Sushirestaurang"
+                      @click=${() => selectCourseSubView('sushi', host)}
+                    >
+                      🍣 Restaurang
+                    </button>
+                  `
+                : ''
+            }
           </nav>
 
           <div class="course-topbar-right">
@@ -355,9 +514,7 @@ export function renderCourseShell(host: CourseHostContext): CourseTemplate {
                       </span>
                       <div class="week-tab-body">
                         <div class="week-tab-head">
-                          <strong class="week-tab-title">
-                            Kapitel ${w.lessonNumber}
-                          </strong>
+                          <strong class="week-tab-title"> Kapitel ${w.lessonNumber} </strong>
                           <span class="week-tab-pct">
                             ${renderMiniStamp(wSum.medal)} ${wSum.overallPercent}%
                           </span>
@@ -398,6 +555,34 @@ export function renderCourseShell(host: CourseHostContext): CourseTemplate {
                 </div>
               </button>
             </div>
+
+            ${
+              isSushiEntryAvailable()
+                ? html`
+                    <div class="course-sidebar-section-label">RESTAURANG</div>
+                    <div class="course-week-ribbon" role="tablist" aria-label="Sushirestaurang">
+                      <button
+                        type="button"
+                        role="tab"
+                        data-course-nav="sushi-sidebar"
+                        class="course-week-tab course-sushi-tab"
+                        @click=${() => selectCourseSubView('sushi', host)}
+                      >
+                        <div class="week-tab-row">
+                          <span class="week-tab-indicator"> 🍣 </span>
+                          <div class="week-tab-body">
+                            <div class="week-tab-head">
+                              <strong class="week-tab-title">Sushirestaurang</strong>
+                              <span class="week-tab-pct sushi-tag">Tycoon</span>
+                            </div>
+                            <span class="week-tab-sub">Egen restaurang · Idle & dekoration</span>
+                          </div>
+                        </div>
+                      </button>
+                    </div>
+                  `
+                : ''
+            }
           </div>
 
           <!-- Bottom Sticky Section: Multiplayer Arena & Quick Links -->
@@ -515,6 +700,20 @@ export function renderCourseShell(host: CourseHostContext): CourseTemplate {
           >
             て-form Dojo
           </button>
+          ${
+            isSushiEntryAvailable()
+              ? html`
+                  <button
+                    type="button"
+                    class="course-text-link"
+                    data-course-nav="sushi-footer"
+                    @click=${() => selectCourseSubView('sushi', host)}
+                  >
+                    🍣 Sushirestaurang
+                  </button>
+                `
+              : ''
+          }
         </div>
       </footer>
     </div>
@@ -530,21 +729,24 @@ function getHeroDojoConfig(week: ReturnType<typeof getCourseWeekById>): {
     return {
       watermark: 'ない',
       heading: 'Kortform Dojo — Planer med つもり',
-      description: 'Träna ない-form för planer som 行かないつもりです. Jämför med grundformen 行くつもりです i grammatikguiden.',
+      description:
+        'Träna ない-form för planer som 行かないつもりです. Jämför med grundformen 行くつもりです i grammatikguiden.',
     };
   }
   if (week.lessonNumber === 11) {
     return {
       watermark: 'た',
       heading: 'た-form Dojo — Aktiviteter & Erfarenheter',
-      description: 'Träna た-formen som bygger uttrycken 〜たり〜たりする och 〜たことがある. Önskemål med たい använder i stället ます-stammen.',
+      description:
+        'Träna た-formen som bygger uttrycken 〜たり〜たりする och 〜たことがある. Önskemål med たい använder i stället ます-stammen.',
     };
   }
   if (week.lessonNumber === 12) {
     return {
       watermark: 'ない',
       heading: 'ない-form Dojo — Råd & Skyldigheter',
-      description: 'Träna ない-form för 〜ないほうがいい och som grund för 〜なければいけません. Växla till た-form för jakande råd med 〜たほうがいい.',
+      description:
+        'Träna ない-form för 〜ないほうがいい och som grund för 〜なければいけません. Växla till た-form för jakande råd med 〜たほうがいい.',
     };
   }
   if (week.lessonNumber === 7) {
@@ -904,8 +1106,8 @@ function renderWeekBentoHub(
             </div>
             <h3>Kapitel ${week.lessonNumber} Kunskapskontroll</h3>
             <p>
-              Testa om kapitlets glosor, verbböjningar, partiklar och läsförståelse sitter med direkt
-              förklaring efter varje fråga.
+              Testa om kapitlets glosor, verbböjningar, partiklar och läsförståelse sitter med
+              direkt förklaring efter varje fråga.
             </p>
 
             <div class="bento-exam-status">

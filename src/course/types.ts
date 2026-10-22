@@ -1,7 +1,7 @@
 import type { TemplateResult } from 'lit-html';
 
 export type CourseSubView =
-  'hub' | 'vocab' | 'grammar' | 'dojo' | 'kanji' | 'quiz' | 'arena' | 'extra';
+  'hub' | 'vocab' | 'grammar' | 'dojo' | 'kanji' | 'quiz' | 'arena' | 'extra' | 'sushi';
 
 export type VerbGroup = 'u-verb' | 'ru-verb' | 'irregular';
 

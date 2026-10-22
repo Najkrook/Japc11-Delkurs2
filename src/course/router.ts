@@ -2,7 +2,7 @@ import type { CourseHostContext, CourseSubView } from './types.ts';
 import { courseWeeks } from './data/index.ts';
 import { courseProgress as defaultCourseProgress } from './course-view.ts';
 import { courseArenaManager as defaultArenaManager } from './multiplayer/arena-service.ts';
-import { loadExtraStudiesModule } from './course-view.ts';
+import { loadExtraStudiesModule, loadSushiGameModule } from './course-view.ts';
 
 export interface CourseRoute {
   weekId: string;
@@ -21,6 +21,7 @@ const VALID_SUBVIEWS = new Set<CourseSubView>([
   'quiz',
   'arena',
   'extra',
+  'sushi',
 ]);
 
 const SUBVIEW_ALIASES: Record<string, CourseSubView> = {
@@ -40,6 +41,9 @@ const SUBVIEW_ALIASES: Record<string, CourseSubView> = {
   tentafokus: 'quiz',
   arena: 'arena',
   extra: 'extra',
+  sushi: 'sushi',
+  restaurang: 'sushi',
+  sushigame: 'sushi',
 };
 
 function normalizeWeekId(raw: string, fallback: string): string {
@@ -120,6 +124,14 @@ export function parseRoute(hash: string, fallbackWeekId = 'week-1'): CourseRoute
     };
   }
 
+  // Pattern: #/sushi or #/restaurang
+  if (first === 'sushi' || first === 'restaurang' || first === 'sushigame') {
+    return {
+      weekId: fallback,
+      subView: 'sushi',
+    };
+  }
+
   // Pattern: #/vecka/:weekId or #/vecka/:weekId/:subView or #/week/:weekId
   if (first === 'vecka' || first === 'week') {
     const rawWeek = parts[1] || '';
@@ -153,6 +165,9 @@ export function formatRoute(route: CourseRoute): string {
   }
   if (route.subView === 'extra') {
     return '#/extra';
+  }
+  if (route.subView === 'sushi') {
+    return '#/sushi';
   }
   if (route.subView === 'hub') {
     return `#/vecka/${route.weekId}`;
@@ -293,6 +308,9 @@ export class CourseRouter {
         this.progress.update({ type: 'subview', subView: route.subView });
         if (route.subView === 'extra') {
           loadExtraStudiesModule(this.host).catch(() => {});
+        }
+        if (route.subView === 'sushi') {
+          loadSushiGameModule(this.host).catch(() => {});
         }
       }
       if (weekChanged || subViewChanged) {
