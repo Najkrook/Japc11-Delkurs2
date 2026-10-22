@@ -1,5 +1,10 @@
 import { courseWeeks } from '../data/index.ts';
-import { buildNaiChoices, buildTaChoices, buildTeChoices } from '../study-drills.ts';
+import {
+  buildNaiChoices,
+  buildTaChoices,
+  buildTeChoices,
+  getWeekDefaultTargetForm,
+} from '../study-drills.ts';
 import type { ArenaQuestion, ArenaRoomConfig, ArenaWeekFilter } from './arena-types.ts';
 import type { CourseWeek } from '../types.ts';
 
@@ -65,9 +70,9 @@ export function buildAllCourseArenaQuestions(
       });
     }
 
-    // 2. Generated conjugation questions (te-form in W1-2, nai-form in W3, ta-form in W4)
+    // 2. Generated conjugation questions share the week's focus with the Dojo.
     for (const conj of week.conjugations) {
-      if (week.lessonNumber === 8 || week.id === 'week-3') {
+      if (getWeekDefaultTargetForm(week.id) === 'nai') {
         const target = conj.naiFormKana ?? conj.teFormKana;
         const targetKanji = conj.naiFormKanji ?? conj.naiFormKana ?? conj.teFormKanji;
         const choices = shuffleArray(buildNaiChoices(conj), rng);
@@ -83,7 +88,7 @@ export function buildAllCourseArenaQuestions(
           answer: target,
           explanationSv: `${conj.ruleLabelSv}: ${conj.dictionaryKanji} (${conj.dictionaryKana}) → ${targetKanji} (${target}). ${conj.ruleExplanationSv}`,
         });
-      } else if (week.lessonNumber === 9 || week.id === 'week-4') {
+      } else if (getWeekDefaultTargetForm(week.id) === 'ta') {
         const target = conj.taFormKana ?? conj.teFormKana;
         const targetKanji = conj.taFormKanji ?? conj.taFormKana ?? conj.teFormKanji;
         const choices = shuffleArray(buildTaChoices(conj), rng);

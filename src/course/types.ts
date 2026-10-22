@@ -97,6 +97,7 @@ export interface CourseQuizQuestion {
   explanationSv: string;
   vocabId?: string;
   conjugationId?: string;
+  kanjiId?: string;
 }
 
 export interface CourseWeek {

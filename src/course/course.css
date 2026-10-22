@@ -1726,6 +1726,54 @@
   font-size: 12px;
 }
 
+.kanji-header-actions {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+}
+
+.kanji-quiz-trigger-btn {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  background: var(--c-indigo-mid, #4f46e5);
+  color: #ffffff;
+  border: none;
+  border-radius: 999px;
+  padding: 10px 22px;
+  font-size: 14.5px;
+  font-weight: 700;
+  cursor: pointer;
+  box-shadow: 0 4px 14px rgba(79, 70, 229, 0.22);
+  transition: transform 0.15s ease, box-shadow 0.15s ease, background 0.15s ease;
+}
+
+.kanji-quiz-trigger-btn:hover {
+  background: var(--c-indigo, #4338ca);
+  transform: translateY(-2px);
+  box-shadow: 0 6px 20px rgba(79, 70, 229, 0.32);
+}
+
+.kanji-quiz-trigger-btn:active {
+  transform: translateY(0);
+}
+
+.kanji-quiz-hero-glyph {
+  font-size: 52px;
+  line-height: 1;
+  text-align: center;
+  margin: 8px 0 16px;
+  color: var(--c-indigo, #4338ca);
+  font-weight: 700;
+  filter: drop-shadow(0 2px 8px rgba(79, 70, 229, 0.15));
+}
+
+.kanji-quiz-mastery-action {
+  margin: 16px 0 24px;
+  display: flex;
+  justify-content: center;
+}
+
 .dojo-cheatsheet {
   background: var(--c-surface);
   border: 1px solid var(--c-line);

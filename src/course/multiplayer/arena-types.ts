@@ -1,4 +1,5 @@
-export type ArenaWeekFilter = 'week-1' | 'week-2' | 'week-3' | 'week-4' | 'all';
+export type ArenaWeekFilter =
+  'week-1' | 'week-2' | 'week-3' | 'week-4' | 'week-5' | 'week-6' | 'week-7' | 'all';
 
 export type ArenaFocusMode = 'mix' | 'te-form' | 'vocab' | 'kanji' | 'grammar';
 

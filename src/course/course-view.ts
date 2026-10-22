@@ -9,6 +9,7 @@ import {
   renderGrammarModule,
   renderKanjiModule,
   renderVocabModule,
+  resetKanjiMode,
 } from './components/flashcard-deck.ts';
 import { renderWeekQuizModule } from './components/week-quiz.ts';
 import { renderCourseArenaModule } from './components/course-arena.ts';
@@ -115,6 +116,9 @@ export function selectCourseWeek(weekId: string, host?: CourseHostContext): void
 }
 
 export function selectCourseSubView(subView: CourseSubView, host?: CourseHostContext): void {
+  if (subView !== 'kanji') {
+    resetKanjiMode();
+  }
   courseProgress.update({ type: 'subview', subView });
   if (subView === 'extra' && !extraStudiesModule) {
     loadExtraStudiesModule(host).catch(() => {});
@@ -146,7 +150,7 @@ export function renderCourseShell(host: CourseHostContext): CourseTemplate {
               <span class="course-brand-glyph" lang="ja">語</span>
               <span class="course-brand-text">
                 <strong>JAPC11 · Delkurs 2</strong>
-                <small>GENKI I · LEKTION 6–9</small>
+                <small>GENKI I · LEKTION 6–12</small>
               </span>
             </button>
           </div>
@@ -321,7 +325,7 @@ export function renderCourseShell(host: CourseHostContext): CourseTemplate {
               </button>
             </div>
 
-            <div class="course-sidebar-section-label">STUDIEPLAN · 4 VECKOR</div>
+            <div class="course-sidebar-section-label">STUDIEPLAN · ${courseWeeks.length} VECKOR</div>
 
             <!-- Vertical Navigation Timeline (Roadmap) -->
             <div class="course-week-ribbon" role="tablist" aria-label="Välj kursvecka">
@@ -487,7 +491,7 @@ export function renderCourseShell(host: CourseHostContext): CourseTemplate {
       }
 
       <footer class="course-footer">
-        <span>${host.status} · JAPC11 Delkurs 2 (Genki I Lektion 6–9)</span>
+        <span>${host.status} · JAPC11 Delkurs 2 (Genki I Lektion 6–12)</span>
         <div class="course-footer-links">
           <button
             type="button"
@@ -499,10 +503,10 @@ export function renderCourseShell(host: CourseHostContext): CourseTemplate {
           <button
             type="button"
             class="course-text-link"
-            title=${host.user ? 'Kurs-Arena (Multiplayer L6–L9)' : 'Kurs-Arena (Kräver inloggning)'}
+            title=${host.user ? 'Kurs-Arena (Multiplayer L6–L12)' : 'Kurs-Arena (Kräver inloggning)'}
             @click=${() => selectCourseSubView('arena', host)}
           >
-            Kurs-Arena (Multiplayer L6–L9)${!host.user ? ' 🔒' : ''}
+            Kurs-Arena (Multiplayer L6–L12)${!host.user ? ' 🔒' : ''}
           </button>
           <button
             type="button"
@@ -522,6 +526,27 @@ function getHeroDojoConfig(week: ReturnType<typeof getCourseWeekById>): {
   heading: string;
   description: string;
 } {
+  if (week.lessonNumber === 10) {
+    return {
+      watermark: 'ない',
+      heading: 'Kortform Dojo — Planer med つもり',
+      description: 'Träna ない-form för planer som 行かないつもりです. Jämför med grundformen 行くつもりです i grammatikguiden.',
+    };
+  }
+  if (week.lessonNumber === 11) {
+    return {
+      watermark: 'た',
+      heading: 'た-form Dojo — Aktiviteter & Erfarenheter',
+      description: 'Träna た-formen som bygger uttrycken 〜たり〜たりする och 〜たことがある. Önskemål med たい använder i stället ます-stammen.',
+    };
+  }
+  if (week.lessonNumber === 12) {
+    return {
+      watermark: 'ない',
+      heading: 'ない-form Dojo — Råd & Skyldigheter',
+      description: 'Träna ない-form för 〜ないほうがいい och som grund för 〜なければいけません. Växla till た-form för jakande råd med 〜たほうがいい.',
+    };
+  }
   if (week.lessonNumber === 7) {
     return {
       watermark: 'て',
@@ -580,7 +605,7 @@ function renderWeekBentoHub(
         <div class="course-breadcrumbs">
           <span>Universitetskurs: Japanska I</span>
           <span class="sep">/</span>
-          <span>Vecka ${week.weekNumber} av 4</span>
+          <span>Vecka ${week.weekNumber} av ${courseWeeks.length}</span>
           <span class="sep">/</span>
           <strong class="crumb-current">Genki I Kapitel ${week.lessonNumber}</strong>
           ${week.isPreview ? html`<span class="course-badge-preview">Förhandsvisning</span>` : ''}

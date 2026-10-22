@@ -8,8 +8,14 @@ import type {
 import type { UpdateCourseProgress } from '../course-progress.ts';
 import { studyDrills } from '../study-drills.ts';
 import { bindSwipeableFlashcard } from '../apple-physics.ts';
+import { renderKanjiQuizModule } from './kanji-quiz.ts';
 
 let vocabMode: 'cards' | 'list' = 'cards';
+let kanjiMode: 'cards' | 'quiz' = 'cards';
+
+export function resetKanjiMode(): void {
+  kanjiMode = 'cards';
+}
 const vocabDrill = studyDrills.vocab;
 
 const CATEGORY_LABELS: Record<string, string> = {
@@ -386,12 +392,25 @@ export function renderKanjiModule(
   updateProgress: UpdateCourseProgress,
   onBackToHub: () => void,
 ): CourseTemplate {
+  if (kanjiMode === 'quiz') {
+    return renderKanjiQuizModule(week, progress, host, updateProgress, () => {
+      kanjiMode = 'cards';
+      host.render();
+    });
+  }
+
   const masteredCount = week.kanji.filter((k) => progress.masteredKanjiIds[k.id]).length;
 
   return html`
     <section class="course-module-section" aria-label="Veckans Kanji">
       <div class="course-module-topbar">
-        <button class="course-back-btn" @click=${onBackToHub}>
+        <button
+          class="course-back-btn"
+          @click=${() => {
+            kanjiMode = 'cards';
+            onBackToHub();
+          }}
+        >
           ← Tillbaka till ${week.titleSv.split(':')[0]}
         </button>
       </div>
@@ -401,6 +420,19 @@ export function renderKanjiModule(
           <span class="course-eyebrow">LEKTION ${week.lessonNumber} · KANJIBANK</span>
           <h1>Veckans Kanji (${week.kanji.length} tecken)</h1>
           <p>Studera läsningar (on/kun), minnesbilder och vanliga sammansättningar.</p>
+        </div>
+        <div class="kanji-header-actions">
+          <button
+            type="button"
+            class="course-btn-primary kanji-quiz-trigger-btn"
+            @click=${() => {
+              studyDrills.kanjiQuiz.start(week);
+              kanjiMode = 'quiz';
+              host.render();
+            }}
+          >
+            🎯 Starta Kanji-Quiz
+          </button>
         </div>
         <div class="dojo-score-pill">
           <strong>${masteredCount} / ${week.kanji.length}</strong>
