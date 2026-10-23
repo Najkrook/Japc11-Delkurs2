@@ -267,6 +267,11 @@ export function renderCourseShell(host: CourseHostContext): CourseTemplate {
       selectCourseSubView('hub', host);
     };
 
+    const onNavigateToChapter = (_lessonNumber: number, weekId: string) => {
+      selectCourseWeek(weekId, host);
+      selectCourseSubView('hub', host);
+    };
+
     if (sushiGameLoadError) {
       return renderSushiLoadingError(host, goBackToStudies);
     }
@@ -274,7 +279,7 @@ export function renderCourseShell(host: CourseHostContext): CourseTemplate {
       loadSushiGameModule(host).catch(() => {});
       return renderSushiLoadingPlaceholder(host, goBackToStudies);
     }
-    return sushiGameModule.renderSushiShell(host, goBackToStudies);
+    return sushiGameModule.renderSushiShell(host, goBackToStudies, progress, onNavigateToChapter);
   }
 
   const goHub = () => selectCourseSubView('hub', host);

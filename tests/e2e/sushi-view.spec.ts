@@ -108,11 +108,13 @@ test.describe('Ticket 02: Separat spelvy med Google-inloggning för Sushirestaur
 
     // Logga in som Sakura
     await page.evaluate(() => {
-      (window as unknown as { __setMockUser: (u: unknown) => void }).__setMockUser({
+      const u = {
         uid: 'user-sakura',
         displayName: 'Sakura Kinomoto',
         email: 'sakura@example.com',
-      });
+      };
+      sessionStorage.setItem('japc11-mock-user', JSON.stringify(u));
+      (window as unknown as { __setMockUser: (u: unknown) => void }).__setMockUser(u);
     });
 
     // Spärrsidan ska försvinna och den autentiserade scenen visas med Sakuras namn
@@ -124,6 +126,7 @@ test.describe('Ticket 02: Separat spelvy med Google-inloggning för Sushirestaur
 
     // Logga ut
     await page.evaluate(() => {
+      sessionStorage.removeItem('japc11-mock-user');
       (window as unknown as { __setMockUser: (u: unknown) => void }).__setMockUser(null);
     });
 
@@ -134,11 +137,13 @@ test.describe('Ticket 02: Separat spelvy med Google-inloggning för Sushirestaur
 
     // Kontobyte: Logga in som Shaoran
     await page.evaluate(() => {
-      (window as unknown as { __setMockUser: (u: unknown) => void }).__setMockUser({
+      const u = {
         uid: 'user-shaoran',
         displayName: 'Shaoran Li',
         email: 'shaoran@example.com',
-      });
+      };
+      sessionStorage.setItem('japc11-mock-user', JSON.stringify(u));
+      (window as unknown as { __setMockUser: (u: unknown) => void }).__setMockUser(u);
     });
 
     // Verifiera att Shaorans namn visas och ingen tidigare data från Sakura dröjer kvar
