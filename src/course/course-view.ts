@@ -279,9 +279,15 @@ export function renderCourseShell(host: CourseHostContext): CourseTemplate {
       loadSushiGameModule(host).catch(() => {});
       return renderSushiLoadingPlaceholder(host, goBackToStudies);
     }
-    return sushiGameModule.renderSushiShell(host, goBackToStudies, progress, onNavigateToChapter);
+    return sushiGameModule.renderSushiShell(
+      { ...host, ensureCourseSynced: courseProgress.ensureCloudSynced },
+      goBackToStudies,
+      progress,
+      onNavigateToChapter,
+    );
   }
 
+  sushiGameModule?.leaveSushiView();
   const goHub = () => selectCourseSubView('hub', host);
 
   return html`

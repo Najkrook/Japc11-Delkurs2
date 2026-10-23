@@ -85,6 +85,7 @@ export function createCourseProgress(
   let pending: { command: CourseProgressCommand; at: number }[] = [];
   const listeners = new Set<() => void>();
   const writes = new Map<string, Promise<void>>();
+  const writeErrors = new Map<string, unknown>();
   const notify = () => listeners.forEach((listener) => listener());
   const saveLocal = () => persistence.writeLocal(uid, structuredClone(data));
 
@@ -92,8 +93,12 @@ export function createCourseProgress(
     const snapshot = structuredClone(data);
     // Serialize immutable snapshots, including when the user leaves and returns.
     const write = (writes.get(userId) ?? Promise.resolve())
-      .then(() => persistence.writeCloud(userId, snapshot))
-      .catch(() => {
+      .then(async () => {
+        await persistence.writeCloud(userId, snapshot);
+        writeErrors.delete(userId);
+      })
+      .catch((error: unknown) => {
+        writeErrors.set(userId, error);
         /* Local progress remains available on the next login. */
       });
     writes.set(userId, write);
@@ -157,6 +162,26 @@ export function createCourseProgress(
   }
 
   return {
+    async ensureCloudSynced(expectedUid: string): Promise<void> {
+      const startedGeneration = generation;
+      const assertSession = () => {
+        if (uid !== expectedUid || generation !== startedGeneration)
+          throw new Error('Account changed');
+      };
+      assertSession();
+      await useUser(expectedUid);
+      assertSession();
+      if (!hydrated) throw new Error('Study progress could not be loaded');
+      // Retry a failed write on explicit restaurant load/retry, retaining local study progress.
+      if (writeErrors.has(expectedUid)) saveCloud(expectedUid);
+      let pendingWrite: Promise<void> | undefined;
+      do {
+        pendingWrite = writes.get(expectedUid);
+        await pendingWrite;
+        assertSession();
+      } while (pendingWrite !== writes.get(expectedUid));
+      if (writeErrors.has(expectedUid)) throw new Error('Study progress could not be saved');
+    },
     snapshot: (): CourseProgressData => structuredClone(data),
     useUser,
     subscribe(listener: () => void): () => void {

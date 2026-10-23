@@ -54,6 +54,48 @@ function setup() {
   return { storage, resets, progress };
 }
 
+test('restaurant sync waits for hydration and all queued study writes', async () => {
+  const { progress, storage } = setup();
+  void progress.useUser('alice');
+  let synced = false;
+  const barrier = progress.ensureCloudSynced('alice').then(() => {
+    synced = true;
+  });
+  await drain();
+  progress.update({ type: 'mastery', kind: 'vocab', id: 'one', mastered: true });
+  storage.reads[0].result.resolve(null);
+  await drain();
+  assert.equal(synced, false);
+  progress.update({ type: 'mastery', kind: 'kanji', id: 'two', mastered: true });
+  storage.writes[0].done.resolve();
+  await drain();
+  assert.equal(synced, false);
+  assert.equal(storage.writes[1].data.masteredKanjiIds.two, true);
+  storage.writes[1].done.resolve();
+  await barrier;
+  assert.equal(synced, true);
+});
+
+test('restaurant sync reports failed writes and can explicitly retry without losing study data', async () => {
+  const { progress, storage } = setup();
+  void progress.useUser('alice');
+  const barrier = progress.ensureCloudSynced('alice');
+  const failure = assert.rejects(barrier, /could not be saved/);
+  await drain();
+  progress.update({ type: 'mastery', kind: 'vocab', id: 'one', mastered: true });
+  storage.reads[0].result.resolve(null);
+  await drain();
+  storage.writes[0].done.reject(new Error('Offline'));
+  await failure;
+  assert.equal(progress.snapshot().masteredVocabIds.one, true);
+  const retry = progress.ensureCloudSynced('alice');
+  await drain();
+  storage.writes[1].done.resolve();
+  await retry;
+  const wrongUser = progress.ensureCloudSynced('bob');
+  await assert.rejects(wrongUser, /Account changed/);
+});
+
 test('hydration replays local additions, removals, navigation and quiz over newer cloud data before uploading', async () => {
   const { storage, progress, resets } = setup();
   const load = progress.useUser('alice');

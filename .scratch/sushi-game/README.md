@@ -7,7 +7,7 @@ Godkänd MVP-uppdelning från 2026-10-22, baserad på [speldesignen](../../sushi
 - Ticketfilerna är den lokala trackern; skapa inga externa issues för detta arbete.
 - Alla tickets börjar med status `ready-for-agent`. Det anger att uppgiften är beskriven, inte att dess blockerare är klara.
 - Arbeta endast med en ticket vars samtliga blockerare är klara. Markera uppfyllda acceptanskriterier i ticketfilen och sätt status till `done` först när hela leveransen är verifierad.
-- **01 till 08 är klara:** ekonomireglerna, den separata spelvyn, personlig restauranglagring med Firestore-säkerhetsregler, idle-intäkter med 8h-tak och manuell hämtning, permanenta upplåsningar från kapitelmedaljer (kap 6–12), första köp av beredningsbänk (+2 kök), transportband från kapitel 9 (+2 service) och köp av längre 12h-produktionstidstak är fullt implementerade och verifierade med 258 enhetstester och emulatorregeltester.
+- **01 till 08 är implementerade lokalt.** Granskningen hittade att spelvyn använde lokal lagring trots serverkraven, att medaljsynk dubbelräknade visad intäkt och att laddningsfel inte kunde återförsökas. Dessa tre brister är åtgärdade 2026-10-23; se [verifieringen](review-fixes-2026-10-23.md). Backendpublicering och produktionsverifiering återstår i ticket 12.
 - **09 och 10 saknar nu blockerare** och kan påbörjas (silverbelöning / receptvariant samt gulddekorationer på fasta platser). Slutlig bildstil i 11 och helhetsbalansering i 12 är därefter nästa steg.
 - Implementation, relevanta logik-/emulatortester och gränssnittskontroll ingår i respektive beteende. Ticket 12 verifierar helheten.
 - Bevara TypeScript/lit-html, studieflöden, medaljberäkning och kurslagring. Spelet är inloggningskrävande och laddas separat.

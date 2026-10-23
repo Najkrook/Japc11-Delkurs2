@@ -21,3 +21,6 @@ public/audio/
 public/images/
 src/course/data/taeKimAnkiData.json
 Material/
+
+functions/lib/
+functions/package-lock.json

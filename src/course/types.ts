@@ -138,6 +138,7 @@ export interface CourseProgressData {
 }
 
 export interface CourseHostContext {
+  ensureCourseSynced?: (uid: string) => Promise<void>;
   theme: 'classic' | 'sakura';
   toggleTheme: () => void;
   user: {

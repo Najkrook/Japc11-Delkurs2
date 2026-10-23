@@ -7,15 +7,10 @@ import {
   sushiStorageKey,
   type SushiStorageLike,
 } from '../src/course/sushi-game/service.ts';
-import {
-  unitsToWholeYen,
-  yenToUnits,
-} from '../src/course/sushi-game/economy.ts';
-import {
-  DEFAULT_CAP_MS,
-  MS_PER_HOUR,
-  MS_PER_MINUTE,
-} from '../src/course/sushi-game/types.ts';
+import { unitsToWholeYen, yenToUnits } from '../src/course/sushi-game/economy.ts';
+import { DEFAULT_CAP_MS, MS_PER_HOUR, MS_PER_MINUTE } from '../src/course/sushi-game/types.ts';
+
+sushiService.setRepository(new InMemorySushiRepository());
 
 test('SushiService: Initializes new restaurant with canonical defaults', async () => {
   const repo = new InMemorySushiRepository();
@@ -181,8 +176,12 @@ test('InMemorySushiRepository: Backing storage mirrors state and hydrates across
   const mockStorageMap = new Map<string, string>();
   const mockStorage: SushiStorageLike = {
     getItem: (k: string) => mockStorageMap.get(k) ?? null,
-    setItem: (k: string, v: string) => { mockStorageMap.set(k, v); },
-    removeItem: (k: string) => { mockStorageMap.delete(k); },
+    setItem: (k: string, v: string) => {
+      mockStorageMap.set(k, v);
+    },
+    removeItem: (k: string) => {
+      mockStorageMap.delete(k);
+    },
   };
 
   const uid = 'student-storage-1';
@@ -217,8 +216,12 @@ test('InMemorySushiRepository: Resilient against backing storage exceptions and 
   corruptedStorageMap.set(sushiStorageKey('student-corrupt'), '{ not-valid-json ]');
   const corruptStorage: SushiStorageLike = {
     getItem: (k: string) => corruptedStorageMap.get(k) ?? null,
-    setItem: (k: string, v: string) => { corruptedStorageMap.set(k, v); },
-    removeItem: (k: string) => { corruptedStorageMap.delete(k); },
+    setItem: (k: string, v: string) => {
+      corruptedStorageMap.set(k, v);
+    },
+    removeItem: (k: string) => {
+      corruptedStorageMap.delete(k);
+    },
   };
 
   const repoCorrupt = new InMemorySushiRepository(corruptStorage);
@@ -227,9 +230,15 @@ test('InMemorySushiRepository: Resilient against backing storage exceptions and 
 
   // 2. Storage throwing errors (private browsing or quota exceeded)
   const throwingStorage: SushiStorageLike = {
-    getItem: () => { throw new Error('SecurityError: The operation is insecure'); },
-    setItem: () => { throw new Error('QuotaExceededError'); },
-    removeItem: () => { throw new Error('SecurityError'); },
+    getItem: () => {
+      throw new Error('SecurityError: The operation is insecure');
+    },
+    setItem: () => {
+      throw new Error('QuotaExceededError');
+    },
+    removeItem: () => {
+      throw new Error('SecurityError');
+    },
   };
 
   const repoThrowing = new InMemorySushiRepository(throwingStorage);
@@ -238,7 +247,11 @@ test('InMemorySushiRepository: Resilient against backing storage exceptions and 
   // Should succeed in-memory without throwing
   const created = await serviceThrowing.getOrInitRestaurant('student-throw', 0);
   assert.equal(created.id, 'student-throw');
-  const collected = await serviceThrowing.collectRevenue('student-throw', 'k-throw', 10 * MS_PER_MINUTE);
+  const collected = await serviceThrowing.collectRevenue(
+    'student-throw',
+    'k-throw',
+    10 * MS_PER_MINUTE,
+  );
   assert.equal(collected.wasAlreadyProcessed, false);
 });
 
@@ -246,8 +259,12 @@ test('InMemorySushiRepository: Clear removes backing storage entries', async () 
   const mockStorageMap = new Map<string, string>();
   const mockStorage: SushiStorageLike = {
     getItem: (k: string) => mockStorageMap.get(k) ?? null,
-    setItem: (k: string, v: string) => { mockStorageMap.set(k, v); },
-    removeItem: (k: string) => { mockStorageMap.delete(k); },
+    setItem: (k: string, v: string) => {
+      mockStorageMap.set(k, v);
+    },
+    removeItem: (k: string) => {
+      mockStorageMap.delete(k);
+    },
   };
 
   const repo = new InMemorySushiRepository(mockStorage);
@@ -267,7 +284,11 @@ test('InMemorySushiRepository: Clear removes backing storage entries', async () 
 test('SushiService: Default singleton in Node.js test environment has zero storage side-effects', () => {
   const defaultRepo = sushiService.getRepository() as InMemorySushiRepository;
   assert.ok(defaultRepo instanceof InMemorySushiRepository);
-  assert.equal(defaultRepo.getBackingStorage(), null, 'In Node.js (no window), backingStorage must be null');
+  assert.equal(
+    defaultRepo.getBackingStorage(),
+    null,
+    'In Node.js (no window), backingStorage must be null',
+  );
 });
 
 // ---------------------------------------------------------------------------
@@ -422,7 +443,11 @@ test('SushiService: syncMedalGrants strict non-revocation on study mastery drop'
   );
 
   // Student unmarks knowledge: sync with only prep_counter
-  const updated = await service.syncMedalGrants('student-mastery-drop', ['prep_counter'], t0 + 5000);
+  const updated = await service.syncMedalGrants(
+    'student-mastery-drop',
+    ['prep_counter'],
+    t0 + 5000,
+  );
   assert.deepEqual(
     updated.permanentGrants,
     ['prep_counter', 'salmon_nigiri', 'paper_lantern'],
@@ -465,7 +490,13 @@ test('SushiService: syncMedalGrants concurrent synchronization serialize and mer
   ]);
 
   const final = await service.getOrInitRestaurant('student-concurrent', t0 + 200);
-  const expected = ['prep_counter', 'salmon_nigiri', 'cap_extension_12h', 'conveyor_belt', 'wave_print'];
+  const expected = [
+    'prep_counter',
+    'salmon_nigiri',
+    'cap_extension_12h',
+    'conveyor_belt',
+    'wave_print',
+  ];
   for (const exp of expected) {
     assert.ok(
       final.permanentGrants.includes(exp),
@@ -490,4 +521,3 @@ test('SushiService: syncMedalGrants advances lazy idle revenue accrual to nowMs 
   assert.equal(synced.usedProductionMs, 15 * MS_PER_MINUTE);
   assert.equal(synced.accountedAtMs, t15m);
 });
-

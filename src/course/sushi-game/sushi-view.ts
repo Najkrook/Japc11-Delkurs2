@@ -1,25 +1,15 @@
 import { html, type TemplateResult } from 'lit-html';
 import type { CourseHostContext, CourseProgressData } from '../types.ts';
 import { courseWeeks } from '../data/index.ts';
-import {
-  calculateProductionRate,
-  unitsToWholeYen,
-  createDefaultRestaurantState,
-} from './economy.ts';
-import {
-  evaluateMedalGrants,
-  mergePermanentGrants,
-} from './medals.ts';
+import { calculateProductionRate, unitsToWholeYen } from './economy.ts';
+import { evaluateMedalGrants } from './medals.ts';
 import {
   SUSHI_CATALOG,
   SUSHI_CATALOG as SUSHI_UNLOCK_CATALOG,
   getCatalogItem,
   previewCatalogPurchase,
 } from './catalog.ts';
-import type {
-  SushiRestaurantState,
-  ProductionRate,
-} from './types.ts';
+import type { SushiRestaurantState, ProductionRate } from './types.ts';
 import {
   getOrInitRestaurant,
   collectRevenue,
@@ -30,7 +20,7 @@ import {
 if (typeof window !== 'undefined') {
   try {
     // @ts-expect-error Dynamic CSS import is handled by Vite for lazy bundling
-    void import('./sushi.css');
+    void import('./sushi.css').catch(() => {});
   } catch {}
 }
 
@@ -44,6 +34,21 @@ function isAuthenticatedGoogleUser(
   if (!user || !user.uid) return false;
   const rawUser = user as { isAnonymous?: boolean };
   return rawUser.isAnonymous !== true;
+}
+
+async function waitForStudySync(host: CourseHostContext | null, uid: string): Promise<void> {
+  if (!host?.ensureCourseSynced) return;
+  let timer: ReturnType<typeof setTimeout> | undefined;
+  try {
+    await Promise.race([
+      host.ensureCourseSynced(uid),
+      new Promise<never>((_, reject) => {
+        timer = setTimeout(() => reject(new Error('Study sync timed out')), 15_000);
+      }),
+    ]);
+  } finally {
+    clearTimeout(timer);
+  }
 }
 
 /**
@@ -65,6 +70,10 @@ export class SushiClientController {
   private visibilityCleanup: (() => void) | null = null;
   private idempotencyKey: string | null = null;
   private host: CourseHostContext | null = null;
+  private generation = 0;
+  private syncing = false;
+  private progressSnapshot: CourseProgressData | null = null;
+  private purchaseKeys = new Map<string, string>();
 
   public init(
     uid: string,
@@ -75,7 +84,7 @@ export class SushiClientController {
       ? evaluateMedalGrants(courseProgressSnapshot, courseWeeks)
       : [];
 
-    if (this.uid === uid && this.state !== null) {
+    if (this.uid === uid && (this.state !== null || this.loading || this.error)) {
       this.host = host;
       if (earnedGrants.length > 0) {
         void this.syncGrantsIfChanged(earnedGrants);
@@ -88,17 +97,18 @@ export class SushiClientController {
     this.host = host;
     this.clientReceivedAtMs = Date.now();
 
-    // Default optimistic state ensures synchronous renders succeed immediately
-    this.state = createDefaultRestaurantState(uid, this.clientReceivedAtMs);
-    if (earnedGrants.length > 0) {
-      this.state.permanentGrants = mergePermanentGrants([], earnedGrants);
-    }
+    this.progressSnapshot = courseProgressSnapshot ?? null;
+    const generation = this.generation;
     this.loading = true;
 
     // Fetch authoritative state from backend with retroactive grants
-    void getOrInitRestaurant(uid, this.clientReceivedAtMs, earnedGrants)
+    void (async () => {
+      await waitForStudySync(host, uid);
+      if (this.generation !== generation) throw new Error('Account changed');
+      return getOrInitRestaurant(uid, Date.now(), earnedGrants);
+    })()
       .then((authoritative) => {
-        if (this.uid !== uid) return; // Account switched while in flight
+        if (this.uid !== uid || this.generation !== generation) return; // Account switched while in flight
         const prevGrants = new Set(this.state?.permanentGrants || []);
         const newGrants = authoritative.permanentGrants.filter((g) => !prevGrants.has(g));
 
@@ -120,10 +130,14 @@ export class SushiClientController {
         }
         this.host?.render();
       })
-      .catch((_err: unknown) => {
-        if (this.uid !== uid) return;
+      .catch((err: unknown) => {
+        if (this.uid !== uid || this.generation !== generation) return;
         this.loading = false;
-        this.error = 'Kunde inte ansluta till restaurangen. Kontrollera anslutningen och försök igen.';
+        const code = (err as { code?: string })?.code;
+        this.error =
+          code === 'functions/unauthenticated' || code === 'functions/permission-denied'
+            ? 'Åtkomst nekad. Logga in med ditt Google-konto och försök igen.'
+            : 'Kunde inte ansluta till restaurangen. Kontrollera anslutningen och försök igen.';
         this.host?.render();
       });
 
@@ -155,6 +169,10 @@ export class SushiClientController {
   }
 
   public reset(): void {
+    this.generation++;
+    this.syncing = false;
+    this.progressSnapshot = null;
+    this.purchaseKeys.clear();
     if (this.tickerId !== null) {
       if (typeof window !== 'undefined' && window.clearInterval) {
         window.clearInterval(this.tickerId as number);
@@ -181,25 +199,43 @@ export class SushiClientController {
   }
 
   private async syncGrantsIfChanged(earnedGrants: string[]): Promise<void> {
-    if (!this.state || !this.uid || earnedGrants.length === 0) return;
+    if (
+      !this.state ||
+      !this.uid ||
+      this.syncing ||
+      this.isCollecting ||
+      this.isBuying ||
+      earnedGrants.length === 0
+    )
+      return;
 
     const currentGrants = new Set(this.state.permanentGrants || []);
     const newlyEarned = earnedGrants.filter((g) => !currentGrants.has(g));
 
     if (newlyEarned.length === 0) return;
 
+    this.syncing = true;
+    const generation = this.generation;
     try {
       const activeUid = this.uid;
+      await waitForStudySync(this.host, activeUid);
+      if (this.generation !== generation) return;
       const updatedState = await syncMedalGrants(activeUid, earnedGrants, Date.now());
-      if (this.uid !== activeUid) return;
+      if (this.uid !== activeUid || this.generation !== generation) return;
 
       this.state = updatedState;
-      this.recentlyUnlocked = Array.from(new Set([...this.recentlyUnlocked, ...newlyEarned]));
-      this.announcement = this.formatAnnouncement(newlyEarned);
+      this.clientReceivedAtMs = Date.now();
+      const confirmedGrants = updatedState.permanentGrants.filter(
+        (grant) => !currentGrants.has(grant),
+      );
+      this.recentlyUnlocked = Array.from(new Set([...this.recentlyUnlocked, ...confirmedGrants]));
+      this.announcement = this.formatAnnouncement(confirmedGrants);
       this.host?.render();
     } catch (_err) {
       // Ticket 05 requirement: Temporary synchronization error is not proof of missing progress.
       // Preserve existing grants without rollback or error banner blocking restaurant usage.
+    } finally {
+      if (this.generation === generation) this.syncing = false;
     }
   }
 
@@ -293,39 +329,27 @@ export class SushiClientController {
    * idempotency key preservation, and rollback on failure.
    */
   public async collect(): Promise<void> {
-    if (this.isCollecting || !this.state || !this.uid) return;
+    if (this.isCollecting || this.isBuying || this.syncing || !this.state || !this.uid) return;
 
     const calc = this.recalculate();
     if (calc.displayedUncollectedYen <= 0) return;
 
     if (!this.idempotencyKey) {
-      this.idempotencyKey = `collect_${this.uid}_${Date.now()}_${Math.random()
-        .toString(36)
-        .substring(2, 9)}`;
+      this.idempotencyKey = `collect_${Date.now()}_${Math.random().toString(36).substring(2, 9)}`;
     }
     const key = this.idempotencyKey;
     const activeUid = this.uid;
 
-    // 1. Optimistic UI update
-    const previousSnapshot: SushiRestaurantState = JSON.parse(JSON.stringify(this.state));
-    const optimisticCollectedYen = calc.displayedUncollectedYen;
-    const optimisticCollectedUnits = calc.currentUncollectedUnits;
-
-    this.state.balanceUnits += optimisticCollectedUnits;
-    this.state.uncollectedUnits = 0;
-    this.state.usedProductionMs = 0;
-    this.clientReceivedAtMs = Date.now();
+    const generation = this.generation;
     this.isCollecting = true;
     this.error = null;
-    this.announcement = `Hämtade ${optimisticCollectedYen} yen till kassan! Nytt disponibelt saldo: ${unitsToWholeYen(
-      this.state.balanceUnits,
-    )} yen.`;
+    this.announcement = 'Hämtar intäkter…';
     this.host?.render();
 
     // 2. Authoritative backend call
     try {
       const res = await collectRevenue(activeUid, key, Date.now());
-      if (this.uid === activeUid) {
+      if (this.uid === activeUid && this.generation === generation) {
         this.state = res.state;
         this.clientReceivedAtMs = Date.now();
         this.idempotencyKey = null; // Key succeeded; reset for next collection
@@ -336,9 +360,7 @@ export class SushiClientController {
         this.host?.render();
       }
     } catch (err: unknown) {
-      if (this.uid === activeUid) {
-        // Rollback optimistic update
-        this.state = previousSnapshot;
+      if (this.uid === activeUid && this.generation === generation) {
         this.isCollecting = false;
         this.error = 'Kunde inte hämta intäkterna på grund av nätverksfel. Försök igen.';
         this.announcement =
@@ -350,27 +372,44 @@ export class SushiClientController {
 
   public retry(): void {
     if (!this.uid || !this.host) return;
-    this.error = null;
-    this.init(this.uid, this.host);
+    if (this.state) {
+      void this.collect();
+      return;
+    }
+    const uid = this.uid;
+    const host = this.host;
+    const progress = this.progressSnapshot;
+    this.reset();
+    this.init(uid, host, progress);
+    host.render();
   }
 
   /**
    * Purchases an upgrade item from the catalog.
    */
   public async buy(itemId: string): Promise<void> {
-    if (this.isBuying || !this.state || !this.uid) return;
+    if (this.isBuying || this.isCollecting || this.syncing || !this.state || !this.uid) return;
     const item = getCatalogItem(itemId);
     if (!item) return;
 
     this.isBuying = itemId;
     this.buyError = null;
     const activeUid = this.uid;
-    const key = `buy_${activeUid}_${itemId}_${Date.now()}_${Math.random().toString(36).substring(2, 9)}`;
+    const generation = this.generation;
+    const key =
+      this.purchaseKeys.get(itemId) ??
+      'buy_' + Date.now() + '_' + Math.random().toString(36).substring(2, 9);
+    this.purchaseKeys.set(itemId, key);
     this.host?.render();
 
     try {
       const res = await purchaseCatalogItem(activeUid, itemId, key, Date.now());
-      if (this.uid === activeUid) {
+      if (this.uid === activeUid && this.generation === generation) {
+        this.purchaseKeys.delete(itemId);
+        if (res.state) {
+          this.state = res.state;
+          this.clientReceivedAtMs = Date.now();
+        }
         if (res.success) {
           this.state = res.state;
           this.clientReceivedAtMs = Date.now();
@@ -385,7 +424,7 @@ export class SushiClientController {
         this.host?.render();
       }
     } catch (_err) {
-      if (this.uid === activeUid) {
+      if (this.uid === activeUid && this.generation === generation) {
         this.isBuying = null;
         this.buyError = 'Ett nätverksfel uppstod vid köpet. Försök igen.';
         this.announcement = 'Kunde inte slutföra köpet på grund av anslutningsfel.';
@@ -397,6 +436,10 @@ export class SushiClientController {
 
 // Module-level controller singleton
 const activeController = new SushiClientController();
+
+export function leaveSushiView(): void {
+  activeController.reset();
+}
 
 /**
  * Renderar spärrsidan (Auth Gate) för oinloggade besökare eller anonyma sessioner.
@@ -484,9 +527,28 @@ function renderSushiAuthenticatedStage(
 
   const displayName = user.displayName || user.email || 'student';
   const state = activeController.state;
-  const spendableYen = state ? unitsToWholeYen(state.balanceUnits) : 0;
+  if (!state) {
+    return html`<section
+      class="sushi-stage"
+      data-testid="sushi-stage"
+      aria-busy=${activeController.loading}
+    >
+      <h2>Välkommen, ${displayName}!</h2>
+      ${
+        activeController.error
+          ? html`<div role="alert" data-testid="sushi-load-error">
+              ${activeController.error}
+              <button type="button" @click=${() => activeController.retry()}>Försök igen</button>
+            </div>`
+          : html`<p role="status" data-testid="sushi-loading">Laddar din restaurang…</p>`
+      }
+      <button type="button" @click=${onBackToStudies}>← Tillbaka till studierna</button>
+    </section>`;
+  }
+  const spendableYen = unitsToWholeYen(state.balanceUnits);
   const calc = activeController.recalculate();
-  const { displayedUncollectedYen, currentUsedProductionMs, isCapped, progressPercent, rate } = calc;
+  const { displayedUncollectedYen, currentUsedProductionMs, isCapped, progressPercent, rate } =
+    calc;
 
   const usedHoursStr = (currentUsedProductionMs / 3_600_000).toFixed(1);
   const capHoursStr = state ? (state.capMs / 3_600_000).toFixed(0) : '8';
@@ -551,7 +613,9 @@ function renderSushiAuthenticatedStage(
 
         <!-- Scenhuvud med studentens namn och disponibelt saldo -->
         <div class="sushi-stage-header">
-          <div style="display: flex; justify-content: space-between; align-items: baseline; flex-wrap: wrap; gap: 0.5rem;">
+          <div
+            style="display: flex; justify-content: space-between; align-items: baseline; flex-wrap: wrap; gap: 0.5rem;"
+          >
             <h2>Välkommen, ${displayName}!</h2>
             <div class="sushi-balance-badge" data-testid="sushi-spendable-balance">
               <span>Disponibelt saldo:</span>
@@ -559,12 +623,18 @@ function renderSushiAuthenticatedStage(
             </div>
           </div>
           <p class="sushi-stage-intro">
-            Din restaurang producerar och tjänar yen i realtid. Hämta intäkterna till ditt disponibla saldo.
+            Din restaurang producerar och tjänar yen i realtid. Hämta intäkterna till ditt
+            disponibla saldo.
           </p>
         </div>
 
         <!-- Kassaregister (Ticket 04) -->
-        <div class="sushi-cash-register" data-testid="sushi-cash-register" role="region" aria-label="Kassa och ohämtade intäkter">
+        <div
+          class="sushi-cash-register"
+          data-testid="sushi-cash-register"
+          role="region"
+          aria-label="Kassa och ohämtade intäkter"
+        >
           <div class="sushi-register-display">
             <span class="sushi-register-label">Ohämtade intäkter</span>
             <div class="sushi-register-amount" data-testid="sushi-uncollected-amount">
@@ -577,10 +647,12 @@ function renderSushiAuthenticatedStage(
           <div class="sushi-rate-bar" data-testid="sushi-rate-info">
             <span>Intäktstakt: <strong>${rate.yenPerMinute} ¥/min</strong></span>
             <span class="sushi-bottleneck-tag ${rate.bottleneck === 'kitchen' ? 'tag-warn' : ''}">
-              Kök: ${state ? state.kitchenCapacity : 1} ord/min ${rate.bottleneck === 'kitchen' ? '(Flaskhals)' : ''}
+              Kök: ${state ? state.kitchenCapacity : 1} ord/min
+              ${rate.bottleneck === 'kitchen' ? '(Flaskhals)' : ''}
             </span>
             <span class="sushi-bottleneck-tag ${rate.bottleneck === 'service' ? 'tag-warn' : ''}">
-              Service: ${state ? state.serviceCapacity : 2} ord/min ${rate.bottleneck === 'service' ? '(Flaskhals)' : ''}
+              Service: ${state ? state.serviceCapacity : 2} ord/min
+              ${rate.bottleneck === 'service' ? '(Flaskhals)' : ''}
             </span>
             <span class="sushi-bottleneck-tag ${rate.bottleneck === 'none' ? 'tag-balanced' : ''}">
               ${bottleneckText}
@@ -592,9 +664,15 @@ function renderSushiAuthenticatedStage(
             <div class="sushi-cap-header">
               <div class="sushi-cap-title-row">
                 <span>Produktionstid i perioden</span>
-                ${state && state.capMs >= 43_200_000
-                  ? html`<span class="sushi-cap-badge extended" data-testid="sushi-cap-badge-12h">12h Tak</span>`
-                  : html`<span class="sushi-cap-badge standard" data-testid="sushi-cap-badge-8h">8h Tak</span>`}
+                ${
+                  state && state.capMs >= 43_200_000
+                    ? html`<span class="sushi-cap-badge extended" data-testid="sushi-cap-badge-12h"
+                        >12h Tak</span
+                      >`
+                    : html`<span class="sushi-cap-badge standard" data-testid="sushi-cap-badge-8h"
+                        >8h Tak</span
+                      >`
+                }
               </div>
               <span>${usedHoursStr}h / ${capHoursStr}h</span>
             </div>
@@ -611,18 +689,19 @@ function renderSushiAuthenticatedStage(
                 style="width: ${progressPercent}%"
               ></div>
             </div>
-            ${state && state.capMs >= 43_200_000
-              ? html`<div class="sushi-cap-active-indicator" data-testid="sushi-cap-active-badge">✨ Ny produktionstid aktiv! (12 timmar max)</div>`
-              : ''}
+            ${
+              state && state.capMs >= 43_200_000
+                ? html`<div class="sushi-cap-active-indicator" data-testid="sushi-cap-active-badge">
+                    ✨ Ny produktionstid aktiv! (12 timmar max)
+                  </div>`
+                : ''
+            }
             ${
               isCapped
                 ? html`
-                    <div
-                      class="sushi-capped-notice"
-                      role="status"
-                      data-testid="sushi-capped-badge"
-                    >
-                      ⚠️ Kassan är full (${capHoursStr} timmar) — hämta intäkterna för att återuppta intjäningen.
+                    <div class="sushi-capped-notice" role="status" data-testid="sushi-capped-badge">
+                      ⚠️ Kassan är full (${capHoursStr} timmar) — hämta intäkterna för att återuppta
+                      intjäningen.
                     </div>
                   `
                 : ''
@@ -641,7 +720,8 @@ function renderSushiAuthenticatedStage(
             ${
               activeController.isCollecting
                 ? html`<span class="sushi-btn-spinner" aria-hidden="true"></span> Hämtar...`
-                : html`<span>Hämta intäkter</span> <strong class="sushi-btn-yen-tag">¥ ${displayedUncollectedYen}</strong>`
+                : html`<span>Hämta intäkter</span>
+                    <strong class="sushi-btn-yen-tag">¥ ${displayedUncollectedYen}</strong>`
             }
           </button>
 
@@ -661,7 +741,6 @@ function renderSushiAuthenticatedStage(
                 `
               : ''
           }
-
           ${
             activeController.buyError
               ? html`
@@ -687,22 +766,23 @@ function renderSushiAuthenticatedStage(
               </span>
             </div>
             <p class="sushi-unlocks-intro">
-              Dina studieresultat och kapitelmedaljer i Genki låser upp permanenta köpmöjligheter i butiken.
-              Upplåsning ger inte gratis föremål, men gör dem tillgängliga att köpa för intjänade yen.
+              Dina studieresultat och kapitelmedaljer i Genki låser upp permanenta köpmöjligheter i
+              butiken. Upplåsning ger inte gratis föremål, men gör dem tillgängliga att köpa för
+              intjänade yen.
             </p>
           </div>
 
           <div class="sushi-unlocks-grid" data-testid="sushi-unlocks-grid">
             ${SUSHI_CATALOG.map((item) => {
-              const isOwned = Boolean(
-                state?.inventory && state.inventory.includes(item.id),
-              );
+              const isOwned = Boolean(state?.inventory && state.inventory.includes(item.id));
               const isUnlocked = Boolean(
                 state?.permanentGrants && state.permanentGrants.includes(item.id),
               );
               const isNew = activeController.recentlyUnlocked.includes(item.id);
               const canAffordItem = Boolean(state && state.balanceUnits >= item.priceUnits);
-              const diffUnits = state ? Math.max(0, item.priceUnits - state.balanceUnits) : item.priceUnits;
+              const diffUnits = state
+                ? Math.max(0, item.priceUnits - state.balanceUnits)
+                : item.priceUnits;
               const diffYen = unitsToWholeYen(diffUnits);
 
               let purchaseState: 'locked' | 'unaffordable' | 'affordable' | 'owned' = 'locked';
@@ -721,7 +801,8 @@ function renderSushiAuthenticatedStage(
                 cardStateClass = 'is-unlocked is-affordable';
               }
 
-              const preview = !isOwned && state ? previewCatalogPurchase(state, item.id) : undefined;
+              const preview =
+                !isOwned && state ? previewCatalogPurchase(state, item.id) : undefined;
 
               return html`
                 <div
@@ -736,126 +817,155 @@ function renderSushiAuthenticatedStage(
                       <strong class="sushi-card-name">${item.name}</strong>
                       <span class="sushi-card-category">${item.categoryLabel}</span>
                     </div>
-                    ${isNew
-                      ? html`<span class="sushi-pill-new" data-testid="unlock-pill-new-${item.id}">Ny!</span>`
-                      : ''}
+                    ${
+                      isNew
+                        ? html`<span class="sushi-pill-new" data-testid="unlock-pill-new-${item.id}"
+                            >Ny!</span
+                          >`
+                        : ''
+                    }
                   </div>
 
                   <p class="sushi-card-desc">${item.effectDescription}</p>
 
-                  ${preview && (preview.ordersDelta !== 0 || preview.yenDelta !== 0 || preview.hasImmediateEffect)
-                    ? html`
-                        <div class="sushi-upgrade-preview" data-testid="upgrade-preview-${item.id}">
-                          Takt efter köp: <strong>${preview.prospectiveRate.yenPerMinute} ¥/min</strong>
-                          (${preview.yenDelta >= 0 ? '+' : ''}${preview.yenDelta} ¥/min)
-                        </div>
-                      `
-                    : ''}
-
-                  ${preview?.isBottleneckLimiting
-                    ? html`
-                        <div class="sushi-bottleneck-explainer" data-testid="bottleneck-explainer-${item.id}">
-                          💡 ${preview.educationalExplanation}
-                        </div>
-                      `
-                    : ''}
+                  ${
+                    preview &&
+                    (preview.ordersDelta !== 0 ||
+                      preview.yenDelta !== 0 ||
+                      preview.hasImmediateEffect)
+                      ? html`
+                          <div
+                            class="sushi-upgrade-preview"
+                            data-testid="upgrade-preview-${item.id}"
+                          >
+                            Takt efter köp:
+                            <strong>${preview.prospectiveRate.yenPerMinute} ¥/min</strong>
+                            (${preview.yenDelta >= 0 ? '+' : ''}${preview.yenDelta} ¥/min)
+                          </div>
+                        `
+                      : ''
+                  }
+                  ${
+                    preview?.isBottleneckLimiting
+                      ? html`
+                          <div
+                            class="sushi-bottleneck-explainer"
+                            data-testid="bottleneck-explainer-${item.id}"
+                          >
+                            💡 ${preview.educationalExplanation}
+                          </div>
+                        `
+                      : ''
+                  }
 
                   <div class="sushi-card-footer">
-                    ${isOwned
-                      ? html`
-                          <div class="sushi-status-line">
-                            <span
-                              class="sushi-unlock-badge owned"
-                              data-testid="unlock-badge-${item.id}"
-                            >
-                              ✓ Ägd
-                            </span>
-                            <span class="sushi-price-hint">Köpt (¥ ${item.priceYen})</span>
-                          </div>
-                          <div class="sushi-owned-indicator" data-testid="owned-indicator-${item.id}">
-                            Aktiv i restaurangen
-                          </div>
-                          <button
-                            type="button"
-                            class="sushi-btn-buy"
-                            disabled
-                            data-testid="buy-btn-${item.id}"
-                          >
-                            Ägd
-                          </button>
-                        `
-                      : !isUnlocked
+                    ${
+                      isOwned
                         ? html`
                             <div class="sushi-status-line">
                               <span
-                                class="sushi-unlock-badge locked"
+                                class="sushi-unlock-badge owned"
                                 data-testid="unlock-badge-${item.id}"
                               >
-                                🔒 Låst
+                                ✓ Ägd
                               </span>
-                              <span class="sushi-req-text">
-                                Kräver Kapitel ${item.requiredLesson} ${item.requiredTierLabel} (${item.requiredPercent}%)
-                              </span>
+                              <span class="sushi-price-hint">Köpt (¥ ${item.priceYen})</span>
+                            </div>
+                            <div
+                              class="sushi-owned-indicator"
+                              data-testid="owned-indicator-${item.id}"
+                            >
+                              Aktiv i restaurangen
                             </div>
                             <button
                               type="button"
-                              class="sushi-study-link-btn"
-                              data-testid="study-link-btn-${item.id}"
-                              @click=${() => handleNavigateToChapter(item.requiredLesson, item.targetWeekId)}
+                              class="sushi-btn-buy"
+                              disabled
+                              data-testid="buy-btn-${item.id}"
                             >
-                              Öppna Kapitel ${item.requiredLesson} →
+                              Ägd
                             </button>
                           `
-                        : !canAffordItem
+                        : !isUnlocked
                           ? html`
                               <div class="sushi-status-line">
                                 <span
-                                  class="sushi-unlock-badge unlocked"
+                                  class="sushi-unlock-badge locked"
                                   data-testid="unlock-badge-${item.id}"
                                 >
-                                  🔓 Upplåst köpmöjlighet
+                                  🔒 Låst
                                 </span>
-                                <span class="sushi-price-hint">Pris i butik: ¥ ${item.priceYen}</span>
-                              </div>
-                              <div class="sushi-status-line">
-                                <span
-                                  class="sushi-missing-funds"
-                                  data-testid="missing-funds-${item.id}"
-                                >
-                                  Saknar ¥ ${diffYen}
+                                <span class="sushi-req-text">
+                                  Kräver Kapitel ${item.requiredLesson} ${item.requiredTierLabel}
+                                  (${item.requiredPercent}%)
                                 </span>
                               </div>
                               <button
                                 type="button"
-                                class="sushi-btn-buy"
-                                disabled
-                                data-testid="buy-btn-${item.id}"
+                                class="sushi-study-link-btn"
+                                data-testid="study-link-btn-${item.id}"
+                                @click=${() => handleNavigateToChapter(item.requiredLesson, item.targetWeekId)}
                               >
-                                För lite yen (saknar ¥ ${diffYen})
+                                Öppna Kapitel ${item.requiredLesson} →
                               </button>
                             `
-                          : html`
-                              <div class="sushi-status-line">
-                                <span
-                                  class="sushi-unlock-badge unlocked"
-                                  data-testid="unlock-badge-${item.id}"
+                          : !canAffordItem
+                            ? html`
+                                <div class="sushi-status-line">
+                                  <span
+                                    class="sushi-unlock-badge unlocked"
+                                    data-testid="unlock-badge-${item.id}"
+                                  >
+                                    🔓 Upplåst köpmöjlighet
+                                  </span>
+                                  <span class="sushi-price-hint"
+                                    >Pris i butik: ¥ ${item.priceYen}</span
+                                  >
+                                </div>
+                                <div class="sushi-status-line">
+                                  <span
+                                    class="sushi-missing-funds"
+                                    data-testid="missing-funds-${item.id}"
+                                  >
+                                    Saknar ¥ ${diffYen}
+                                  </span>
+                                </div>
+                                <button
+                                  type="button"
+                                  class="sushi-btn-buy"
+                                  disabled
+                                  data-testid="buy-btn-${item.id}"
                                 >
-                                  🔓 Upplåst köpmöjlighet
-                                </span>
-                                <span class="sushi-price-hint">Pris i butik: ¥ ${item.priceYen}</span>
-                              </div>
-                              <button
-                                type="button"
-                                class="sushi-btn-buy sushi-btn-primary"
-                                data-testid="buy-btn-${item.id}"
-                                ?disabled=${activeController.isBuying === item.id}
-                                @click=${() => void activeController.buy(item.id)}
-                              >
-                                ${activeController.isBuying === item.id
-                                  ? 'Köper...'
-                                  : `Köp för ¥ ${item.priceYen}`}
-                              </button>
-                            `}
+                                  För lite yen (saknar ¥ ${diffYen})
+                                </button>
+                              `
+                            : html`
+                                <div class="sushi-status-line">
+                                  <span
+                                    class="sushi-unlock-badge unlocked"
+                                    data-testid="unlock-badge-${item.id}"
+                                  >
+                                    🔓 Upplåst köpmöjlighet
+                                  </span>
+                                  <span class="sushi-price-hint"
+                                    >Pris i butik: ¥ ${item.priceYen}</span
+                                  >
+                                </div>
+                                <button
+                                  type="button"
+                                  class="sushi-btn-buy sushi-btn-primary"
+                                  data-testid="buy-btn-${item.id}"
+                                  ?disabled=${activeController.isBuying === item.id}
+                                  @click=${() => void activeController.buy(item.id)}
+                                >
+                                  ${
+                                    activeController.isBuying === item.id
+                                      ? 'Köper...'
+                                      : `Köp för ¥ ${item.priceYen}`
+                                  }
+                                </button>
+                              `
+                    }
                   </div>
                 </div>
               `;
@@ -867,19 +977,41 @@ function renderSushiAuthenticatedStage(
         <div class="sushi-scene-placeholder" data-testid="sushi-scene-placeholder">
           <div class="sushi-scene-badge">🍣 Personlig restaurang i drift</div>
           <p class="sushi-scene-desc">
-            Grundrestaurang startad med kökskapacitet ${state ? state.kitchenCapacity : 1} och servicekapacitet ${state ? state.serviceCapacity : 2}.
-            Restaurangen sparar automatiskt intäkter upp till ${capHoursStr} timmar även när du inte är inloggad.
+            Grundrestaurang startad med kökskapacitet ${state ? state.kitchenCapacity : 1} och
+            servicekapacitet ${state ? state.serviceCapacity : 2}. Restaurangen sparar automatiskt
+            intäkter upp till ${capHoursStr} timmar även när du inte är inloggad.
           </p>
           <div class="sushi-scene-equipment" data-testid="sushi-scene-equipment">
-            ${state?.inventory?.includes('prep_counter')
-              ? html`<div class="sushi-scene-equipment-badge scene-prep-counter" data-testid="scene-prep-counter">🔪 Förbättrad beredningsbänk (+2 kök)</div>`
-              : ''}
-            ${state?.inventory?.includes('conveyor_belt')
-              ? html`<div class="sushi-scene-equipment-badge scene-conveyor-belt" data-testid="scene-conveyor-belt">🔄 Transportband (+2 service)</div>`
-              : ''}
-            ${state?.inventory?.includes('cap_extension_12h')
-              ? html`<div class="sushi-scene-equipment-badge scene-cap-extension" data-testid="scene-cap-extension">⏰ 12h Produktionstak</div>`
-              : ''}
+            ${
+              state?.inventory?.includes('prep_counter')
+                ? html`<div
+                    class="sushi-scene-equipment-badge scene-prep-counter"
+                    data-testid="scene-prep-counter"
+                  >
+                    🔪 Förbättrad beredningsbänk (+2 kök)
+                  </div>`
+                : ''
+            }
+            ${
+              state?.inventory?.includes('conveyor_belt')
+                ? html`<div
+                    class="sushi-scene-equipment-badge scene-conveyor-belt"
+                    data-testid="scene-conveyor-belt"
+                  >
+                    🔄 Transportband (+2 service)
+                  </div>`
+                : ''
+            }
+            ${
+              state?.inventory?.includes('cap_extension_12h')
+                ? html`<div
+                    class="sushi-scene-equipment-badge scene-cap-extension"
+                    data-testid="scene-cap-extension"
+                  >
+                    ⏰ 12h Produktionstak
+                  </div>`
+                : ''
+            }
           </div>
         </div>
 

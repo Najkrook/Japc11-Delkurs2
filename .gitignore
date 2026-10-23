@@ -9,3 +9,5 @@ test-results/
 playwright-report/
 *.log
 Material/vocabulary.pdf
+
+functions/lib/

@@ -13,8 +13,14 @@ import {
 } from '../src/course/course-view.ts';
 import { createFreshCourseProgress } from '../src/course/course-state.ts';
 import { SUSHI_UNLOCK_CATALOG } from '../src/course/sushi-game/medals.ts';
-import { getOrInitRestaurant } from '../src/course/sushi-game/service.ts';
+import {
+  sushiService,
+  InMemorySushiRepository,
+  getOrInitRestaurant,
+} from '../src/course/sushi-game/service.ts';
 import type { CourseHostContext } from '../src/course/types.ts';
+
+sushiService.setRepository(new InMemorySushiRepository());
 
 function renderTemplateToString(t: unknown): string {
   if (t === null || t === undefined || typeof t === 'boolean') return '';
@@ -34,7 +40,7 @@ function renderTemplateToString(t: unknown): string {
         out += renderTemplateToString(tmpl.values[i]);
       }
     }
-    return out;
+    return out.replace(/\s+/g, ' ');
   }
   return '';
 }
@@ -98,7 +104,7 @@ function createMockHost(overrides: Partial<CourseHostContext> = {}): CourseHostC
   return mock;
 }
 
-test('Ticket 02: isSushiEntryAvailable kontrollerar dev/test/preview vs produktionsspärr', () => {
+test('Ticket 02: isSushiEntryAvailable kontrollerar dev/test/preview vs produktionsspärr', async () => {
   // 1. I standard testkörning returnerar den true
   assert.equal(isSushiEntryAvailable(), true, 'I testläge ska ingången vara tillgänglig');
 
@@ -151,14 +157,14 @@ test('Ticket 02: isSushiEntryAvailable kontrollerar dev/test/preview vs produkti
   );
 });
 
-test('Ticket 02: Åtkomstspärr (Auth Gate) visas för oinloggade användare och anonyma sessioner', () => {
+test('Ticket 02: Åtkomstspärr (Auth Gate) visas för oinloggade användare och anonyma sessioner', async () => {
   let backClicked = false;
   const guestHost = createMockHost({
     user: null,
   });
 
   const guestHtml = renderTemplateToString(
-    renderSushiShell(guestHost, () => {
+    await renderLoadedShell(guestHost, () => {
       backClicked = true;
     }),
   );
@@ -194,7 +200,7 @@ test('Ticket 02: Åtkomstspärr (Auth Gate) visas för oinloggade användare och
       isAnonymous: true,
     },
   });
-  const anonHtml = renderTemplateToString(renderSushiShell(anonHost, () => {}));
+  const anonHtml = renderTemplateToString(await renderLoadedShell(anonHost, () => {}));
   assert.ok(
     anonHtml.includes('sushi-auth-gate'),
     'Anonym session ska inte få tillgång till spelbar restaurang',
@@ -202,7 +208,7 @@ test('Ticket 02: Åtkomstspärr (Auth Gate) visas för oinloggade användare och
   assert.ok(!anonHtml.includes('sushi-stage'), 'Anonym session får ingen scen');
 });
 
-test('Ticket 02: Inloggad student ser sushiskalet med identitet och renodlat gränssnitt', () => {
+test('Ticket 02: Inloggad student ser sushiskalet med identitet och renodlat gränssnitt', async () => {
   let backClicked = false;
   const studentHost = createMockHost({
     user: {
@@ -213,7 +219,7 @@ test('Ticket 02: Inloggad student ser sushiskalet med identitet och renodlat gr�
   });
 
   const studentHtml = renderTemplateToString(
-    renderSushiShell(studentHost, () => {
+    await renderLoadedShell(studentHost, () => {
       backClicked = true;
     }),
   );
@@ -233,12 +239,12 @@ test('Ticket 02: Inloggad student ser sushiskalet med identitet och renodlat gr�
   assert.ok(studentHtml.includes('Logga ut'), 'Möjlighet att logga ut ska finnas via kontoknappen');
 });
 
-test('Ticket 02: Kontobyte och utloggning isolerar användaridentitet utan kvardröjande data', () => {
+test('Ticket 02: Kontobyte och utloggning isolerar användaridentitet utan kvardröjande data', async () => {
   // 1. Användare A
   const hostUserA = createMockHost({
     user: { uid: 'user-a', displayName: 'Sakura Haruno', email: 'sakura@example.com' },
   });
-  const htmlA = renderTemplateToString(renderSushiShell(hostUserA, () => {}));
+  const htmlA = renderTemplateToString(await renderLoadedShell(hostUserA, () => {}));
   assert.ok(htmlA.includes('Sakura Haruno'), 'Användare A ska visas');
   assert.ok(!htmlA.includes('Naruto Uzumaki'), 'Användare B ska inte synas');
 
@@ -246,7 +252,7 @@ test('Ticket 02: Kontobyte och utloggning isolerar användaridentitet utan kvard
   const hostUserB = createMockHost({
     user: { uid: 'user-b', displayName: 'Naruto Uzumaki', email: 'naruto@example.com' },
   });
-  const htmlB = renderTemplateToString(renderSushiShell(hostUserB, () => {}));
+  const htmlB = renderTemplateToString(await renderLoadedShell(hostUserB, () => {}));
   assert.ok(htmlB.includes('Naruto Uzumaki'), 'Användare B ska visas efter kontobyte');
   assert.ok(
     !htmlB.includes('Sakura Haruno'),
@@ -255,7 +261,7 @@ test('Ticket 02: Kontobyte och utloggning isolerar användaridentitet utan kvard
 
   // 3. Utloggning
   const hostLoggedOut = createMockHost({ user: null });
-  const htmlLoggedOut = renderTemplateToString(renderSushiShell(hostLoggedOut, () => {}));
+  const htmlLoggedOut = renderTemplateToString(await renderLoadedShell(hostLoggedOut, () => {}));
   assert.ok(
     htmlLoggedOut.includes('sushi-auth-gate'),
     'Vid utloggning ska Auth Gate visas omedelbart',
@@ -264,13 +270,13 @@ test('Ticket 02: Kontobyte och utloggning isolerar användaridentitet utan kvard
   assert.ok(!htmlLoggedOut.includes('Sakura Haruno'), 'Ingen tidigare användardata kvar');
 });
 
-test('Ticket 02: Felhantering och återförsök vid inloggningsfel', () => {
+test('Ticket 02: Felhantering och återförsök vid inloggningsfel', async () => {
   const hostWithError = createMockHost({
     user: null,
     authError: 'Inloggning avbröts av användaren',
   });
 
-  const htmlWithError = renderTemplateToString(renderSushiShell(hostWithError, () => {}));
+  const htmlWithError = renderTemplateToString(await renderLoadedShell(hostWithError, () => {}));
   assert.ok(
     htmlWithError.includes('sushi-auth-error'),
     'Felmeddelande ska renderas när authError finns',
@@ -342,11 +348,11 @@ test('Ticket 02: renderCourseShell isolerar sushivyn från studiernas sidomeny o
 // F20: Responsive 2D Scene & Shell Structure (Tier 1 & Tier 2 BVA)
 // ---------------------------------------------------------------------------
 
-test('F20-T1: Scene structure renders container, stage, header, and scene placeholder for authenticated user', () => {
+test('F20-T1: Scene structure renders container, stage, header, and scene placeholder for authenticated user', async () => {
   const host = createMockHost({
     user: { uid: 'user-ken', displayName: 'Ken' },
   });
-  const html = renderTemplateToString(renderSushiShell(host, () => {}));
+  const html = renderTemplateToString(await renderLoadedShell(host, () => {}));
 
   assert.ok(html.includes('sushi-container'), 'Container element must be present');
   assert.ok(html.includes('sushi-stage'), 'Stage element must be present');
@@ -355,7 +361,7 @@ test('F20-T1: Scene structure renders container, stage, header, and scene placeh
   assert.ok(html.includes('sushi-stage-actions'), 'Stage actions container must be present');
 });
 
-test('F20-T2: Back to studies actions in topbar, stage, and auth gate trigger onBackToStudies callback', () => {
+test('F20-T2: Back to studies actions in topbar, stage, and auth gate trigger onBackToStudies callback', async () => {
   let calls = 0;
   const onBack = () => {
     calls++;
@@ -365,23 +371,23 @@ test('F20-T2: Back to studies actions in topbar, stage, and auth gate trigger on
   const authHost = createMockHost({
     user: { uid: 'user-1', displayName: 'Ken' },
   });
-  const authHtml = renderTemplateToString(renderSushiShell(authHost, onBack));
+  const authHtml = renderTemplateToString(await renderLoadedShell(authHost, onBack));
   assert.ok(authHtml.includes('sushi-back-to-studies'), 'Topbar back button must exist');
   assert.ok(authHtml.includes('sushi-stage-back-btn'), 'Stage back button must exist');
 
   // 2. Guest user
   const guestHost = createMockHost({ user: null });
-  const guestHtml = renderTemplateToString(renderSushiShell(guestHost, onBack));
+  const guestHtml = renderTemplateToString(await renderLoadedShell(guestHost, onBack));
   assert.ok(guestHtml.includes('sushi-back-btn'), 'Auth gate back button must exist');
 });
 
-test('F20-T3: Responsive theme attribute toggles between classic and sakura on root shell element', () => {
+test('F20-T3: Responsive theme attribute toggles between classic and sakura on root shell element', async () => {
   // Classic theme
   const hostClassic = createMockHost({
     theme: 'classic',
     user: { uid: 'user-1', displayName: 'Ken' },
   });
-  const htmlClassic = renderTemplateToString(renderSushiShell(hostClassic, () => {}));
+  const htmlClassic = renderTemplateToString(await renderLoadedShell(hostClassic, () => {}));
   assert.ok(htmlClassic.includes('data-theme=classic'), 'Shell must reflect classic theme');
 
   // Sakura theme
@@ -389,11 +395,11 @@ test('F20-T3: Responsive theme attribute toggles between classic and sakura on r
     theme: 'sakura',
     user: { uid: 'user-1', displayName: 'Ken' },
   });
-  const htmlSakura = renderTemplateToString(renderSushiShell(hostSakura, () => {}));
+  const htmlSakura = renderTemplateToString(await renderLoadedShell(hostSakura, () => {}));
   assert.ok(htmlSakura.includes('data-theme=sakura'), 'Shell must reflect sakura theme');
 });
 
-test('F20-T4: User avatar renders photoURL if present and uppercase initial fallback if absent', () => {
+test('F20-T4: User avatar renders photoURL if present and uppercase initial fallback if absent', async () => {
   // With photoURL
   const hostWithPhoto = createMockHost({
     user: {
@@ -402,7 +408,7 @@ test('F20-T4: User avatar renders photoURL if present and uppercase initial fall
       photoURL: 'https://example.com/avatar.png',
     },
   });
-  const htmlWithPhoto = renderTemplateToString(renderSushiShell(hostWithPhoto, () => {}));
+  const htmlWithPhoto = renderTemplateToString(await renderLoadedShell(hostWithPhoto, () => {}));
   assert.ok(
     htmlWithPhoto.includes('src=https://example.com/avatar.png'),
     'Must render image element with photoURL',
@@ -417,12 +423,12 @@ test('F20-T4: User avatar renders photoURL if present and uppercase initial fall
       photoURL: null,
     },
   });
-  const htmlNoPhoto = renderTemplateToString(renderSushiShell(hostNoPhoto, () => {}));
+  const htmlNoPhoto = renderTemplateToString(await renderLoadedShell(hostNoPhoto, () => {}));
   assert.ok(htmlNoPhoto.includes('sushi-avatar-fallback'), 'Must render fallback avatar');
   assert.ok(htmlNoPhoto.includes('T'), 'Fallback initial must be uppercase T');
 });
 
-test('F20-T5: Adversarial & Escaping: XSS strings and Japanese Unicode characters in user profile', () => {
+test('F20-T5: Adversarial & Escaping: XSS strings and Japanese Unicode characters in user profile', async () => {
   // Japanese Kanji, Kana & Sushi Emoji
   const hostJapanese = createMockHost({
     user: {
@@ -430,7 +436,7 @@ test('F20-T5: Adversarial & Escaping: XSS strings and Japanese Unicode character
       displayName: '田中 健 🍣',
     },
   });
-  const htmlJp = renderTemplateToString(renderSushiShell(hostJapanese, () => {}));
+  const htmlJp = renderTemplateToString(await renderLoadedShell(hostJapanese, () => {}));
   assert.ok(htmlJp.includes('田中 健 🍣'), 'Japanese characters and emojis must render correctly');
 
   // Script tags in displayName must be rendered harmlessly as text
@@ -440,7 +446,7 @@ test('F20-T5: Adversarial & Escaping: XSS strings and Japanese Unicode character
       displayName: '<script>alert("hacked")</script>',
     },
   });
-  const htmlXss = renderTemplateToString(renderSushiShell(hostXss, () => {}));
+  const htmlXss = renderTemplateToString(await renderLoadedShell(hostXss, () => {}));
   // In lit-html template interpolations, values are escaped or handled as text nodes, not executed
   assert.ok(htmlXss.includes('sushi-user-name'), 'Username container must exist');
 });
@@ -449,9 +455,9 @@ test('F20-T5: Adversarial & Escaping: XSS strings and Japanese Unicode character
 // F22: Accessibility & Semantic Landmark Roles (Tier 1 & Tier 2 BVA)
 // ---------------------------------------------------------------------------
 
-test('F22-T1: Semantic landmark roles and accessibility attributes are correctly placed', () => {
+test('F22-T1: Semantic landmark roles and accessibility attributes are correctly placed', async () => {
   const guestHost = createMockHost({ user: null });
-  const guestHtml = renderTemplateToString(renderSushiShell(guestHost, () => {}));
+  const guestHtml = renderTemplateToString(await renderLoadedShell(guestHost, () => {}));
 
   assert.ok(guestHtml.includes('role="region"'), 'Auth gate must have role="region"');
   assert.ok(
@@ -462,7 +468,7 @@ test('F22-T1: Semantic landmark roles and accessibility attributes are correctly
   const authHost = createMockHost({
     user: { uid: 'user-1', displayName: 'Ken' },
   });
-  const authHtml = renderTemplateToString(renderSushiShell(authHost, () => {}));
+  const authHtml = renderTemplateToString(await renderLoadedShell(authHost, () => {}));
 
   assert.ok(
     authHtml.includes('aria-label="Personlig sushirestaurang"'),
@@ -473,11 +479,11 @@ test('F22-T1: Semantic landmark roles and accessibility attributes are correctly
   assert.ok(authHtml.includes('lang="ja"'), 'Sushi title must declare Japanese language attribute');
 });
 
-test('F22-T2: All interactive buttons are semantic button[type="button"] with test IDs', () => {
+test('F22-T2: All interactive buttons are semantic button[type="button"] with test IDs', async () => {
   const authHost = createMockHost({
     user: { uid: 'user-1', displayName: 'Ken' },
   });
-  const html = renderTemplateToString(renderSushiShell(authHost, () => {}));
+  const html = renderTemplateToString(await renderLoadedShell(authHost, () => {}));
 
   // Asserting key buttons have type="button" and respective classes/test IDs
   assert.ok(html.includes('class="sushi-back-btn"'));
@@ -487,10 +493,10 @@ test('F22-T2: All interactive buttons are semantic button[type="button"] with te
   assert.ok(html.includes('data-testid="sushi-stage-back-btn"'));
 });
 
-test('F22-T3: Theme toggle button title reflects next accessible theme state', () => {
+test('F22-T3: Theme toggle button title reflects next accessible theme state', async () => {
   // When theme is classic
   const hostClassic = createMockHost({ theme: 'classic' });
-  const htmlClassic = renderTemplateToString(renderSushiShell(hostClassic, () => {}));
+  const htmlClassic = renderTemplateToString(await renderLoadedShell(hostClassic, () => {}));
   assert.ok(
     htmlClassic.includes('Slå på Sakura / Kawaii-tema'),
     'Tooltip must explain switching to Sakura',
@@ -498,19 +504,19 @@ test('F22-T3: Theme toggle button title reflects next accessible theme state', (
 
   // When theme is sakura
   const hostSakura = createMockHost({ theme: 'sakura' });
-  const htmlSakura = renderTemplateToString(renderSushiShell(hostSakura, () => {}));
+  const htmlSakura = renderTemplateToString(await renderLoadedShell(hostSakura, () => {}));
   assert.ok(
     htmlSakura.includes('Växla till Washi & Matcha-tema'),
     'Tooltip must explain switching to Washi',
   );
 });
 
-test('F22-T4: Auth error alert has role="alert" for immediate screen reader announcement', () => {
+test('F22-T4: Auth error alert has role="alert" for immediate screen reader announcement', async () => {
   const hostWithError = createMockHost({
     user: null,
     authError: 'Nätverksfel vid inloggning',
   });
-  const html = renderTemplateToString(renderSushiShell(hostWithError, () => {}));
+  const html = renderTemplateToString(await renderLoadedShell(hostWithError, () => {}));
 
   assert.ok(
     html.includes('role="alert" data-testid="sushi-auth-error"'),
@@ -520,11 +526,11 @@ test('F22-T4: Auth error alert has role="alert" for immediate screen reader anno
   assert.ok(html.includes('Försök igen'));
 });
 
-test('F22-T5: Account button has descriptive title with user identity and logout instructions', () => {
+test('F22-T5: Account button has descriptive title with user identity and logout instructions', async () => {
   const host = createMockHost({
     user: { uid: 'user-a', displayName: 'Sakura Kinomoto', email: 'sakura@example.com' },
   });
-  const html = renderTemplateToString(renderSushiShell(host, () => {}));
+  const html = renderTemplateToString(await renderLoadedShell(host, () => {}));
 
   assert.ok(
     html.includes('title="Inloggad som Sakura Kinomoto · Klicka för att logga ut"'),
@@ -536,7 +542,7 @@ test('F22-T5: Account button has descriptive title with user identity and logout
 // F23: Config & Environment Boundary Cases (Tier 1 & Tier 2 BVA)
 // ---------------------------------------------------------------------------
 
-test('F23-T1: isSushiEntryAvailable handles multi-parameter URLs and non-matching queries', () => {
+test('F23-T1: isSushiEntryAvailable handles multi-parameter URLs and non-matching queries', async () => {
   // Query with other parameters and sushi=1
   const win1 = {
     location: { search: '?week=1&theme=sakura&sushi=1' },
@@ -559,13 +565,13 @@ test('F23-T1: isSushiEntryAvailable handles multi-parameter URLs and non-matchin
   assert.equal(isSushiEntryAvailable(win3), true, 'In test runner process.env.NODE_ENV is test');
 });
 
-test('F23-T2: isSushiEntryAvailable handles SSR and undefined window safely without throwing', () => {
+test('F23-T2: isSushiEntryAvailable handles SSR and undefined window safely without throwing', async () => {
   // When window is explicitly undefined
   const result = isSushiEntryAvailable(undefined);
   assert.equal(typeof result, 'boolean', 'Must return a boolean without throwing');
 });
 
-test('F23-T3: isSushiEntryAvailable sessionStorage boundary values', () => {
+test('F23-T3: isSushiEntryAvailable sessionStorage boundary values', async () => {
   // SessionStorage with empty string or false does not activate preview if window flag is explicitly false
   const winFalse = {
     __SUSHI_ENTRY_ENABLED: false,
@@ -579,12 +585,12 @@ test('F23-T3: isSushiEntryAvailable sessionStorage boundary values', () => {
 // Milestone 1 (Tickets 03 & 04): Active View, Cash Register & Ticker Tests
 // ---------------------------------------------------------------------------
 
-test('Ticket 03 & 04 UI: Renders cash register, spendable balance, rate bar, bottleneck, progress bar, and announcer', () => {
+test('Ticket 03 & 04 UI: Renders cash register, spendable balance, rate bar, bottleneck, progress bar, and announcer', async () => {
   const host = createMockHost({
     user: { uid: 'student-ken', displayName: 'Ken Tanaka' },
   });
 
-  const html = renderTemplateToString(renderSushiShell(host, () => {}));
+  const html = renderTemplateToString(await renderLoadedShell(host, () => {}));
 
   // Spendable balance badge
   assert.ok(html.includes('sushi-spendable-balance'), 'Spendable balance badge must be present');
@@ -593,7 +599,10 @@ test('Ticket 03 & 04 UI: Renders cash register, spendable balance, rate bar, bot
   // Cash register
   assert.ok(html.includes('sushi-cash-register'), 'Cash register container must be present');
   assert.ok(html.includes('Ohämtade intäkter'), 'Uncollected income label must be present');
-  assert.ok(html.includes('sushi-uncollected-amount'), 'Uncollected amount element must be present');
+  assert.ok(
+    html.includes('sushi-uncollected-amount'),
+    'Uncollected amount element must be present',
+  );
 
   // Rate bar and bottleneck
   assert.ok(html.includes('sushi-rate-info'), 'Rate info bar must be present');
@@ -603,7 +612,10 @@ test('Ticket 03 & 04 UI: Renders cash register, spendable balance, rate bar, bot
 
   // Cap tracker & progress bar
   assert.ok(html.includes('role="progressbar"'), 'Progress bar must have role="progressbar"');
-  assert.ok(html.includes('aria-label="Produktionstid i perioden"'), 'Progress bar must have aria-label');
+  assert.ok(
+    html.includes('aria-label="Produktionstid i perioden"'),
+    'Progress bar must have aria-label',
+  );
   assert.ok(html.includes('aria-valuemin="0"'), 'Progress bar must have aria-valuemin="0"');
   assert.ok(html.includes('aria-valuemax="100"'), 'Progress bar must have aria-valuemax="100"');
 
@@ -617,13 +629,14 @@ test('Ticket 03 & 04 UI: Renders cash register, spendable balance, rate bar, bot
   assert.ok(html.includes('role="status"'), 'Announcer must have role="status"');
 });
 
-test('Ticket 04 UI: SushiClientController handles accrual recalculation, cap clamping, and reset', () => {
+test('Ticket 04 UI: SushiClientController handles accrual recalculation, cap clamping, and reset', async () => {
   const controller = new SushiClientController();
   const host = createMockHost({
     user: { uid: 'student-test', displayName: 'Test User' },
   });
 
   controller.init('student-test', host);
+  await new Promise<void>((resolve) => setImmediate(resolve));
   assert.ok(controller.state, 'Controller must have state initialized');
 
   // Initial calculation at T=0
@@ -664,7 +677,7 @@ test('Ticket 05 UI: Unlocks panel renders all 7 items with count badge and purch
     user: { uid: 'student-unlocks-view', displayName: 'Aoi' },
   });
 
-  const html = renderTemplateToString(renderSushiShell(host, () => {}));
+  const html = renderTemplateToString(await renderLoadedShell(host, () => {}));
 
   // Panel landmarks
   assert.ok(html.includes('sushi-unlocks-panel'), 'Unlocks panel must be present');
@@ -694,11 +707,11 @@ test('Ticket 05 UI: Unlocked item displays "Upplåst köpmöjlighet" and price h
   await getOrInitRestaurant(uid, Date.now(), ['prep_counter']);
 
   // Initial render initiates controller and fires getOrInitRestaurant
-  renderSushiShell(host, () => {});
+  await renderLoadedShell(host, () => {});
   // Wait for the async getOrInitRestaurant in activeController.init to complete
   await new Promise((r) => setTimeout(r, 20));
 
-  const html = renderTemplateToString(renderSushiShell(host, () => {}));
+  const html = renderTemplateToString(await renderLoadedShell(host, () => {}));
 
   assert.ok(
     html.includes('unlock-badge-prep_counter'),
@@ -723,16 +736,13 @@ test('Ticket 05 UI: Locked item displays "Låst", required chapter, and clickabl
   // User has no grants
   await getOrInitRestaurant(uid, Date.now(), []);
 
-  const html = renderTemplateToString(renderSushiShell(host, () => {}));
+  const html = renderTemplateToString(await renderLoadedShell(host, () => {}));
 
   assert.ok(
     html.includes('unlock-badge-conveyor_belt'),
     'Badge element for conveyor_belt must be rendered',
   );
-  assert.ok(
-    html.includes('🔒 Låst'),
-    'Badge text must indicate locked state',
-  );
+  assert.ok(html.includes('🔒 Låst'), 'Badge text must indicate locked state');
   assert.ok(
     html.includes('Kräver Kapitel 9 Brons (60%)'),
     'Requirement text must clearly show chapter and tier',
@@ -741,13 +751,10 @@ test('Ticket 05 UI: Locked item displays "Låst", required chapter, and clickabl
     html.includes('study-link-btn-conveyor_belt'),
     'Study link button for conveyor_belt must be rendered',
   );
-  assert.ok(
-    html.includes('Öppna Kapitel 9 →'),
-    'Button label must direct to relevant chapter',
-  );
+  assert.ok(html.includes('Öppna Kapitel 9 →'), 'Button label must direct to relevant chapter');
 });
 
-test('Ticket 05 UI: Clicking chapter study link invokes navigation callback with chapter number and week ID', () => {
+test('Ticket 05 UI: Clicking chapter study link invokes navigation callback with chapter number and week ID', async () => {
   const uid = 'student-nav-link';
   const host = createMockHost({
     user: { uid, displayName: 'Hina' },
@@ -762,7 +769,7 @@ test('Ticket 05 UI: Clicking chapter study link invokes navigation callback with
   };
 
   // Render shell passing onNavigateToChapter
-  const tmpl = renderSushiShell(host, () => {}, null, onNavigateToChapter);
+  const tmpl = await renderLoadedShell(host, () => {}, null, onNavigateToChapter);
   const html = renderTemplateToString(tmpl);
   assert.ok(html.includes('study-link-btn-conveyor_belt'));
 
@@ -772,13 +779,14 @@ test('Ticket 05 UI: Clicking chapter study link invokes navigation callback with
   assert.equal(navigatedWeek, 'week-4', 'Must navigate to week-4 for Chapter 9 Conveyor Belt');
 });
 
-test('Ticket 05 UI: Accessible celebratory unlock banner displays when recentlyUnlocked is present', () => {
+test('Ticket 05 UI: Accessible celebratory unlock banner displays when recentlyUnlocked is present', async () => {
   const controller = new SushiClientController();
   const host = createMockHost({
     user: { uid: 'student-banner', displayName: 'Daiki' },
   });
 
   controller.init('student-banner', host);
+  await new Promise<void>((resolve) => setImmediate(resolve));
   controller.recentlyUnlocked = ['prep_counter'];
 
   // Test getRecentlyUnlockedNames
@@ -799,13 +807,14 @@ test('Ticket 05 UI: Accessible celebratory unlock banner displays when recentlyU
   controller.reset();
 });
 
-test('Ticket 05 UI: Dismissing celebratory unlock banner clears recentlyUnlocked and removes banner', () => {
+test('Ticket 05 UI: Dismissing celebratory unlock banner clears recentlyUnlocked and removes banner', async () => {
   const controller = new SushiClientController();
   const host = createMockHost({
     user: { uid: 'student-dismiss', displayName: 'Emi' },
   });
 
   controller.init('student-dismiss', host);
+  await new Promise<void>((resolve) => setImmediate(resolve));
   controller.recentlyUnlocked = ['salmon_nigiri'];
   assert.equal(controller.recentlyUnlocked.length, 1);
 
@@ -817,7 +826,7 @@ test('Ticket 05 UI: Dismissing celebratory unlock banner clears recentlyUnlocked
   controller.reset();
 });
 
-test('Ticket 05 UI: ARIA live announcer includes Swedish announcement for newly unlocked items', () => {
+test('Ticket 05 UI: ARIA live announcer includes Swedish announcement for newly unlocked items', async () => {
   const controller = new SushiClientController();
 
   // Single item announcement
@@ -842,7 +851,7 @@ test('Ticket 05 UI: Navigation auto-sync - re-entry with new study progress eval
 
   // Fresh progress
   const progress = createFreshCourseProgress();
-  const tmpl1 = renderSushiShell(host, () => {}, progress);
+  const tmpl1 = await renderLoadedShell(host, () => {}, progress);
   const html1 = renderTemplateToString(tmpl1);
   assert.ok(html1.includes('sushi-unlocks-panel'));
 
@@ -855,14 +864,14 @@ test('Ticket 05 UI: Navigation auto-sync - re-entry with new study progress eval
   }
 
   // Re-entering with new progress passes updated snapshot
-  const tmpl2 = renderSushiShell(host, () => {}, initialFresh);
+  const tmpl2 = await renderLoadedShell(host, () => {}, initialFresh);
   assert.ok(tmpl2, 'Re-entry render succeeds');
 });
 
-test('Ticket 05 UI: Auth gate strictly prevents access to unlock panel, banner, or announcers for unauthenticated/anonymous users', () => {
+test('Ticket 05 UI: Auth gate strictly prevents access to unlock panel, banner, or announcers for unauthenticated/anonymous users', async () => {
   // 1. Unauthenticated guest
   const guestHost = createMockHost({ user: null });
-  const guestHtml = renderTemplateToString(renderSushiShell(guestHost, () => {}));
+  const guestHtml = renderTemplateToString(await renderLoadedShell(guestHost, () => {}));
   assert.ok(guestHtml.includes('sushi-auth-gate'), 'Auth gate rendered');
   assert.ok(!guestHtml.includes('sushi-unlocks-panel'), 'Zero unlock panels for guests');
   assert.ok(!guestHtml.includes('sushi-unlock-banner'), 'Zero unlock banners for guests');
@@ -876,19 +885,20 @@ test('Ticket 05 UI: Auth gate strictly prevents access to unlock panel, banner, 
       isAnonymous: true,
     },
   });
-  const anonHtml = renderTemplateToString(renderSushiShell(anonHost, () => {}));
+  const anonHtml = renderTemplateToString(await renderLoadedShell(anonHost, () => {}));
   assert.ok(anonHtml.includes('sushi-auth-gate'), 'Auth gate rendered for anonymous users');
   assert.ok(!anonHtml.includes('sushi-unlocks-panel'), 'Zero unlock panels for anonymous users');
   assert.ok(!anonHtml.includes('sushi-unlock-banner'), 'Zero unlock banners for anonymous users');
 });
 
-test('Ticket 05 UI: Logout wipes state, recentlyUnlocked, and announcements completely', () => {
+test('Ticket 05 UI: Logout wipes state, recentlyUnlocked, and announcements completely', async () => {
   const controller = new SushiClientController();
   const host = createMockHost({
     user: { uid: 'student-logout-test', displayName: 'Mei' },
   });
 
   controller.init('student-logout-test', host);
+  await new Promise<void>((resolve) => setImmediate(resolve));
   controller.recentlyUnlocked = ['prep_counter', 'salmon_nigiri'];
   controller.announcement = 'Grattis!';
 
@@ -901,7 +911,7 @@ test('Ticket 05 UI: Logout wipes state, recentlyUnlocked, and announcements comp
   assert.equal(controller.error, null);
 });
 
-test('Ticket 05 UI: Reduced motion styles present in stylesheet', () => {
+test('Ticket 05 UI: Reduced motion styles present in stylesheet', async () => {
   const cssPath = resolve(process.cwd(), 'src/course/sushi-game/sushi.css');
   const cssContent = readFileSync(cssPath, 'utf8');
 
@@ -913,18 +923,12 @@ test('Ticket 05 UI: Reduced motion styles present in stylesheet', () => {
     cssContent.includes('.sushi-unlock-banner'),
     'Reduced motion must target .sushi-unlock-banner',
   );
-  assert.ok(
-    cssContent.includes('.sushi-pill-new'),
-    'Reduced motion must target .sushi-pill-new',
-  );
+  assert.ok(cssContent.includes('.sushi-pill-new'), 'Reduced motion must target .sushi-pill-new');
   assert.ok(
     cssContent.includes('.sushi-unlock-card'),
     'Reduced motion must target .sushi-unlock-card',
   );
-  assert.ok(
-    cssContent.includes('.sushi-btn-buy'),
-    'Reduced motion must target .sushi-btn-buy',
-  );
+  assert.ok(cssContent.includes('.sushi-btn-buy'), 'Reduced motion must target .sushi-btn-buy');
 });
 
 test('Ticket 06 & 07 UI: Shop cards render all four purchase states (Låst, För dyr, Köpbar, Ägd)', async () => {
@@ -938,11 +942,7 @@ test('Ticket 06 & 07 UI: Shop cards render all four purchase states (Låst, För
   // - salmon_nigiri: unlocked and affordable (balance = 1000 yen >= 600 yen)
   // - conveyor_belt: unlocked but unaffordable (needs 3600 yen, balance = 1000 yen)
   // - wave_print: locked (not in permanentGrants)
-  await getOrInitRestaurant(uid, Date.now(), [
-    'prep_counter',
-    'salmon_nigiri',
-    'conveyor_belt',
-  ]);
+  await getOrInitRestaurant(uid, Date.now(), ['prep_counter', 'salmon_nigiri', 'conveyor_belt']);
   const repo = (await import('../src/course/sushi-game/service.ts')).sushiService.getRepository();
   await repo.transaction(uid, async (current) => ({
     state: {
@@ -953,9 +953,9 @@ test('Ticket 06 & 07 UI: Shop cards render all four purchase states (Låst, För
     result: null,
   }));
 
-  renderSushiShell(host, () => {});
+  await renderLoadedShell(host, () => {});
   await new Promise((r) => setTimeout(r, 20));
-  const html = renderTemplateToString(renderSushiShell(host, () => {}));
+  const html = renderTemplateToString(await renderLoadedShell(host, () => {}));
 
   // 1. prep_counter is OWNED
   assert.ok(html.includes('data-purchase-state="owned"'), 'Owned state must be present on card');
@@ -989,16 +989,18 @@ test('Ticket 06 & 07 UI: Bottleneck explainer displays pedagogical advice when c
   // Buying conveyor_belt would make service 4, but kitchen stays 1 -> bottleneck explainer must trigger!
   await getOrInitRestaurant(uid, Date.now(), ['conveyor_belt']);
 
-  renderSushiShell(host, () => {});
+  await renderLoadedShell(host, () => {});
   await new Promise((r) => setTimeout(r, 20));
-  const html = renderTemplateToString(renderSushiShell(host, () => {}));
+  const html = renderTemplateToString(await renderLoadedShell(host, () => {}));
 
   assert.ok(
     html.includes('bottleneck-explainer-conveyor_belt'),
     'Bottleneck explainer must be rendered for conveyor_belt',
   );
   assert.ok(
-    html.includes('Detta köp ökar servicekapaciteten till 4 ordrar/min, men köket producerar bara 1 order/min'),
+    html.includes(
+      'Detta köp ökar servicekapaciteten till 4 ordrar/min, men köket producerar bara 1 order/min',
+    ),
     'Educational explanation must clarify why rate does not immediately rise',
   );
 });
@@ -1022,9 +1024,9 @@ test('Ticket 06 & 07 UI: Scene placeholder displays visual equipment badges for 
     result: null,
   }));
 
-  renderSushiShell(host, () => {});
+  await renderLoadedShell(host, () => {});
   await new Promise((r) => setTimeout(r, 20));
-  const html = renderTemplateToString(renderSushiShell(host, () => {}));
+  const html = renderTemplateToString(await renderLoadedShell(host, () => {}));
 
   assert.ok(html.includes('scene-prep-counter'), 'Prep counter badge must be visible in scene');
   assert.ok(html.includes('scene-conveyor-belt'), 'Conveyor belt badge must be visible in scene');
@@ -1039,9 +1041,9 @@ test('Ticket 08 UI: Dynamic cap badges and active indicator display for 8h stand
   });
   await getOrInitRestaurant(uidStandard, Date.now(), []);
 
-  renderSushiShell(hostStandard, () => {});
+  await renderLoadedShell(hostStandard, () => {});
   await new Promise((r) => setTimeout(r, 20));
-  const htmlStandard = renderTemplateToString(renderSushiShell(hostStandard, () => {}));
+  const htmlStandard = renderTemplateToString(await renderLoadedShell(hostStandard, () => {}));
   assert.ok(htmlStandard.includes('sushi-cap-badge-8h'), '8h badge must be shown on standard cap');
   assert.ok(!htmlStandard.includes('sushi-cap-active-badge'), 'No active indicator on 8h cap');
 
@@ -1061,13 +1063,22 @@ test('Ticket 08 UI: Dynamic cap badges and active indicator display for 8h stand
     result: null,
   }));
 
-  renderSushiShell(hostExtended, () => {});
+  await renderLoadedShell(hostExtended, () => {});
   await new Promise((r) => setTimeout(r, 20));
-  const htmlExtended = renderTemplateToString(renderSushiShell(hostExtended, () => {}));
-  assert.ok(htmlExtended.includes('sushi-cap-badge-12h'), '12h badge must be shown on extended cap');
-  assert.ok(htmlExtended.includes('sushi-cap-active-badge'), 'Active indicator must be shown on 12h cap');
+  const htmlExtended = renderTemplateToString(await renderLoadedShell(hostExtended, () => {}));
+  assert.ok(
+    htmlExtended.includes('sushi-cap-badge-12h'),
+    '12h badge must be shown on extended cap',
+  );
+  assert.ok(
+    htmlExtended.includes('sushi-cap-active-badge'),
+    'Active indicator must be shown on 12h cap',
+  );
   assert.ok(htmlExtended.includes('Ny produktionstid aktiv! (12 timmar max)'));
-  assert.ok(htmlExtended.includes('scene-cap-extension'), '12h cap equipment badge must appear in scene');
+  assert.ok(
+    htmlExtended.includes('scene-cap-extension'),
+    '12h cap equipment badge must appear in scene',
+  );
 });
 
 test('Ticket 06 UI: Controller buy() executes purchase, debits funds, and updates ARIA announcement', async () => {
@@ -1078,6 +1089,7 @@ test('Ticket 06 UI: Controller buy() executes purchase, debits funds, and update
   });
 
   controller.init(uid, host);
+  await new Promise<void>((resolve) => setImmediate(resolve));
   const repo = (await import('../src/course/sushi-game/service.ts')).sushiService.getRepository();
   await repo.transaction(uid, async (current) => ({
     state: {
@@ -1099,11 +1111,15 @@ test('Ticket 06 UI: Controller buy() executes purchase, debits funds, and update
   assert.equal(controller.buyError, null);
   assert.ok(controller.state?.inventory.includes('prep_counter'));
   assert.equal(controller.state?.kitchenCapacity, 3);
-  assert.ok(controller.announcement.includes('Köp genomfört: Förbättrad beredningsbänk för ¥ 300!'));
+  assert.ok(
+    controller.announcement.includes('Köp genomfört: Förbättrad beredningsbänk för ¥ 300!'),
+  );
 
   controller.reset();
 });
 
-
-
-
+async function renderLoadedShell(...args: Parameters<typeof renderSushiShell>) {
+  renderSushiShell(...args);
+  await new Promise<void>((resolve) => setImmediate(resolve));
+  return renderSushiShell(...args);
+}

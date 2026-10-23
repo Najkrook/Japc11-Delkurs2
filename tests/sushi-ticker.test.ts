@@ -1,3 +1,4 @@
+import { sushiService, InMemorySushiRepository } from '../src/course/sushi-game/service.ts';
 import test from 'node:test';
 import assert from 'node:assert/strict';
 import { SushiClientController } from '../src/course/sushi-game/sushi-view.ts';
@@ -32,6 +33,8 @@ function createMockHost(): CourseHostContext & { renderCalls: number } {
   };
   return mock;
 }
+
+sushiService.setRepository(new InMemorySushiRepository());
 
 test('SushiClientController: 1Hz ticker suppresses re-renders in background tabs (document.visibilityState === "hidden")', async () => {
   let intervalCb: (() => void) | null = null;
@@ -83,7 +86,11 @@ test('SushiClientController: 1Hz ticker suppresses re-renders in background tabs
     // 1. Visible tab: ticker fires -> render() called
     mockDocument.visibilityState = 'visible';
     intervalCb!();
-    assert.equal(host.renderCalls, initialRenderCalls + 1, 'Render must be called when tab is visible');
+    assert.equal(
+      host.renderCalls,
+      initialRenderCalls + 1,
+      'Render must be called when tab is visible',
+    );
 
     // 2. Background tab: ticker fires -> render() suppressed
     mockDocument.visibilityState = 'hidden';
@@ -108,7 +115,11 @@ test('SushiClientController: 1Hz ticker suppresses re-renders in background tabs
     // 4. Reset clears timer and event listener
     controller.reset();
     assert.equal(clearedIntervalId, 9999, 'reset() must clear the ticker interval');
-    assert.equal(eventListeners['visibilitychange']?.length, 0, 'reset() must clean up visibility listener');
+    assert.equal(
+      eventListeners['visibilitychange']?.length,
+      0,
+      'reset() must clean up visibility listener',
+    );
   } finally {
     if (origWin !== undefined) {
       (globalThis as Record<string, unknown>).window = origWin;

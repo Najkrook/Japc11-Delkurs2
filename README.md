@@ -28,6 +28,26 @@ npm run test:rules # Kör Firestore-regler och samtidiga klienter i lokal emulat
 Regeltesterna kräver Java 21 och Firebase CLI (`firebase-tools`); CI installerar dessa.
 Testkommandot använder endast demo-projektet `demo-japc11-delkurs2`.
 
+Sushirestaurangens sparning, hämtning, medaljsynk och köp går via den autentiserade
+Cloud Function `sushi` i `europe-west1`. Funktionen använder serverns klocka och
+Firestore-transaktioner. Medaljer härleds från sparade kursframsteg efter att
+studieappens pågående synkning slutförts. Webbläsarens tidigare lokala
+prototypsaldon importeras inte till servern.
+
+```bash
+npm ci --prefix functions
+npm run typecheck --prefix functions
+npm run test:backend      # Auth + Firestore + Functions: samtidighet och beständig lagring
+npx playwright install chromium
+npm run test:backend:e2e  # Riktig webbläsare: autentisering, laddningsfel, återförsök och omladdning
+```
+
+För interaktiv lokal körning: bygg med `npm run build --prefix functions`, starta
+`firebase emulators:start --only auth,firestore,functions --project demo-japc11-delkurs2`
+och kör Vite med `--mode test` samt miljövariabeln `VITE_FIREBASE_EMULATORS=true`.
+Emulatorerna använder port 9099, 8080 och 5001. Funktionernas driftsruntime är Node 22.
+Produktionsingången hålls spärrad tills publicering och driftkontroller i ticket 12 är klara.
+
 Inloggade arenarum sparas med Firestore-transaktioner. Gästrum är lokala för samma
 webbläsare och ursprung och använder Web Locks för att samordna flikar. Dessa rum
 lagras separat från molnrum. Ett misslyckat molnanrop visas som fel och skapar inte

@@ -12,7 +12,9 @@
     "test:e2e": "playwright test",
     "format": "prettier --write .",
     "format:check": "prettier --check .",
-    "test:rules": "firebase emulators:exec --only firestore --project demo-japc11-delkurs2 \"node --test tests/firestore/*.test.ts\""
+    "test:rules": "firebase emulators:exec --only firestore --project demo-japc11-delkurs2 \"node --test tests/firestore/*.test.ts\"",
+    "test:backend": "npm run build --prefix functions && firebase emulators:exec --only auth,firestore,functions --project demo-japc11-delkurs2 \"node --test tests/backend/*.test.ts\"",
+    "test:backend:e2e": "npm run build --prefix functions && firebase emulators:exec --only auth,firestore,functions --project demo-japc11-delkurs2 \"playwright test --config playwright.backend.config.ts\""
   },
   "dependencies": {
     "firebase": "^11.4.0",
