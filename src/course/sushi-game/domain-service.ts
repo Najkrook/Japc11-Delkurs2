@@ -16,7 +16,7 @@ import {
   type PurchaseFailureResult,
   type PurchaseFailureReason,
 } from './catalog.ts';
-import type { SushiRestaurantState } from './types.ts';
+import type { SushiRestaurantState, EquipDecorationResult } from './types.ts';
 
 export type {
   SushiCatalogItem,
@@ -164,6 +164,69 @@ export class InMemorySushiRepository implements SushiRestaurantRepository {
  * SushiService manages business logic and repository interactions.
  */
 export class SushiService {
+  public async equipDecoration(
+    uid: string,
+    slot: string,
+    itemId: string | null,
+    idempotencyKey: string,
+    nowMs = Date.now(),
+  ): Promise<EquipDecorationResult> {
+    if (!uid || !idempotencyKey) throw new Error('User and request ID are required');
+    if (slot !== 'wallSlot' && slot !== 'floorSlot') {
+      return { success: false, message: 'Ogiltig dekorationsplats.' };
+    }
+    const item = itemId === null ? null : getCatalogItem(itemId);
+    if (itemId !== null && (!item || item.category !== 'decoration' || item.slotType !== slot)) {
+      return { success: false, message: 'Föremålet passar inte på den här platsen.' };
+    }
+    return this.repo.transaction<EquipDecorationResult>(uid, async (current) => {
+      if (!current)
+        return {
+          state: null,
+          result: { success: false as const, message: 'Restaurangen kunde inte hittas.' },
+        };
+      if (itemId !== null && !current.inventory.includes(itemId)) {
+        return {
+          state: null,
+          result: { success: false as const, message: 'Köp dekorationen innan du placerar den.' },
+        };
+      }
+      const summary = `equip:${slot}:${itemId ?? 'empty'}`;
+      const previous = current.processedRequests[idempotencyKey];
+      if (Object.hasOwn(current.processedRequests, idempotencyKey)) {
+        if (previous.resultSummary !== summary) {
+          return {
+            state: null,
+            result: {
+              success: false as const,
+              message: 'Anropet hör till ett annat dekorationsval.',
+            },
+          };
+        }
+        const refreshed = {
+          ...current,
+          ...calculateAccrual(current, nowMs).updatedState,
+          updatedAtMs: nowMs,
+        };
+        return {
+          state: refreshed,
+          result: { success: true as const, state: refreshed, wasAlreadyProcessed: true },
+        };
+      }
+      const state: SushiRestaurantState = {
+        ...current,
+        ...calculateAccrual(current, nowMs).updatedState,
+        equipped: { ...current.equipped, [slot]: itemId },
+        updatedAtMs: nowMs,
+        processedRequests: {
+          ...current.processedRequests,
+          [idempotencyKey]: { processedAtMs: nowMs, resultSummary: summary },
+        },
+      };
+      return { state, result: { success: true as const, state, wasAlreadyProcessed: false } };
+    });
+  }
+
   private repo: SushiRestaurantRepository;
 
   constructor(repo: SushiRestaurantRepository) {

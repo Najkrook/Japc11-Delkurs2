@@ -27,6 +27,11 @@ export interface SushiEquippedDecorations {
   floorSlot: string | null;
 }
 
+export type DecorationSlot = keyof SushiEquippedDecorations;
+export type EquipDecorationResult =
+  | { success: true; state: SushiRestaurantState; wasAlreadyProcessed: boolean }
+  | { success: false; message: string };
+
 export interface SushiProcessedRequest {
   processedAtMs: number;
   resultSummary?: string;

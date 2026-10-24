@@ -1,4 +1,5 @@
 import { html, type TemplateResult } from 'lit-html';
+import { renderRestaurantScene } from './restaurant-scene.ts';
 import type { CourseHostContext, CourseProgressData } from '../types.ts';
 import { courseWeeks } from '../data/index.ts';
 import { calculateProductionRate, unitsToWholeYen } from './economy.ts';
@@ -9,12 +10,13 @@ import {
   getCatalogItem,
   previewCatalogPurchase,
 } from './catalog.ts';
-import type { SushiRestaurantState, ProductionRate } from './types.ts';
+import type { SushiRestaurantState, ProductionRate, DecorationSlot } from './types.ts';
 import {
   getOrInitRestaurant,
   collectRevenue,
   syncMedalGrants,
   purchaseCatalogItem,
+  equipDecoration,
 } from './service.ts';
 
 if (typeof window !== 'undefined') {
@@ -56,6 +58,9 @@ async function waitForStudySync(host: CourseHostContext | null, uid: string): Pr
  * visibility throttling, and manual revenue collection.
  */
 export class SushiClientController {
+  public isEquipping = false;
+  public equipError: string | null = null;
+  private equipRequest: { slot: string; itemId: string | null; key: string } | null = null;
   public uid: string | null = null;
   public state: SushiRestaurantState | null = null;
   public loading: boolean = false;
@@ -156,9 +161,8 @@ export class SushiClientController {
       // Throttling via Page Visibility API
       if (typeof document !== 'undefined') {
         const onVisibility = () => {
-          if (document.visibilityState === 'visible') {
-            this.host?.render();
-          }
+          // Update the scene's paused state on both hide and show.
+          this.host?.render();
         };
         document.addEventListener('visibilitychange', onVisibility);
         this.visibilityCleanup = () => {
@@ -169,6 +173,9 @@ export class SushiClientController {
   }
 
   public reset(): void {
+    this.isEquipping = false;
+    this.equipError = null;
+    this.equipRequest = null;
     this.generation++;
     this.syncing = false;
     this.progressSnapshot = null;
@@ -205,6 +212,7 @@ export class SushiClientController {
       this.syncing ||
       this.isCollecting ||
       this.isBuying ||
+      this.isEquipping ||
       earnedGrants.length === 0
     )
       return;
@@ -329,6 +337,7 @@ export class SushiClientController {
    * idempotency key preservation, and rollback on failure.
    */
   public async collect(): Promise<void> {
+    if (this.isEquipping) return;
     if (this.isCollecting || this.isBuying || this.syncing || !this.state || !this.uid) return;
 
     const calc = this.recalculate();
@@ -388,6 +397,7 @@ export class SushiClientController {
    * Purchases an upgrade item from the catalog.
    */
   public async buy(itemId: string): Promise<void> {
+    if (this.isEquipping) return;
     if (this.isBuying || this.isCollecting || this.syncing || !this.state || !this.uid) return;
     const item = getCatalogItem(itemId);
     if (!item) return;
@@ -428,6 +438,54 @@ export class SushiClientController {
         this.isBuying = null;
         this.buyError = 'Ett nätverksfel uppstod vid köpet. Försök igen.';
         this.announcement = 'Kunde inte slutföra köpet på grund av anslutningsfel.';
+        this.host?.render();
+      }
+    }
+  }
+
+  public async equip(slot: DecorationSlot, itemId: string | null): Promise<void> {
+    if (
+      !this.uid ||
+      !this.state ||
+      this.isEquipping ||
+      this.isBuying ||
+      this.isCollecting ||
+      this.syncing
+    )
+      return;
+    const uid = this.uid;
+    const generation = this.generation;
+    if (this.equipRequest?.slot !== slot || this.equipRequest.itemId !== itemId) {
+      this.equipRequest = {
+        slot,
+        itemId,
+        key: `decor_${Date.now()}_${Math.random().toString(36).slice(2, 10)}`,
+      };
+    }
+    this.isEquipping = true;
+    this.equipError = null;
+    this.host?.render();
+    try {
+      const result = await equipDecoration(uid, slot, itemId, this.equipRequest.key);
+      if (this.uid !== uid || this.generation !== generation) return;
+      this.equipRequest = null;
+      if (result.success) {
+        this.state = result.state;
+        this.clientReceivedAtMs = Date.now();
+        const savedItem = result.state.equipped[slot];
+        this.announcement = savedItem
+          ? `${getCatalogItem(savedItem)?.name} visas på platsen.`
+          : 'Dekorationsplatsen är tom.';
+      } else {
+        this.equipError = result.message;
+      }
+    } catch {
+      if (this.uid !== uid || this.generation !== generation) return;
+      this.equipError =
+        'Kunde inte spara dekorationsvalet. Försök igen genom att välja dekorationen på nytt.';
+    } finally {
+      if (this.uid === uid && this.generation === generation) {
+        this.isEquipping = false;
         this.host?.render();
       }
     }
@@ -628,6 +686,7 @@ function renderSushiAuthenticatedStage(
           </p>
         </div>
 
+        ${renderRestaurantScene(state)}
         <!-- Kassaregister (Ticket 04) -->
         <div
           class="sushi-cash-register"
@@ -982,6 +1041,20 @@ function renderSushiAuthenticatedStage(
             intäkter upp till ${capHoursStr} timmar även när du inte är inloggad.
           </p>
           <div class="sushi-scene-equipment" data-testid="sushi-scene-equipment">
+            <section class="sushi-menu" aria-label="Restaurangens meny" data-testid="sushi-menu">
+              <h3>På menyn</h3>
+              <p>🍙 Klassisk nigiri</p>
+              ${SUSHI_CATALOG.filter(
+                (item) => item.category === 'recipe' && state.inventory.includes(item.id),
+              ).map(
+                (item) => html`
+                  <p data-testid=${`menu-${item.id}`}>
+                    <span aria-hidden="true">${item.icon}</span> ${item.name} · Köpt menyvariation
+                  </p>
+                `,
+              )}
+              <small>Menyvariationerna är visuella och ändrar inte intäkterna.</small>
+            </section>
             ${
               state?.inventory?.includes('prep_counter')
                 ? html`<div
@@ -1013,6 +1086,66 @@ function renderSushiAuthenticatedStage(
                 : ''
             }
           </div>
+          <section
+            class="sushi-decorations"
+            aria-label="Dekorationsplatser"
+            aria-busy=${activeController.isEquipping}
+          >
+            <h3>Gör restaurangen personlig</h3>
+            <p>
+              Köp dekorationer i butiken och välj vad som ska visas här. Dekorationerna påverkar
+              inte intäkterna.
+            </p>
+            <div class="sushi-decoration-slots">
+              ${(['wallSlot', 'floorSlot'] as const).map((slot) => {
+                const label = slot === 'wallSlot' ? 'Väggplats' : 'Golvplats';
+                const selected = state.equipped[slot];
+                const item = selected ? getCatalogItem(selected) : undefined;
+                const owned = SUSHI_CATALOG.filter(
+                  (entry) =>
+                    entry.category === 'decoration' &&
+                    entry.slotType === slot &&
+                    state.inventory.includes(entry.id),
+                );
+                return html`<div class="sushi-decoration-slot" data-testid=${`decoration-${slot}`}>
+                  <div class="sushi-decoration-display" data-testid=${`placed-${slot}`}>
+                    <span aria-hidden="true"
+                      >${item?.id === 'potted_plant' ? '🌿' : (item?.icon ?? (slot === 'wallSlot' ? '🖼️' : '▫️'))}</span
+                    >
+                    <strong>${label}: ${item?.name ?? 'Tom plats'}</strong>
+                  </div>
+                  <details>
+                    <summary>Ändra ${label.toLowerCase()}</summary>
+                    <div class="sushi-decoration-choices">
+                      ${owned.length === 0 ? html`<p>Du äger ännu ingen dekoration för denna plats.</p>` : ''}
+                      ${owned.map(
+                        (entry) =>
+                          html`<button
+                            type="button"
+                            class="sushi-btn-secondary"
+                            aria-pressed=${selected === entry.id}
+                            ?disabled=${activeController.isEquipping || activeController.isBuying !== null || activeController.isCollecting}
+                            @click=${() => void activeController.equip(slot, entry.id)}
+                          >
+                            Placera ${entry.name}
+                          </button>`,
+                      )}
+                      <button
+                        type="button"
+                        class="sushi-btn-secondary"
+                        ?disabled=${!selected || activeController.isEquipping || activeController.isBuying !== null || activeController.isCollecting}
+                        @click=${() => void activeController.equip(slot, null)}
+                      >
+                        Ta bort från ${label.toLowerCase()}
+                      </button>
+                    </div>
+                  </details>
+                </div>`;
+              })}
+            </div>
+            ${activeController.isEquipping ? html`<p role="status">Sparar dekorationsval…</p>` : ''}
+            ${activeController.equipError ? html`<p role="alert" data-testid="sushi-equip-error">${activeController.equipError}</p>` : ''}
+          </section>
         </div>
 
         <!-- Åtgärder och navigation -->

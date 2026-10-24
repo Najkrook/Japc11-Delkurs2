@@ -5,7 +5,7 @@ import {
   type SushiRestaurantRepository,
   type CollectRevenueResult,
 } from './domain-service.ts';
-import type { SushiRestaurantState } from './types.ts';
+import type { SushiRestaurantState, DecorationSlot, EquipDecorationResult } from './types.ts';
 import type { PurchaseItemResult } from './catalog.ts';
 export * from './domain-service.ts';
 
@@ -124,3 +124,14 @@ export async function purchaseCatalogItem(
     : remote(uid, { operation: 'purchase', itemId, idempotencyKey });
 }
 export const purchaseUpgrade = purchaseCatalogItem;
+
+export async function equipDecoration(
+  uid: string,
+  slot: DecorationSlot,
+  itemId: string | null,
+  idempotencyKey: string,
+): Promise<EquipDecorationResult> {
+  return injected
+    ? injected.equipDecoration(uid, slot, itemId, idempotencyKey)
+    : remote(uid, { operation: 'equip', slot, itemId, idempotencyKey });
+}

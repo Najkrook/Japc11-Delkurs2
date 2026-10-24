@@ -25,7 +25,7 @@ export const sushi = onCall({ region: 'europe-west1', maxInstances: 10 }, async 
   if (data.expectedUid !== uid) {
     throw new HttpsError('permission-denied', 'The account changed. Reload your restaurant.');
   }
-  if (!['load', 'collect', 'purchase'].includes(operation)) {
+  if (!['load', 'collect', 'purchase', 'equip'].includes(operation)) {
     throw new HttpsError('invalid-argument', 'Unknown restaurant operation.');
   }
   const allowed =
@@ -33,7 +33,9 @@ export const sushi = onCall({ region: 'europe-west1', maxInstances: 10 }, async 
       ? ['operation', 'expectedUid']
       : operation === 'collect'
         ? ['operation', 'expectedUid', 'idempotencyKey']
-        : ['operation', 'expectedUid', 'idempotencyKey', 'itemId'];
+        : operation === 'equip'
+          ? ['operation', 'expectedUid', 'idempotencyKey', 'itemId', 'slot']
+          : ['operation', 'expectedUid', 'idempotencyKey', 'itemId'];
   if (Object.keys(data).some((key) => !allowed.includes(key))) {
     throw new HttpsError('invalid-argument', 'Restaurant state is determined by the server.');
   }
@@ -50,6 +52,15 @@ export const sushi = onCall({ region: 'europe-west1', maxInstances: 10 }, async 
     throw new HttpsError('invalid-argument', 'A catalog item ID is required.');
   }
   const restaurantRef = db.doc(`users/${uid}/sushi/restaurant`);
+  if (
+    operation === 'equip' &&
+    (!['wallSlot', 'floorSlot'].includes(data.slot) ||
+      (itemId !== null && (typeof itemId !== 'string' || !/^[a-z0-9_]{1,64}$/.test(itemId))))
+  )
+    throw new HttpsError(
+      'invalid-argument',
+      'A fixed decoration slot and item (or null) are required.',
+    );
   const courseRef = db.doc(`users/${uid}/progress/course`);
   return db.runTransaction(async (tx) => {
     // Read both documents in the same transaction; retries re-evaluate server time and grants.
@@ -79,6 +90,8 @@ export const sushi = onCall({ region: 'europe-west1', maxInstances: 10 }, async 
     const now = Date.now();
     if (operation === 'load') return service.getOrInitRestaurant(uid, now, grants);
     if (!current) throw new HttpsError('failed-precondition', 'Load your restaurant first.');
+    if (operation === 'equip')
+      return service.equipDecoration(uid, data.slot, itemId, `equip:${idempotencyKey}`, now);
     // Separate operation/item namespaces prevent a reused key from authorizing another action.
     if (operation === 'collect')
       return service.collectRevenue(uid, `collect:${idempotencyKey}`, now);

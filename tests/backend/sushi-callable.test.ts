@@ -175,6 +175,74 @@ test('authenticated callable persists authoritative economy, medals and concurre
     assert.notEqual(other.id, uid);
     assert.equal(other.balanceUnits, 0);
     assert.deepEqual(other.permanentGrants, []);
+    // Gold decorations and the silver recipe use the same authoritative purchase path.
+    for (const week of courseWeeks.filter((week) => [6, 7, 9].includes(week.lessonNumber))) {
+      for (const word of week.vocab) progress.masteredVocabIds[word.id] = true;
+      for (const kanji of week.kanji) progress.masteredKanjiIds[kanji.id] = true;
+      for (const verb of week.conjugations) progress.masteredDojoIds[verb.id] = true;
+      progress.quizBestResults[week.id] = {
+        score: week.quiz.length,
+        total: week.quiz.length,
+        completedAt: 1,
+      };
+    }
+    await setDoc(doc(db, 'users', uid, 'progress', 'course'), {
+      payload: JSON.stringify(progress),
+      updatedAt: 2,
+    });
+    await ref.update({ balanceUnits: 600_000_000 });
+    const equip = (slot: string, itemId: string | null, key: string) =>
+      owner.call<import('../../src/course/sushi-game/types.ts').EquipDecorationResult>({
+        operation: 'equip',
+        slot,
+        itemId,
+        idempotencyKey: key,
+      });
+    assert.equal((await equip('wallSlot', 'paper_lantern', 'unowned')).success, false);
+    for (const itemId of ['salmon_nigiri', 'paper_lantern', 'wave_print', 'potted_plant']) {
+      assert.ok(
+        (
+          await owner.call<PurchaseItemResult>({
+            operation: 'purchase',
+            itemId,
+            idempotencyKey: itemId,
+          })
+        ).success,
+      );
+    }
+    const economyBefore = (await ref.get()).data();
+    await assert.rejects(equip('free-slot', 'paper_lantern', 'bad-slot'), /fixed decoration slot/);
+    await assert.rejects(
+      owner.call({
+        operation: 'equip',
+        slot: 'wallSlot',
+        itemId: 'paper_lantern',
+        idempotencyKey: 'coords',
+        x: 123,
+      }),
+      /determined by the server/,
+    );
+    assert.equal((await equip('floorSlot', 'paper_lantern', 'wrong-slot')).success, false);
+    assert.ok((await equip('wallSlot', 'paper_lantern', 'place')).success);
+    assert.ok((await equip('wallSlot', 'wave_print', 'replace')).success);
+    assert.ok((await equip('wallSlot', 'paper_lantern', 'place')).success);
+    assert.equal((await ref.get()).data().equipped.wallSlot, 'wave_print');
+    assert.ok((await equip('floorSlot', 'potted_plant', 'plant')).success);
+    assert.ok((await equip('wallSlot', null, 'clear')).success);
+    const decorated = await owner.call<SushiRestaurantState>({ operation: 'load' });
+    assert.deepEqual(decorated.equipped, { wallSlot: null, floorSlot: 'potted_plant' });
+    assert.ok(decorated.inventory.includes('salmon_nigiri'));
+    for (const key of [
+      'balanceUnits',
+      'periodStartMs',
+      'kitchenCapacity',
+      'serviceCapacity',
+      'averageRevenuePerOrder',
+      'capMs',
+    ] as const)
+      assert.equal(decorated[key], economyBefore[key]);
+    const isolated = await outsider.call<SushiRestaurantState>({ operation: 'load' });
+    assert.deepEqual(isolated.equipped, { wallSlot: null, floorSlot: null });
   } finally {
     await Promise.all(apps.map(deleteApp));
     await adminDb.terminate();

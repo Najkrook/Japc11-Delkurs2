@@ -21,6 +21,59 @@
 }
 
 /* ================= Topbar ================= */
+.sushi-menu {
+  flex-basis: 100%;
+  text-align: left;
+}
+
+.sushi-decoration-slots {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(min(100%, 240px), 1fr));
+  gap: 1rem;
+  margin-top: 1rem;
+  text-align: left;
+}
+
+.sushi-decoration-slot {
+  min-width: 0;
+  padding: 1rem;
+  border: 1px solid var(--course-border, #e2e8f0);
+  border-radius: 12px;
+  background: var(--course-card-bg, #fff);
+}
+
+.sushi-decoration-display {
+  display: flex;
+  align-items: center;
+  gap: 0.75rem;
+  min-height: 64px;
+}
+
+.sushi-decoration-display > span {
+  font-size: 2.5rem;
+}
+.sushi-decoration-slot summary {
+  cursor: pointer;
+  padding: 0.75rem 0;
+  min-height: 44px;
+}
+.sushi-decoration-choices {
+  display: grid;
+  gap: 0.5rem;
+  padding-top: 0.5rem;
+}
+.sushi-decoration-choices button {
+  min-height: 44px;
+  white-space: normal;
+}
+.sushi-decoration-choices [aria-pressed='true'] {
+  border: 2px solid currentColor;
+}
+.sushi-decoration-slot :focus-visible {
+  outline: 3px solid var(--course-text, #2d3748);
+  outline-offset: 3px;
+}
+
 .sushi-topbar {
   background: var(--course-card-bg, #ffffff);
   border-bottom: 1px solid var(--course-border, #e2e8f0);
@@ -439,8 +492,28 @@
 
 /* ================= Responsive Layout ================= */
 @media (max-width: 640px) {
+  .sushi-topbar {
+    position: static;
+  }
+
   .sushi-topbar-inner {
     padding: 0.5rem 0.75rem;
+    flex-wrap: wrap;
+    gap: 0.5rem;
+  }
+
+  .sushi-topbar-center {
+    order: -1;
+    flex-basis: 100%;
+  }
+
+  .sushi-topbar-right {
+    flex-wrap: wrap;
+    max-width: 100%;
+  }
+
+  .sushi-account-btn {
+    max-width: 100%;
   }
 
   .sushi-title {
@@ -804,7 +877,10 @@
   padding: 1rem;
   border: 1px solid var(--course-border, #e2e8f0);
   background: var(--course-bg, #f9f8f6);
-  transition: transform 0.15s ease, border-color 0.15s ease, box-shadow 0.15s ease;
+  transition:
+    transform 0.15s ease,
+    border-color 0.15s ease,
+    box-shadow 0.15s ease;
 }
 
 .sushi-unlock-card.is-unlocked {
@@ -1125,4 +1201,69 @@
   .sushi-btn-buy {
     transition: none;
   }
+}
+
+/* Front-facing illustrated restaurant, ticket 11. */
+.sushi-container {
+  --sushi-ink: #583e32;
+  --sushi-paper: #fff4da;
+  --sushi-teal: #23655f;
+  font-family:
+    system-ui,
+    -apple-system,
+    'Segoe UI',
+    sans-serif;
+}
+.sushi-illustration {
+  margin: 1rem 0 1.5rem;
+  overflow: hidden;
+  border: 2px solid var(--sushi-ink);
+  border-radius: 16px;
+  background: var(--sushi-paper);
+  color: var(--sushi-ink);
+}
+.sushi-illustration svg {
+  display: block;
+  width: 100%;
+  height: auto;
+}
+.sushi-illustration figcaption {
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: space-between;
+  gap: 0.35rem 1rem;
+  padding: 0.75rem 1rem;
+  font-size: 0.85rem;
+}
+.sushi-illustration figcaption span:first-child {
+  font-family: Georgia, serif;
+  font-weight: bold;
+  font-size: 1.15rem;
+}
+.sushi-belt-tread {
+  animation: sushi-belt-travel 3s linear infinite;
+}
+@keyframes sushi-belt-travel {
+  to {
+    stroke-dashoffset: -33;
+  }
+}
+.sushi-illustration[data-paused='true'] * {
+  animation-play-state: paused;
+}
+.sushi-scene-placeholder {
+  padding: 1.25rem;
+  border: 1px solid var(--course-border);
+  background: var(--course-card-bg);
+  text-align: left;
+}
+@media (prefers-reduced-motion: reduce) {
+  .sushi-belt-tread {
+    animation: none;
+  }
+}
+.sushi-stage-header h2 {
+  min-width: 0;
+  max-width: 100%;
+  overflow-wrap: anywhere;
 }
