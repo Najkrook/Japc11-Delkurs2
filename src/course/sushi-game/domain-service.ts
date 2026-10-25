@@ -54,6 +54,27 @@ export function sushiStorageKey(uid: string): string {
   return `japc11-dk2-sushi-v1-${uid}`;
 }
 
+export const MAX_PROCESSED_REQUESTS = 200;
+
+function recordProcessedRequest(
+  existing: SushiRestaurantState['processedRequests'] | undefined,
+  key: string,
+  entry: { processedAtMs: number; resultSummary?: string },
+  maxEntries = MAX_PROCESSED_REQUESTS,
+): SushiRestaurantState['processedRequests'] {
+  const next: SushiRestaurantState['processedRequests'] = {
+    ...(existing || {}),
+    [key]: entry,
+  };
+  const keys = Object.keys(next);
+  if (keys.length <= maxEntries) return next;
+  const sorted = keys.sort((a, b) => next[a].processedAtMs - next[b].processedAtMs);
+  for (const oldKey of sorted.slice(0, keys.length - maxEntries)) {
+    delete next[oldKey];
+  }
+  return next;
+}
+
 /**
  * In-Memory Repository for unit tests and offline fast execution.
  * Simulates Firestore transactions per-user.
@@ -218,10 +239,10 @@ export class SushiService {
         ...calculateAccrual(current, nowMs).updatedState,
         equipped: { ...current.equipped, [slot]: itemId },
         updatedAtMs: nowMs,
-        processedRequests: {
-          ...current.processedRequests,
-          [idempotencyKey]: { processedAtMs: nowMs, resultSummary: summary },
-        },
+        processedRequests: recordProcessedRequest(current.processedRequests, idempotencyKey, {
+          processedAtMs: nowMs,
+          resultSummary: summary,
+        }),
       };
       return { state, result: { success: true as const, state, wasAlreadyProcessed: false } };
     });
@@ -373,13 +394,14 @@ export class SushiService {
       const transferredYen = unitsToWholeYen(transferredUnits);
 
       // 2. Record idempotency key
-      const updatedProcessedRequests = {
-        ...(current.processedRequests || {}),
-        [idempotencyKey]: {
+      const updatedProcessedRequests = recordProcessedRequest(
+        current.processedRequests,
+        idempotencyKey,
+        {
           processedAtMs: nowMs,
           resultSummary: `collected ${transferredUnits} units (${transferredYen} yen)`,
         },
-      };
+      );
 
       // 3. Reset uncollected register and timer
       const updatedState: SushiRestaurantState = {
@@ -560,13 +582,10 @@ export class SushiService {
       const newCapMs = item.newCapMs ?? intermediateState.capMs;
 
       const updatedProcessedRequests = idempotencyKey
-        ? {
-            ...(current.processedRequests || {}),
-            [idempotencyKey]: {
-              processedAtMs: nowMs,
-              resultSummary: `purchased ${itemId} for ${priceUnits} units (${item.priceYen} yen)`,
-            },
-          }
+        ? recordProcessedRequest(current.processedRequests, idempotencyKey, {
+            processedAtMs: nowMs,
+            resultSummary: `purchased ${itemId} for ${priceUnits} units (${item.priceYen} yen)`,
+          })
         : current.processedRequests || {};
 
       const updatedState: SushiRestaurantState = {

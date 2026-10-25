@@ -280,11 +280,11 @@ export function renderRestaurantScene(state: SushiRestaurantState) {
           ${owns('salmon_nigiri') ? svg`<g data-testid="art-salmon_nigiri">${sushiPlate(158, conveyor ? 66 : 48, true)}</g>` : ''}
           ${
             owns('kappamaki')
-              ? svg`<g data-testid="art-kappamaki"><g data-testid="art-kappa_maki" transform="translate(105 64)">
+              ? svg`<g data-testid="art-kappamaki" transform="translate(105 64)">
             <rect x="-18" y="-10" width="36" height="20" rx="4" fill="#356e64"/>
             <circle cx="-8" cy="0" r="6" fill="#fff4da"/><rect x="-10" y="-2" width="4" height="4" fill="#68d391"/>
             <circle cx="8" cy="0" r="6" fill="#fff4da"/><rect x="6" y="-2" width="4" height="4" fill="#68d391"/>
-          </g></g>`
+          </g>`
               : ''
           }
           ${

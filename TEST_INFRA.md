@@ -277,7 +277,7 @@ This holds exactly with zero rounding error for any partition of milliseconds.
 
 As members of the QA and Test Engineering track, test writers maintain strict separation between test code and implementation code:
 - **Test Defects**: If a test fails due to faulty test setup, ambiguous assertions, invalid mocks, or incorrect expected values, the test writer corrects the test.
-- **Implementation Bugs**: If a test fails because production implementation code diverges from specifications in `PROJECT.md`, `ORIGINAL_REQUEST.md`, or `sushigame.md`, the test writer does **NOT** modify implementation code. Instead, the bug is documented in `handoff.md` and escalated to the implementing agent (or parent orchestrator) with:
+- **Implementation Bugs**: If a test fails because production implementation code diverges from specifications in `docs/sushi-game/gdd.md` or `sushigame.md`, the test writer does **NOT** modify implementation code. Instead, the bug is documented in `handoff.md` and escalated to the implementing agent (or parent orchestrator) with:
   1. Exact reproduction steps and test file path.
   2. Observed output vs. Expected output derived from specification.
   3. Impact analysis on game balance, security, or study insulation.

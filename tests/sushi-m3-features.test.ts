@@ -165,8 +165,6 @@ test('Milestone 3 Restaurant Scene: Renders all recipe plates when owned', () =>
   for (const recipe of allRecipes) {
     assert.ok(htmlStr.includes(`data-testid=\\"art-${recipe}\\"`), `Contains art-${recipe}`);
   }
-  // Kappamaki also provides alias art-kappa_maki for compatibility
-  assert.ok(htmlStr.includes('data-testid=\\"art-kappa_maki\\"'), 'Contains art-kappa_maki alias');
 });
 
 test('Milestone 3 Restaurant Scene: Renders equipment visual cues and wall/floor decor', () => {
@@ -299,6 +297,9 @@ test('Milestone 3 Equipment Badges: Renders exact balanced capacities and revenu
       html.includes('Mästarcertifiering (+5 ¥/order)'),
       'Mästarcertifiering badge shows +5 ¥/order',
     );
+    for (const id of ['precision_knife', 'service_counter', 'sous_chef', 'master_license']) {
+      assert.ok(html.includes(`data-testid="scene-${id}"`), `Badge testid scene-${id} is uniform`);
+    }
   } finally {
     leaveSushiView();
   }

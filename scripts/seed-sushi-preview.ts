@@ -43,7 +43,9 @@ try {
     progress.activeSubView = 'sushi';
     progress.updatedAt = Date.now();
     if (profile === 'progressed') {
-      for (const week of courseWeeks.filter((week) => [6, 7, 9].includes(week.lessonNumber))) {
+      for (const week of courseWeeks.filter(
+        (week) => week.lessonNumber >= 6 && week.lessonNumber <= 12,
+      )) {
         for (const word of week.vocab) progress.masteredVocabIds[word.id] = true;
         for (const kanji of week.kanji) progress.masteredKanjiIds[kanji.id] = true;
         for (const verb of week.conjugations) progress.masteredDojoIds[verb.id] = true;
@@ -56,7 +58,7 @@ try {
     }
     const restaurant = createDefaultRestaurantState(uid, Date.now());
     if (profile === 'progressed') {
-      restaurant.balanceUnits = 10_000 * 60_000;
+      restaurant.balanceUnits = 50_000 * 60_000;
       // Thirty minutes waiting in the register lets collection be tried immediately.
       restaurant.accountedAtMs -= 30 * 60_000;
       restaurant.periodStartMs = restaurant.accountedAtMs;

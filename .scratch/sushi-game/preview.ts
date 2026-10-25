@@ -4,11 +4,12 @@ window.addEventListener('pageshow', (event) => {
   if (event.persisted) location.reload();
 });
 // Check before importing cloud.ts: an ordinary Vite session must not touch live auth.
-if (import.meta.env.MODE !== 'test' || import.meta.env.VITE_FIREBASE_EMULATORS !== 'true' ||
+const metaEnv = (import.meta as unknown as { env?: Record<string, string> }).env;
+if (metaEnv?.MODE !== 'test' || metaEnv?.VITE_FIREBASE_EMULATORS !== 'true' ||
     !['127.0.0.1', 'localhost'].includes(location.hostname)) {
   status.textContent = 'Start this preview with npm run preview:sushi. Local emulators are required.';
 } else {
-  const { auth } = await import('/src/cloud.ts');
+  const { auth } = await import('../../src/cloud.ts');
   const { GoogleAuthProvider, signInWithCredential } = await import('firebase/auth');
   status.textContent = 'Ready. Choose a profile to start or continue playing.';
   for (const button of buttons) {
@@ -24,7 +25,7 @@ if (import.meta.env.MODE !== 'test' || import.meta.env.VITE_FIREBASE_EMULATORS !
         })));
         if (result.user.uid !== uid) throw new Error('Test profiles are missing. Restart npm run preview:sushi.');
         // Prefer seeded cloud progress over a previous emulator session's local snapshot.
-        const { courseStorageKey } = await import('/src/course/course-state.ts');
+        const { courseStorageKey } = await import('../../src/course/course-state.ts');
         localStorage.removeItem(courseStorageKey(uid));
         location.href = '/?sushi=1#/sushi';
       } catch (error) {

@@ -1127,7 +1127,7 @@ function renderSushiAuthenticatedStage(
               state?.inventory?.includes('sous_chef')
                 ? html`<div
                     class="sushi-scene-equipment-badge scene-sous-chef"
-                    data-testid="scene-sous-chef"
+                    data-testid="scene-sous_chef"
                   >
                     👨‍🍳 Souschef (+2 kök)
                   </div>`

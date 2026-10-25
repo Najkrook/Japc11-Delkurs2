@@ -521,3 +521,28 @@ test('SushiService: syncMedalGrants advances lazy idle revenue accrual to nowMs 
   assert.equal(synced.usedProductionMs, 15 * MS_PER_MINUTE);
   assert.equal(synced.accountedAtMs, t15m);
 });
+
+test('SushiService: processedRequests map is bounded to MAX_PROCESSED_REQUESTS (200) and evicts oldest entries', async () => {
+  const repo = new InMemorySushiRepository();
+  const service = new SushiService(repo);
+  const uid = 'student-bounded-requests';
+  await service.getOrInitRestaurant(uid, 1_000);
+
+  for (let i = 1; i <= 210; i++) {
+    await service.collectRevenue(uid, `req-${i}`, 1_000 + i * 1_000);
+  }
+
+  const final = await service.getOrInitRestaurant(uid, 250_000);
+  const keys = Object.keys(final.processedRequests);
+  assert.equal(keys.length, 200, 'processedRequests must be capped at 200 entries');
+  assert.ok(!Object.hasOwn(final.processedRequests, 'req-1'), 'Oldest entry req-1 must be evicted');
+  assert.ok(
+    !Object.hasOwn(final.processedRequests, 'req-10'),
+    'Oldest entry req-10 must be evicted',
+  );
+  assert.ok(Object.hasOwn(final.processedRequests, 'req-11'), 'Entry req-11 must be retained');
+  assert.ok(
+    Object.hasOwn(final.processedRequests, 'req-210'),
+    'Newest entry req-210 must be retained',
+  );
+});

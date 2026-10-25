@@ -13,7 +13,7 @@
 Milestone 4 (R4 QA & Regression Verification) and the E2E Testing Track have successfully validated the complete sushi game feature set, mathematical invariants, security boundaries, and study platform isolation. All release criteria across Tickets **T-14**, **T-15**, and **T-E2E** are fully satisfied.
 
 - **Type Safety**: `npm run typecheck` passes cleanly with **0 errors**.
-- **Automated Test Suite**: `npm test` executes **336 tests** across all unit, domain, boundary, adversarial, and concurrency suites with **100% passing (336 passed, 0 failed)** in **1.36 seconds**.
+- **Automated Test Suite**: `npm test` executes **346 tests** across all unit, domain, boundary, adversarial, and concurrency suites with **100% passing (346 passed, 0 failed)** in **~1.4 seconds**.
 - **Production Build & Bundle Chunk Isolation**: `npm run build` generates production assets with **strict code-splitting**. The sushi game view and styles are deferred into lazy chunks (`sushi-view-*.js` and `sushi-*.css`). The primary application bundle (`index-*.js`) contains **zero sushi game strings**, guaranteeing zero overhead on initial study platform load.
 - **Curriculum & Pedagogical Non-Interference**: Core Japanese study tools (vocabulary flashcards, kanji bank, て-form dojo drills, chapter comprehension quizzes, and Tae Kim SRS) operate with complete autonomy and zero side-effects.
 
@@ -76,12 +76,12 @@ Milestone 4 (R4 QA & Regression Verification) and the E2E Testing Track have suc
 |   **Tier 2**   | `tests/sushi-tier2-boundary-adversarial.test.ts` |    8    |         `PASS`          | Formal Tier 2 boundary contracts (F04, F07, F09, F11, F13, F15)                                                                                                    |
 |   **Tier 2**   | `tests/sushi-prototype-deep-adversarial.test.ts` |   12    |         `PASS`          | Deep persistent state mutations and schema transitions                                                                                                             |
 |  **Tier 1/2**  | `tests/sushi-view.test.ts`                       |   24    |         `PASS`          | Lit-html DOM shell, auth gate, and controller lifecycle                                                                                                            |
-|  **Tier 1/2**  | `tests/sushi-service.test.ts`                    |   20    |         `PASS`          | InMemorySushiRepository lifecycle, storage hydration, and errors                                                                                                   |
+|  **Tier 1/2**  | `tests/sushi-service.test.ts`                    |   21    |         `PASS`          | InMemorySushiRepository lifecycle, storage hydration, bounded `processedRequests`, and errors                                                                      |
 | **Regression** | `tests/sushi-m4-regression.test.ts`              |   13    |         `PASS`          | **Milestone 4 comprehensive regression suite**: extended accrual (10m, 1h, 8h, 12h, 24h), monotonic non-revocation, purchases, and study platform non-interference |
 | **Study Core** | `tests/study-drills.test.ts`                     |   35    |         `PASS`          | Japanese vocab flashcards, dojo conjugation, kanji, mistake bank                                                                                                   |
 | **Study Core** | `tests/course-progress.test.ts`                  |   10    |         `PASS`          | Pure study progress computation and cloud sync handlers                                                                                                            |
 | **Study Core** | `tests/tae-kim-srs.test.ts`                      |    5    |         `PASS`          | Tae Kim immersion data and SM-2 spaced repetition scheduler                                                                                                        |
-|   **TOTAL**    | **All In-Memory Test Suites**                    | **336** | **`336 PASS / 0 FAIL`** | **100% clean pass rate**                                                                                                                                           |
+|   **TOTAL**    | **All In-Memory Test Suites**                    | **346** | **`346 PASS / 0 FAIL`** | **100% clean pass rate**                                                                                                                                           |
 
 ---
 
@@ -104,11 +104,11 @@ npm test
 **Result**: Exit code `0`.
 
 ```text
-ℹ tests 336
+ℹ tests 346
 ℹ suites 0
-ℹ pass 336
+ℹ pass 346
 ℹ fail 0
-ℹ duration_ms 1357.5476
+ℹ duration_ms 1367.0015
 ```
 
 ### 4.3 Milestone 4 Regression Suite Specifically

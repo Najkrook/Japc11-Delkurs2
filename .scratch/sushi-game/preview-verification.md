@@ -6,8 +6,8 @@ Starta med `npm run preview:sushi` på Windows. Startsidan finns på
 ## Förberedda profiler
 
 - `sushi-preview-fresh`: inga medaljer, inga köp, 0 disponibla yen.
-- `sushi-preview-progressed`: fullständiga kursframsteg för kapitel 6, 7 och 9,
-  10 000 disponibla yen, 30 minuters väntande produktion och inga köp.
+- `sushi-preview-progressed`: fullständiga kursframsteg för kapitel 6–12,
+  50 000 disponibla yen, 30 minuters väntande produktion och inga köp.
 
 Kontona finns endast i Auth- och Firestore-emulatorerna för `demo-japc11-delkurs2`.
 Spelet använder ordinarie callable-funktion för laddning, hämtning, köp och placering.
