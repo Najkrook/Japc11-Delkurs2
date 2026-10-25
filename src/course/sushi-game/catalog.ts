@@ -23,7 +23,7 @@ import type { UnlockGrantId, MedalTier } from './medals.ts';
 // 1. Catalog Types
 // ==========================================
 
-export type CatalogCategory = 'kitchen' | 'service' | 'cap' | 'recipe' | 'decoration';
+export type CatalogCategory = 'kitchen' | 'service' | 'cap' | 'recipe' | 'decoration' | 'revenue';
 
 export interface SushiCatalogItem {
   readonly id: UnlockGrantId;
@@ -102,10 +102,11 @@ export interface PurchaseFailureResult {
 export type PurchaseItemResult = PurchaseSuccessResult | PurchaseFailureResult;
 
 // ==========================================
-// 2. Master Catalog Definitions (7 Canonical MVP Items)
+// 2. Master Catalog Definitions (21-Item Master Matrix for Genki I Chapters 6–12)
 // ==========================================
 
 export const SUSHI_CATALOG: readonly SushiCatalogItem[] = [
+  // --- Chapter 6 (Lesson 6, week-1) ---
   {
     id: 'prep_counter',
     name: 'Förbättrad beredningsbänk',
@@ -154,6 +155,8 @@ export const SUSHI_CATALOG: readonly SushiCatalogItem[] = [
     effectDescription: 'Traditionell röd papperslykta för restaurangens väggplats.',
     targetWeekId: 'week-1',
   },
+
+  // --- Chapter 7 (Lesson 7, week-2) ---
   {
     id: 'cap_extension_12h',
     name: 'Längre produktionstid',
@@ -168,6 +171,22 @@ export const SUSHI_CATALOG: readonly SushiCatalogItem[] = [
     priceUnits: 1800 * YEN_UNIT_MULTIPLIER, // 108,000,000
     newCapMs: EXTENDED_CAP_MS, // 43,200,000 ms (12 hours)
     effectDescription: 'Höjer intjäningstaket från 8 till 12 sammanhängande timmar.',
+    targetWeekId: 'week-2',
+  },
+  {
+    id: 'kappamaki',
+    name: 'Kappamaki (Gurkrulle)',
+    category: 'recipe',
+    categoryLabel: 'Recept',
+    icon: '🥒',
+    requiredLesson: 7,
+    requiredTier: 'silver',
+    requiredTierLabel: 'Silver',
+    requiredPercent: 80,
+    priceYen: 900,
+    priceUnits: 900 * YEN_UNIT_MULTIPLIER, // 54,000,000
+    recipeId: 'kappamaki',
+    effectDescription: 'Fräsch gurkrulle med krispig nori. Visuell menyförbättring.',
     targetWeekId: 'week-2',
   },
   {
@@ -186,6 +205,58 @@ export const SUSHI_CATALOG: readonly SushiCatalogItem[] = [
     effectDescription: 'Grönskande bonsai och krukväxt för restaurangens golvplats.',
     targetWeekId: 'week-2',
   },
+
+  // --- Chapter 8 (Lesson 8, week-3) ---
+  {
+    id: 'precision_knife',
+    name: 'Precisionskniv',
+    category: 'kitchen',
+    categoryLabel: 'Kök',
+    icon: '🗡️',
+    requiredLesson: 8,
+    requiredTier: 'bronze',
+    requiredTierLabel: 'Brons',
+    requiredPercent: 60,
+    priceYen: 2400,
+    priceUnits: 2400 * YEN_UNIT_MULTIPLIER, // 144,000,000
+    kitchenCapacityDelta: 1,
+    effectDescription: 'Ökar kökskapaciteten med +1 order/minut (från 3 till 4).',
+    targetWeekId: 'week-3',
+  },
+  {
+    id: 'maguro_nigiri',
+    name: 'Maguronigiri (Tonfisk)',
+    category: 'recipe',
+    categoryLabel: 'Recept',
+    icon: '🐟',
+    requiredLesson: 8,
+    requiredTier: 'silver',
+    requiredTierLabel: 'Silver',
+    requiredPercent: 80,
+    priceYen: 1200,
+    priceUnits: 1200 * YEN_UNIT_MULTIPLIER, // 72,000,000
+    recipeId: 'maguro_nigiri',
+    effectDescription: 'Exklusiv mörkröd tonfisknigiri. Visuell menyförbättring.',
+    targetWeekId: 'week-3',
+  },
+  {
+    id: 'noren_curtain',
+    name: 'Noren-gardin',
+    category: 'decoration',
+    categoryLabel: 'Dekoration',
+    icon: '🎏',
+    requiredLesson: 8,
+    requiredTier: 'gold',
+    requiredTierLabel: 'Guld',
+    requiredPercent: 100,
+    priceYen: 600,
+    priceUnits: 600 * YEN_UNIT_MULTIPLIER, // 36,000,000
+    slotType: 'wallSlot',
+    effectDescription: 'Traditionell indigoblå delad tyggardin för väggplatsen.',
+    targetWeekId: 'week-3',
+  },
+
+  // --- Chapter 9 (Lesson 9, week-4) ---
   {
     id: 'conveyor_belt',
     name: 'Transportband',
@@ -203,6 +274,22 @@ export const SUSHI_CATALOG: readonly SushiCatalogItem[] = [
     targetWeekId: 'week-4',
   },
   {
+    id: 'ebi_nigiri',
+    name: 'Ebinigiri (Räka)',
+    category: 'recipe',
+    categoryLabel: 'Recept',
+    icon: '🦐',
+    requiredLesson: 9,
+    requiredTier: 'silver',
+    requiredTierLabel: 'Silver',
+    requiredPercent: 80,
+    priceYen: 1500,
+    priceUnits: 1500 * YEN_UNIT_MULTIPLIER, // 90,000,000
+    recipeId: 'ebi_nigiri',
+    effectDescription: 'Färgglad söt räknigiri med klassiskt fjärilssnitt. Visuell menyförbättring.',
+    targetWeekId: 'week-4',
+  },
+  {
     id: 'wave_print',
     name: 'Vågmotiv',
     category: 'decoration',
@@ -217,6 +304,156 @@ export const SUSHI_CATALOG: readonly SushiCatalogItem[] = [
     slotType: 'wallSlot',
     effectDescription: 'Konsttryck med ukiyo-e vågmotiv för restaurangens väggplats.',
     targetWeekId: 'week-4',
+  },
+
+  // --- Chapter 10 (Lesson 10, week-5) ---
+  {
+    id: 'service_counter',
+    name: 'Utökad serveringsdisk',
+    category: 'service',
+    categoryLabel: 'Service',
+    icon: '🍱',
+    requiredLesson: 10,
+    requiredTier: 'bronze',
+    requiredTierLabel: 'Brons',
+    requiredPercent: 60,
+    priceYen: 5400,
+    priceUnits: 5400 * YEN_UNIT_MULTIPLIER, // 324,000,000
+    serviceCapacityDelta: 2,
+    effectDescription: 'Ökar servicekapaciteten med +2 ordrar/minut (från 4 till 6).',
+    targetWeekId: 'week-5',
+  },
+  {
+    id: 'tamago_nigiri',
+    name: 'Tamagonigiri (Ägg)',
+    category: 'recipe',
+    categoryLabel: 'Recept',
+    icon: '🍳',
+    requiredLesson: 10,
+    requiredTier: 'silver',
+    requiredTierLabel: 'Silver',
+    requiredPercent: 80,
+    priceYen: 1800,
+    priceUnits: 1800 * YEN_UNIT_MULTIPLIER, // 108,000,000
+    recipeId: 'tamago_nigiri',
+    effectDescription: 'Söt japansk omelettnigiri bunden med noriband. Visuell menyförbättring.',
+    targetWeekId: 'week-5',
+  },
+  {
+    id: 'andon_lantern',
+    name: 'Andon-golvlykta',
+    category: 'decoration',
+    categoryLabel: 'Dekoration',
+    icon: '🪔',
+    requiredLesson: 10,
+    requiredTier: 'gold',
+    requiredTierLabel: 'Guld',
+    requiredPercent: 100,
+    priceYen: 750,
+    priceUnits: 750 * YEN_UNIT_MULTIPLIER, // 45,000,000
+    slotType: 'floorSlot',
+    effectDescription: 'Stämningsfull japansk träramad papperslykta för golvplatsen.',
+    targetWeekId: 'week-5',
+  },
+
+  // --- Chapter 11 (Lesson 11, week-6) ---
+  {
+    id: 'sous_chef',
+    name: 'Assisterande kock',
+    category: 'kitchen',
+    categoryLabel: 'Kök',
+    icon: '👨‍🍳',
+    requiredLesson: 11,
+    requiredTier: 'bronze',
+    requiredTierLabel: 'Brons',
+    requiredPercent: 60,
+    priceYen: 7200,
+    priceUnits: 7200 * YEN_UNIT_MULTIPLIER, // 432,000,000
+    kitchenCapacityDelta: 2,
+    effectDescription: 'Ökar kökskapaciteten med +2 ordrar/minut (från 4 till 6).',
+    targetWeekId: 'week-6',
+  },
+  {
+    id: 'sashimi_plate',
+    name: 'Sashimi Moriawase',
+    category: 'recipe',
+    categoryLabel: 'Recept',
+    icon: '🍱',
+    requiredLesson: 11,
+    requiredTier: 'silver',
+    requiredTierLabel: 'Silver',
+    requiredPercent: 80,
+    priceYen: 2400,
+    priceUnits: 2400 * YEN_UNIT_MULTIPLIER, // 144,000,000
+    recipeId: 'sashimi_plate',
+    effectDescription: 'Lyxigt fat med skivad rå lax och tonfisk. Visuell menyförbättring.',
+    targetWeekId: 'week-6',
+  },
+  {
+    id: 'sakura_bonsai',
+    name: 'Sakura Bonsai',
+    category: 'decoration',
+    categoryLabel: 'Dekoration',
+    icon: '🌸',
+    requiredLesson: 11,
+    requiredTier: 'gold',
+    requiredTierLabel: 'Guld',
+    requiredPercent: 100,
+    priceYen: 900,
+    priceUnits: 900 * YEN_UNIT_MULTIPLIER, // 54,000,000
+    slotType: 'floorSlot',
+    effectDescription: 'Blommande körsbärsbonsai för golvplatsen.',
+    targetWeekId: 'week-6',
+  },
+
+  // --- Chapter 12 (Lesson 12, week-7) ---
+  {
+    id: 'master_license',
+    name: 'Mästarcertifiering',
+    category: 'revenue',
+    categoryLabel: 'Intäkt',
+    icon: '📜',
+    requiredLesson: 12,
+    requiredTier: 'bronze',
+    requiredTierLabel: 'Brons',
+    requiredPercent: 60,
+    priceYen: 10800,
+    priceUnits: 10800 * YEN_UNIT_MULTIPLIER, // 648,000,000
+    averageRevenueDelta: 5,
+    effectDescription: 'Höjer genomsnittlig intäkt per order från 10 till 15 yen (+5 ¥/order).',
+    targetWeekId: 'week-7',
+  },
+  {
+    id: 'omakase_menu',
+    name: 'Omakase-meny',
+    category: 'recipe',
+    categoryLabel: 'Recept',
+    icon: '🍣',
+    requiredLesson: 12,
+    requiredTier: 'silver',
+    requiredTierLabel: 'Silver',
+    requiredPercent: 80,
+    priceYen: 3000,
+    priceUnits: 3000 * YEN_UNIT_MULTIPLIER, // 180,000,000
+    recipeId: 'omakase_menu',
+    effectDescription: 'Kockens finaste urval av nigiri och rullar. Högsta menyprestige.',
+    targetWeekId: 'week-7',
+  },
+  {
+    id: 'golden_maneki_neko',
+    name: 'Gyllene Maneki-Neko',
+    category: 'decoration',
+    categoryLabel: 'Dekoration',
+    icon: '🐱',
+    requiredLesson: 12,
+    requiredTier: 'gold',
+    requiredTierLabel: 'Guld',
+    requiredPercent: 100,
+    priceYen: 1500,
+    priceUnits: 1500 * YEN_UNIT_MULTIPLIER, // 90,000,000
+    slotType: 'floorSlot',
+    effectDescription: 'Gyllene vinkande katt som bringar tur och ära till restaurangen.',
+    targetWeekId: 'week-7',
   },
 ] as const;
 
@@ -281,6 +518,8 @@ export function previewUpgradeImpact(
           newService === 1 ? 'order' : 'ordrar'
         }/min. Intäktstakten förblir ${currentRate.yenPerMinute} ¥/min tills du uppgraderar servicen.`;
     }
+  } else if ((deltas.averageRevenueDelta ?? 0) > 0 && yenDelta > 0) {
+    educationalExplanation = `Ökar genomsnittlig intäkt från ${currentState.averageRevenuePerOrder} till ${newAvgRev} ¥/order. Intäktstakten ökar direkt från ${currentRate.yenPerMinute} till ${prospectiveRate.yenPerMinute} ¥/min (+${yenDelta} ¥/min).`;
   } else if (yenDelta > 0) {
     educationalExplanation = `Intäktstakten ökar direkt från ${currentRate.yenPerMinute} till ${prospectiveRate.yenPerMinute} ¥/min (+${yenDelta} ¥/min).`;
   } else if (deltas.newCapMs !== undefined && deltas.newCapMs > currentState.capMs) {

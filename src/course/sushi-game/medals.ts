@@ -19,9 +19,23 @@ export type UnlockGrantId =
   | 'salmon_nigiri'
   | 'paper_lantern'
   | 'cap_extension_12h'
+  | 'kappamaki'
   | 'potted_plant'
+  | 'precision_knife'
+  | 'maguro_nigiri'
+  | 'noren_curtain'
   | 'conveyor_belt'
-  | 'wave_print';
+  | 'ebi_nigiri'
+  | 'wave_print'
+  | 'service_counter'
+  | 'tamago_nigiri'
+  | 'andon_lantern'
+  | 'sous_chef'
+  | 'sashimi_plate'
+  | 'sakura_bonsai'
+  | 'master_license'
+  | 'omakase_menu'
+  | 'golden_maneki_neko';
 
 export type MedalTier = 'bronze' | 'silver' | 'gold';
 
@@ -34,17 +48,44 @@ export interface MedalGrantRule {
 export type { SushiCatalogItem, SushiCatalogItem as SushiUnlockCatalogItem } from './catalog.ts';
 
 // ==========================================
-// 2. Canonical MVP Medal Grant Rules
+// 2. Canonical 21-Item Master Medal Grant Rules (Genki I Chapters 6–12)
 // ==========================================
 
 export const MEDAL_GRANT_RULES: readonly MedalGrantRule[] = [
+  // Chapter 6 (week-1)
   { grantId: 'prep_counter', lessonNumber: 6, requiredTier: 'bronze' },
   { grantId: 'salmon_nigiri', lessonNumber: 6, requiredTier: 'silver' },
   { grantId: 'paper_lantern', lessonNumber: 6, requiredTier: 'gold' },
+
+  // Chapter 7 (week-2)
   { grantId: 'cap_extension_12h', lessonNumber: 7, requiredTier: 'bronze' },
+  { grantId: 'kappamaki', lessonNumber: 7, requiredTier: 'silver' },
   { grantId: 'potted_plant', lessonNumber: 7, requiredTier: 'gold' },
+
+  // Chapter 8 (week-3)
+  { grantId: 'precision_knife', lessonNumber: 8, requiredTier: 'bronze' },
+  { grantId: 'maguro_nigiri', lessonNumber: 8, requiredTier: 'silver' },
+  { grantId: 'noren_curtain', lessonNumber: 8, requiredTier: 'gold' },
+
+  // Chapter 9 (week-4)
   { grantId: 'conveyor_belt', lessonNumber: 9, requiredTier: 'bronze' },
+  { grantId: 'ebi_nigiri', lessonNumber: 9, requiredTier: 'silver' },
   { grantId: 'wave_print', lessonNumber: 9, requiredTier: 'gold' },
+
+  // Chapter 10 (week-5)
+  { grantId: 'service_counter', lessonNumber: 10, requiredTier: 'bronze' },
+  { grantId: 'tamago_nigiri', lessonNumber: 10, requiredTier: 'silver' },
+  { grantId: 'andon_lantern', lessonNumber: 10, requiredTier: 'gold' },
+
+  // Chapter 11 (week-6)
+  { grantId: 'sous_chef', lessonNumber: 11, requiredTier: 'bronze' },
+  { grantId: 'sashimi_plate', lessonNumber: 11, requiredTier: 'silver' },
+  { grantId: 'sakura_bonsai', lessonNumber: 11, requiredTier: 'gold' },
+
+  // Chapter 12 (week-7)
+  { grantId: 'master_license', lessonNumber: 12, requiredTier: 'bronze' },
+  { grantId: 'omakase_menu', lessonNumber: 12, requiredTier: 'silver' },
+  { grantId: 'golden_maneki_neko', lessonNumber: 12, requiredTier: 'gold' },
 ] as const;
 
 // ==========================================

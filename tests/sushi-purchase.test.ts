@@ -35,7 +35,7 @@ import {
 // ==========================================
 
 test('M3-Catalog: Canonical catalog defines all 7 MVP items with rich typing', () => {
-  assert.equal(SUSHI_CATALOG.length, 7, 'Catalog must contain exactly 7 items');
+  assert.equal(SUSHI_CATALOG.length, 21, 'Catalog must contain all 21 items');
 
   const prepCounter = getCatalogItem('prep_counter');
   assert.ok(prepCounter, 'prep_counter must exist');

@@ -151,6 +151,7 @@ test('Adversarial M2-01: Student earns Chapters 6, 7, 9 medals, then suffers 100
     'salmon_nigiri',
     'paper_lantern',
     'cap_extension_12h',
+    'kappamaki',
     'potted_plant',
   ]);
 
@@ -164,14 +165,15 @@ test('Adversarial M2-01: Student earns Chapters 6, 7, 9 medals, then suffers 100
     'salmon_nigiri',
     'paper_lantern',
     'cap_extension_12h',
+    'kappamaki',
     'potted_plant',
     'conveyor_belt',
   ]);
 
-  // Phase 8: Earn Chapter 9 Gold (100%) -> wave_print (All 7 MVP unlock items earned!)
+  // Phase 8: Earn Chapter 9 Gold (100%) -> wave_print (All Ch 6, 7, 9 unlock items earned!)
   setWeekMasteryRatio(courseProgress, w4, 1.0);
   evaluated = evaluateMedalGrants(courseProgress);
-  assert.equal(evaluated.length, 7);
+  assert.equal(evaluated.length, 9);
   rState = await service.syncMedalGrants(uid, evaluated, (nowMs += 1000));
 
   const all7Grants = [
@@ -179,8 +181,10 @@ test('Adversarial M2-01: Student earns Chapters 6, 7, 9 medals, then suffers 100
     'salmon_nigiri',
     'paper_lantern',
     'cap_extension_12h',
+    'kappamaki',
     'potted_plant',
     'conveyor_belt',
+    'ebi_nigiri',
     'wave_print',
   ];
   assert.deepEqual(rState.permanentGrants, all7Grants);
@@ -195,7 +199,7 @@ test('Adversarial M2-01: Student earns Chapters 6, 7, 9 medals, then suffers 100
   assert.equal(ch6DroppedGrants.includes('prep_counter'), false);
   assert.equal(ch6DroppedGrants.includes('salmon_nigiri'), false);
   assert.equal(ch6DroppedGrants.includes('paper_lantern'), false);
-  assert.equal(ch6DroppedGrants.length, 4); // Only Ch 7 and 9 remain
+  assert.equal(ch6DroppedGrants.length, 6); // Only Ch 7 and 9 remain (3 each)
 
   // Sync with diminished grants
   rState = await service.syncMedalGrants(uid, ch6DroppedGrants, (nowMs += 1000));
@@ -209,8 +213,9 @@ test('Adversarial M2-01: Student earns Chapters 6, 7, 9 medals, then suffers 100
   clearWeekMastery(courseProgress, w2);
   const ch7DroppedGrants = evaluateMedalGrants(courseProgress);
   assert.equal(ch7DroppedGrants.includes('cap_extension_12h'), false);
+  assert.equal(ch7DroppedGrants.includes('kappamaki'), false);
   assert.equal(ch7DroppedGrants.includes('potted_plant'), false);
-  assert.equal(ch7DroppedGrants.length, 2); // Only Ch 9 remains
+  assert.equal(ch7DroppedGrants.length, 3); // Only Ch 9 remains
 
   rState = await service.syncMedalGrants(uid, ch7DroppedGrants, (nowMs += 1000));
   assert.deepEqual(
@@ -421,7 +426,7 @@ test('Adversarial M2-05: evaluateMedalGrants with corrupted week IDs and mismatc
   const grantsLesson9 = evaluateMedalGrants(progress, [customWeek9]);
   assert.deepEqual(
     grantsLesson9,
-    ['conveyor_belt', 'wave_print'],
+    ['conveyor_belt', 'ebi_nigiri', 'wave_print'],
     'Lesson 9 strictly maps by lessonNumber: 9 regardless of whether week.id is week-4 or week-9',
   );
 });

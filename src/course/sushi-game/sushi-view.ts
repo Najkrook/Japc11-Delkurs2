@@ -363,7 +363,7 @@ export class SushiClientController {
         this.clientReceivedAtMs = Date.now();
         this.idempotencyKey = null; // Key succeeded; reset for next collection
         this.isCollecting = false;
-        this.announcement = `Intäkter sparade på servern. Nytt saldo: ${unitsToWholeYen(
+        this.announcement = `Hämtade ${res.collectedYen} yen. Nytt saldo: ${unitsToWholeYen(
           this.state.balanceUnits,
         )} yen.`;
         this.host?.render();
@@ -717,6 +717,22 @@ function renderSushiAuthenticatedStage(
               ${bottleneckText}
             </span>
           </div>
+
+          ${
+            rate.bottleneck !== 'none'
+              ? html`
+                  <div
+                    class="sushi-bottleneck-explainer register-banner"
+                    data-testid="sushi-register-bottleneck-explainer"
+                  >
+                    💡 <strong>Flaskhalsguide:</strong>
+                    ${rate.bottleneck === 'kitchen'
+                      ? `Köket begränsar intjäningen (${state ? state.kitchenCapacity : 1} ord/min mot ${state ? state.serviceCapacity : 2} ord/min service). Uppgradera kökskapaciteten för att höja takten.`
+                      : `Servicen begränsar intjäningen (${state ? state.serviceCapacity : 2} ord/min mot ${state ? state.kitchenCapacity : 1} ord/min kök). Uppgradera transportband eller service för att höja takten.`}
+                  </div>
+                `
+              : ''
+          }
 
           <!-- Takmätare och framsteg (Ticket 04 & 08) -->
           <div class="sushi-cap-tracker">
@@ -1082,6 +1098,46 @@ function renderSushiAuthenticatedStage(
                     data-testid="scene-cap-extension"
                   >
                     ⏰ 12h Produktionstak
+                  </div>`
+                : ''
+            }
+            ${
+              state?.inventory?.includes('precision_knife')
+                ? html`<div
+                    class="sushi-scene-equipment-badge scene-precision-knife"
+                    data-testid="scene-precision_knife"
+                  >
+                    🔪 Precisionskniv (+1 kök)
+                  </div>`
+                : ''
+            }
+            ${
+              state?.inventory?.includes('service_counter')
+                ? html`<div
+                    class="sushi-scene-equipment-badge scene-service-counter"
+                    data-testid="scene-service_counter"
+                  >
+                    🍱 Utökad serveringsdisk (+2 service)
+                  </div>`
+                : ''
+            }
+            ${
+              state?.inventory?.includes('sous_chef')
+                ? html`<div
+                    class="sushi-scene-equipment-badge scene-sous-chef"
+                    data-testid="scene-sous-chef"
+                  >
+                    👨‍🍳 Souschef (+2 kök)
+                  </div>`
+                : ''
+            }
+            ${
+              state?.inventory?.includes('master_license')
+                ? html`<div
+                    class="sushi-scene-equipment-badge scene-master-license"
+                    data-testid="scene-master_license"
+                  >
+                    📜 Mästarcertifiering (+5 ¥/order)
                   </div>`
                 : ''
             }

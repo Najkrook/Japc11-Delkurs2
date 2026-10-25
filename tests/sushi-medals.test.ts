@@ -329,8 +329,8 @@ test('M2-T06: evaluateMedalGrants awards cap_extension_12h for Bronze and potted
 
   assert.deepEqual(
     evaluateMedalGrants(progress),
-    ['cap_extension_12h', 'potted_plant'],
-    'Chapter 7 Gold awards cap_extension_12h and potted_plant (no silver item exists in MVP)',
+    ['cap_extension_12h', 'kappamaki', 'potted_plant'],
+    'Chapter 7 Gold awards cap_extension_12h, kappamaki, and potted_plant',
   );
 });
 
@@ -369,12 +369,12 @@ test('M2-T08: evaluateMedalGrants awards conveyor_belt and wave_print for Gold i
 
   assert.deepEqual(
     evaluateMedalGrants(progress),
-    ['conveyor_belt', 'wave_print'],
-    'Chapter 9 Gold awards conveyor_belt and wave_print',
+    ['conveyor_belt', 'ebi_nigiri', 'wave_print'],
+    'Chapter 9 Gold awards conveyor_belt, ebi_nigiri, and wave_print',
   );
 });
 
-test('M2-T09: evaluateMedalGrants yields empty array for non-MVP chapters (Lessons 8, 10, 11, 12)', () => {
+test('M2-T09: evaluateMedalGrants yields unlock grants for expanded chapters (Lessons 8, 10, 11, 12)', () => {
   // Master Chapter 8 (week-3) 100%
   const w3 = getCourseWeekById('week-3');
   const progress = createFreshCourseProgress();
@@ -385,8 +385,8 @@ test('M2-T09: evaluateMedalGrants yields empty array for non-MVP chapters (Lesso
 
   assert.deepEqual(
     evaluateMedalGrants(progress),
-    [],
-    'Chapter 8 has no unlock grants in the provisional MVP catalog',
+    ['precision_knife', 'maguro_nigiri', 'noren_curtain'],
+    'Chapter 8 awards precision_knife, maguro_nigiri, and noren_curtain on gold mastery',
   );
 });
 
@@ -457,17 +457,31 @@ test('M2-T14: mergePermanentGrants preserves all grants across full course reset
   );
 });
 
-test('M2-T15: SUSHI_UNLOCK_CATALOG contains the 7 canonical MVP items with correct chapter and week mappings', () => {
-  assert.equal(SUSHI_UNLOCK_CATALOG.length, 7, 'Catalog must contain exactly 7 MVP unlock items');
+test('M2-T15: SUSHI_UNLOCK_CATALOG contains all 21 items with correct chapter and week mappings', () => {
+  assert.equal(SUSHI_UNLOCK_CATALOG.length, 21, 'Catalog must contain all 21 unlock items');
 
   const expectedIds: UnlockGrantId[] = [
     'prep_counter',
     'salmon_nigiri',
     'paper_lantern',
     'cap_extension_12h',
+    'kappamaki',
     'potted_plant',
+    'precision_knife',
+    'maguro_nigiri',
+    'noren_curtain',
     'conveyor_belt',
+    'ebi_nigiri',
     'wave_print',
+    'service_counter',
+    'tamago_nigiri',
+    'andon_lantern',
+    'sous_chef',
+    'sashimi_plate',
+    'sakura_bonsai',
+    'master_license',
+    'omakase_menu',
+    'golden_maneki_neko',
   ];
   assert.deepEqual(
     SUSHI_UNLOCK_CATALOG.map((c) => c.id),

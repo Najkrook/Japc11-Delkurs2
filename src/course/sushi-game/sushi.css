@@ -69,7 +69,10 @@
 .sushi-decoration-choices [aria-pressed='true'] {
   border: 2px solid currentColor;
 }
-.sushi-decoration-slot :focus-visible {
+.sushi-shell button:focus-visible,
+.sushi-shell a:focus-visible,
+.sushi-shell summary:focus-visible,
+.sushi-shell [tabindex]:focus-visible {
   outline: 3px solid var(--course-text, #2d3748);
   outline-offset: 3px;
 }
@@ -136,7 +139,8 @@
   border-radius: 8px;
   cursor: pointer;
   transition: all 0.15s ease;
-  min-height: 40px;
+  min-height: 44px;
+  min-width: 44px;
 }
 
 .sushi-back-btn:hover {
@@ -157,7 +161,8 @@
   border-radius: 8px;
   cursor: pointer;
   color: var(--course-text, #2d3748);
-  min-height: 40px;
+  min-height: 44px;
+  min-width: 44px;
   transition: background 0.15s ease;
 }
 
@@ -177,7 +182,8 @@
   border: none;
   border-radius: 8px;
   cursor: pointer;
-  min-height: 40px;
+  min-height: 44px;
+  min-width: 44px;
   transition:
     opacity 0.15s ease,
     transform 0.1s ease;
@@ -427,6 +433,9 @@
 }
 
 .sushi-retry-btn {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
   background: #c53030;
   color: #ffffff;
   border: none;
@@ -435,6 +444,8 @@
   font-size: 0.8rem;
   font-weight: 600;
   cursor: pointer;
+  min-height: 44px;
+  min-width: 44px;
 }
 
 .sushi-retry-btn:hover {
@@ -523,6 +534,8 @@
   .sushi-back-btn {
     padding: 0.4rem 0.65rem;
     font-size: 0.8rem;
+    min-height: 44px;
+    min-width: 44px;
   }
 
   .sushi-auth-card {
@@ -791,6 +804,9 @@
 }
 
 .sushi-banner-dismiss-btn {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
   background: transparent;
   border: none;
   font-size: 1.35rem;
@@ -800,6 +816,8 @@
   padding: 0.25rem 0.5rem;
   border-radius: 4px;
   transition: background 0.15s ease;
+  min-height: 44px;
+  min-width: 44px;
 }
 
 .sushi-banner-dismiss-btn:hover {
@@ -1004,7 +1022,8 @@
   border-radius: 6px;
   cursor: pointer;
   transition: all 0.15s ease;
-  min-height: 32px;
+  min-height: 44px;
+  min-width: 44px;
 }
 
 .sushi-study-link-btn:hover {
@@ -1095,7 +1114,8 @@
   font-weight: 600;
   border-radius: 6px;
   cursor: pointer;
-  min-height: 34px;
+  min-height: 44px;
+  min-width: 44px;
   border: 1px solid transparent;
   transition: all 0.15s ease;
   width: 100%;
@@ -1136,6 +1156,18 @@
   color: #744210;
   font-size: 0.78rem;
   line-height: 1.35;
+}
+
+.sushi-bottleneck-explainer.register-banner {
+  margin: 0.5rem 0;
+  padding: 0.65rem 0.85rem;
+  border-radius: 8px;
+  font-size: 0.85rem;
+  line-height: 1.45;
+  background: #fffaf0;
+  border: 1px solid #feebc8;
+  color: #744210;
+  text-align: left;
 }
 
 .sushi-effect-explainer {
@@ -1182,6 +1214,30 @@
   background: #e9d8fd;
   color: #553c9a;
   border: 1px solid #d6bcfa;
+}
+
+.sushi-scene-equipment-badge.scene-precision-knife {
+  background: #feebc8;
+  color: #7b341e;
+  border: 1px solid #fbd38d;
+}
+
+.sushi-scene-equipment-badge.scene-service-counter {
+  background: #c6f6d5;
+  color: #22543d;
+  border: 1px solid #9ae6b4;
+}
+
+.sushi-scene-equipment-badge.scene-sous-chef {
+  background: #feebc8;
+  color: #7b341e;
+  border: 1px solid #fbd38d;
+}
+
+.sushi-scene-equipment-badge.scene-master-license {
+  background: #c6f6d5;
+  color: #22543d;
+  border: 1px solid #9ae6b4;
 }
 
 /* ================= Milestone 2 & 3 Reduced Motion Preferences ================= */
