@@ -1,7 +1,90 @@
 import { html, svg } from 'lit-html';
 import type { SushiRestaurantState } from './types.ts';
 
-/** Original project artwork. All layers share a fixed front-facing coordinate system. */
+type Point = readonly [x: number, y: number, z: number];
+const ISO_X = Math.sqrt(3) / 2;
+
+// One shared 30° projection keeps the room, furniture and upgrade layers aligned.
+function project([x, y, z]: Point) {
+  return [438 + (x - y) * ISO_X, 240 + (x + y) / 2 - z];
+}
+
+function face(points: Point[], fill: string) {
+  return svg`<polygon points=${points.map((point) => project(point).join(',')).join(' ')} fill=${fill} />`;
+}
+
+function line(from: Point, to: Point, color = '#b98760', width = 2) {
+  const [x1, y1] = project(from);
+  const [x2, y2] = project(to);
+  return svg`<line x1=${x1} y1=${y1} x2=${x2} y2=${y2} stroke=${color} stroke-width=${width} />`;
+}
+
+function box(
+  x: number,
+  y: number,
+  z: number,
+  w: number,
+  d: number,
+  h: number,
+  top: string,
+  front: string,
+  side: string,
+) {
+  return svg`
+    ${face(
+      [
+        [x, y + d, z],
+        [x + w, y + d, z],
+        [x + w, y + d, z + h],
+        [x, y + d, z + h],
+      ],
+      front,
+    )}
+    ${face(
+      [
+        [x + w, y, z],
+        [x + w, y + d, z],
+        [x + w, y + d, z + h],
+        [x + w, y, z + h],
+      ],
+      side,
+    )}
+    ${face(
+      [
+        [x, y, z + h],
+        [x + w, y, z + h],
+        [x + w, y + d, z + h],
+        [x, y + d, z + h],
+      ],
+      top,
+    )}`;
+}
+
+function tabletop(x: number, y: number, z: number) {
+  const [px, py] = project([x, y, z]);
+  return `matrix(${ISO_X} 0.5 ${-ISO_X} 0.5 ${px} ${py})`;
+}
+
+function stool(x: number, y: number) {
+  return svg`<g>
+    <g transform=${tabletop(x, y, 0)} stroke="none"><ellipse cx="4" cy="5" rx="27" ry="24" fill="#b48763" opacity="0.25" /></g>
+    ${[-12, 12].flatMap((dx) => [-12, 12].map((dy) => line([x + dx, y + dy, 4], [x + dx * 0.8, y + dy * 0.8, 43], '#936346', 5)))}
+    ${line([x - 11, y + 11, 19], [x + 11, y + 11, 19], '#936346', 3)}
+    <g transform=${tabletop(x, y, 44)}><circle cy="4" r="24" fill="#936346"/><circle r="24" fill="#e4b77e"/><circle r="18" fill="none" stroke="#c99462" stroke-width="1.5"/></g>
+  </g>`;
+}
+
+function sushiPlate(x: number, y: number, salmon = false) {
+  return svg`<g transform=${`translate(${x} ${y})`}>
+    <ellipse rx="24" ry="16" fill="#f8ebcc" stroke="#bca17e" stroke-width="2"/>
+    <ellipse rx="18" ry="11" fill="none" stroke="#d7c6a6" stroke-width="1.5"/>
+    <rect x="-14" y="-10" width="28" height="17" rx="7" fill="#fff9e9" stroke-width="1.5"/>
+    <rect x="-16" y="-14" width="32" height="14" rx="6" fill=${salmon ? '#e8896d' : '#315f50'} stroke-width="1.5"/>
+    ${salmon ? svg`<path d="m-8-12 4 10m6-10 4 10" stroke="#ffe2b9" stroke-width="2"/>` : svg`<path d="M-5-12h10v10H-5z" fill="#e4b77e" stroke="none"/>`}
+  </g>`;
+}
+
+/** Original vector artwork, viewed from above the open front corner. */
 export function renderRestaurantScene(state: SushiRestaurantState) {
   const owns = (id: string) => state.inventory.includes(id);
   const wall = state.equipped.wallSlot;
@@ -14,13 +97,14 @@ export function renderRestaurantScene(state: SushiRestaurantState) {
     data-paused=${typeof document !== 'undefined' && document.hidden}
   >
     <svg
-      viewBox="0 0 960 520"
+      viewBox="0 0 960 710"
       role="img"
       aria-labelledby="restaurant-art-title restaurant-art-desc"
     >
       <title id="restaurant-art-title">Din sushirestaurang</title>
       <desc id="restaurant-art-desc">
-        Illustrerat tvärsnitt framifrån. ${prep ? 'Förbättrad beredningsbänk' : 'Grundkök'}.
+        Isometrisk vy snett uppifrån genom restaurangens öppna hörn, med två väggar och synligt
+        trägolv. ${prep ? 'Förbättrad beredningsbänk' : 'Grundkök'}.
         ${conveyor ? 'Transportband installerat' : 'Serveringsdisk utan transportband'}.
         ${owns('precision_knife') ? 'Precisionskniv vid beredningsbänken.' : ''}
         ${owns('service_counter') ? 'Uppgraderad serveringsdisk.' : ''}
@@ -41,66 +125,294 @@ export function renderRestaurantScene(state: SushiRestaurantState) {
         ${floor === 'sakura_bonsai' && owns('sakura_bonsai') ? 'Sakura-bonsai på golvet.' : ''}
         ${floor === 'golden_maneki_neko' && owns('golden_maneki_neko') ? 'Gyllene Maneki-neko på golvet.' : ''}
       </desc>
-      <g stroke="#583e32" stroke-width="4" stroke-linejoin="round" stroke-linecap="round">
-        <path fill="#ead3ac" d="M0 0h960v520H0z" stroke="none" />
-        <path fill="#fff4da" d="M28 25h904v386H28z" />
-        <path fill="#b57550" d="M0 411h960v109H0z" />
-        <path d="M0 450h960M0 492h960M180 411v39m220 0v42m220-81v39m180 0v42" stroke="#966344" />
-        <path fill="#754b37" d="M20 15h920v25H20zM20 40h22v371H20zm898 0h22v371h-22z" />
-        <path fill="#83b6af" d="M352 73h256v135H352z" />
-        <path fill="#d6e6d7" d="M358 143q60-70 118-14t126-13v86H358z" stroke="none" />
-        <path d="M480 75v130M354 140h251" stroke="#fff4da" stroke-width="8" />
-        <path fill="#23655f" d="M318 43h324v46q-35 27-70 0-45 27-92 0-45 27-92 0-35 27-70 0z" />
-        <path d="M388 44v44m92-44v44m92-44v44" stroke="#a6cbc1" stroke-width="2" />
-        <circle cx="480" cy="65" r="12" fill="#fff4da" stroke="none" />
-        <path d="M474 65h12m-6-6v12" stroke="#23655f" stroke-width="2" />
-        <path fill="#a46e48" d="M78 196h210v12H78z" />
-        <g fill="#ede4cb">
-          <path d="M93 160h35v34H93zM142 153h35v41h-35z" />
-          <path fill="#23655f" d="M208 165q23-23 43 0l-5 29h-33z" />
+      <g stroke="#583e32" stroke-width="2.5" stroke-linejoin="round" stroke-linecap="round">
+        <path fill="#fff4da" d="M0 0h960v710H0z" stroke="none" />
+        <ellipse cx="480" cy="568" rx="293" ry="100" fill="#583e32" opacity="0.07" stroke="none" />
+        <!-- Layer 1: Floor slab and the two rear walls leave the near corner open. -->
+        ${box(0, 0, -16, 460, 370, 16, '#e3bd8b', '#b57550', '#936346')}
+        <g stroke="#c99e70" stroke-width="1.5">
+          ${Array.from({ length: 9 }, (_, i) => line([0, (i + 1) * 37, 0], [460, (i + 1) * 37, 0], '#c99e70', 1.5))}
+          ${Array.from({ length: 10 }, (_, row) =>
+            [0, 1, 2].map((col) => {
+              const x = 70 + col * 150 + (row % 2) * 60;
+              return line([x, row * 37, 0], [x, (row + 1) * 37, 0], '#c99e70', 1.5);
+            }),
+          )}
         </g>
-        <path d="M97 172h26m24-8h25" stroke="#d48868" />
-        <path fill="#936346" d="M80 285h800v128H80z" />
-        <path fill="#f0c88f" d="M68 270h824v23H68z" />
-        <path d="M100 311h760M345 297v105m270-105v105" stroke="#c89160" />
-        <path fill="#e4d9bc" d="M100 231h150v38H100z" />
-        <path fill="#356e64" d="M118 222h115v13H118z" />
-        <path fill="#f8efdb" d="M360 251q0-17 24-17h46q24 0 24 17v13h-94z" />
-        <path fill="#c88563" d="M356 238q48-23 101 0l-4 12h-92z" />
-        <path fill="#d8c8a7" d="M681 249h130l-16 14h-98z" />
-        <g fill="#fff4da"><path d="M706 236h24v12h-24zM755 236h24v12h-24z" /></g>
-        <g fill="#345c4c"><path d="M713 235h10v13h-10zM762 235h10v13h-10z" /></g>
-        <g fill="#e4b77e">
-          <path d="M266 429v62m36-62v62m356-62v62m36-62v62" />
-          <rect x="246" y="412" width="76" height="20" rx="10" />
-          <rect x="638" y="412" width="76" height="20" rx="10" />
+        ${face(
+          [
+            [0, 0, 0],
+            [0, 370, 0],
+            [0, 370, 200],
+            [0, 0, 200],
+          ],
+          '#f4e5c7',
+        )}
+        ${face(
+          [
+            [0, 0, 0],
+            [460, 0, 0],
+            [460, 0, 200],
+            [0, 0, 200],
+          ],
+          '#e8d5b3',
+        )}
+        ${line([0, 0, 200], [0, 370, 200], '#936346', 9)}
+        ${line([0, 0, 200], [460, 0, 200], '#936346', 9)}
+        ${line([0, 0, 0], [0, 0, 200], '#936346', 7)}
+        ${line([0, 370, 0], [0, 370, 200], '#936346', 7)}
+        ${line([460, 0, 0], [460, 0, 200], '#936346', 7)}
+        ${line([0, 0, 12], [0, 370, 12], '#b57550', 8)}
+        ${line([0, 0, 12], [460, 0, 12], '#b57550', 8)}
+
+        <!-- Window and noren follow the left wall's plane. -->
+        <g transform=${`matrix(${ISO_X} -0.5 0 1 ${project([0, 370, 200]).join(' ')})`}>
+          <path fill="#a46e48" d="M105 37h185v113H105z" />
+          <path fill="#83b6af" d="M112 44h171v99H112z" />
+          <path fill="#d6e6d7" d="M112 115q38-49 78-22t93-10v60H112z" stroke="none" />
+          <path d="M196 44v99m-84-49h171" stroke="#fff4da" stroke-width="5" />
+          <path fill="#23655f" d="M98 25h199v36q-22 15-44 0-26 15-55 0-29 15-55 0-23 15-45 0z" />
+          <path d="M143 27v33m55-33v33m55-33v33" stroke="#a6cbc1" stroke-width="1.5" />
+          <circle cx="198" cy="42" r="9" fill="#fff4da" stroke="none" />
+          <path d="M193 42h10m-5-5v10" stroke="#23655f" stroke-width="1.5" />
         </g>
-        ${prep ? svg`<g data-testid="art-prep-counter"><path fill="#77938b" d="M94 300h216v103H94z"/><path fill="#dbe2d6" d="M87 283h230v20H87z"/><path d="M202 313v78m-87-49h65m-65 33h65"/><path fill="#e7bd80" d="M106 265h124v17H106z"/><path fill="#d8dfd5" d="m152 255 59-17 4 14-58 13z"/><path d="m152 255-25 8" stroke-width="9"/></g>` : ''}
-        ${owns('precision_knife') ? svg`<g data-testid="art-precision_knife"><path fill="#754b37" d="M214 260h48v6h-48z"/><path fill="#356e64" d="M212 254h14v5h-14z"/><path fill="#c88563" d="M226 254h4v5h-4z"/><path fill="#e2e8f0" d="M230 254h32l8 5h-40z"/><path d="M230 256h30" stroke="#ffffff" stroke-width="1.5"/></g>` : ''}
-        ${owns('service_counter') ? svg`<g data-testid="art-service_counter"><path fill="#f6d588" d="M330 268h320v6H330z"/><path fill="#d4af37" d="M328 274h324v3H328z"/><circle cx="335" cy="271" r="2" fill="#754b37"/><circle cx="645" cy="271" r="2" fill="#754b37"/></g>` : ''}
-        ${owns('sous_chef') ? svg`<g data-testid="art-sous_chef"><path fill="#ffffff" d="M72 205q0-16 16-16t16 16v18H72z"/><path fill="#e2e8f0" d="M70 223h36v10H70z"/><path fill="#356e64" d="M76 226h24v4H76z"/><circle cx="88" cy="215" r="3" fill="#e8896d"/><path fill="#23655f" d="M68 233h40l8 32H60z"/></g>` : ''}
-        ${owns('master_license') ? svg`<g data-testid="art-master_license"><rect x="282" y="98" width="46" height="48" rx="2" fill="#fff4da" stroke="#754b37" stroke-width="4"/><path fill="#ede4cb" d="M288 104h34v36h-34z"/><path d="M305 109v26M295 115h20M297 125h16" stroke="#583e32" stroke-width="2"/><rect x="312" y="128" width="8" height="8" fill="#c53030" stroke="none"/><path d="M298 98v-12m14 12v-12" stroke="#754b37" stroke-width="2"/></g>` : ''}
+
+        <!-- Right wall base shelf. -->
+        <g transform=${`matrix(${ISO_X} 0.5 0 1 ${project([0, 0, 200]).join(' ')})`}>
+          <path fill="#a46e48" d="M36 89h137v9H36z" />
+          <path fill="#ede4cb" d="M49 63h23v25H49zM83 58h24v30H83z" />
+          <path d="M52 70h17m18-4h17" stroke="#d48868" />
+          <path fill="#23655f" d="M130 71q14-13 26 0l-3 17h-20z" />
+        </g>
+
+        <!-- Layer 2: Base kitchen, island counter, and customer stools. -->
+        ${box(25, 18, 0, 395, 58, 73, '#c69260', '#b57550', '#936346')}
+        ${[125, 225, 325].map((x) => line([x, 76, 7], [x, 76, 68], '#936346'))}
+        ${[63, 163, 263, 363].map((x) => line([x, 77, 55], [x + 20, 77, 55], '#583e32', 3))}
+        ${box(19, 12, 73, 407, 70, 8, '#f0c88f', '#d6a16b', '#b98760')}
+        <g transform=${tabletop(42, 28, 82)}>
+          <rect width="83" height="35" rx="8" fill="#77938b" />
+          <rect x="6" y="5" width="71" height="25" rx="6" fill="#c8d8cd" />
+          <circle cx="42" cy="18" r="4" fill="#77938b" stroke="none" />
+        </g>
+        ${line([78, 25, 82], [78, 25, 105], '#77938b', 4)}
+        ${line([78, 25, 105], [78, 41, 105], '#77938b', 4)}
+        ${box(155, 30, 81, 74, 32, 6, '#e7bd80', '#c99462', '#b98760')}
+        <g transform=${tabletop(161, 35, 88)}>
+          <path fill="#e8896d" d="M7 3h37q10 9 0 18H7z" />
+          <path d="m17 4 6 16m6-16 6 16" stroke="#ffe2b9" stroke-width="2" />
+          <path d="M52 3v21" stroke="#583e32" stroke-width="4" />
+        </g>
+        ${box(329, 27, 81, 53, 36, 23, '#f8efdb', '#e4d9bc', '#c9bda2')}
+        <g transform=${tabletop(355, 45, 105)}>
+          <ellipse rx="21" ry="12" fill="#23655f" />
+          <path d="M-6 0H6" stroke="#fff4da" stroke-width="3" />
+        </g>
+
+        <!-- Low island and customer stools. -->
+        ${box(100, 190, 0, 298, 68, 83, '#e4b77e', '#b57550', '#936346')}
+        ${[123, 160, 197, 234, 271, 308, 345, 382].map((x) => line([x, 259, 9], [x, 259, 75], '#c99462', 3))}
+        ${box(90, 180, 83, 318, 88, 9, '#f0c88f', '#d6a16b', '#b98760')}
+        ${[145, 250, 355].map((x) => stool(x, 314))}
+
+        <!-- Layer 3: Equipment upgrades, conveyor belt, and recipe plates. -->
         ${
-          conveyor
-            ? svg`<g data-testid="art-conveyor-belt"><rect x="73" y="329" width="814" height="58" rx="29" fill="#456d65"/><rect x="87" y="339" width="786" height="35" rx="18" fill="#a7c5af"/><path class="sushi-belt-tread" d="M110 356h738" stroke="#668e7b" stroke-width="22" stroke-dasharray="3 30"/>
-          <g fill="#f8ebcc"><ellipse cx="245" cy="350" rx="42" ry="10"/><ellipse cx="480" cy="350" rx="42" ry="10"/><ellipse cx="715" cy="350" rx="42" ry="10"/></g>
-          <g fill="#e49a7b"><path d="M222 342q23-24 46 0zM457 342q23-24 46 0zM692 342q23-24 46 0z"/></g></g>`
+          prep
+            ? svg`<g data-testid="art-prep-counter">
+          ${box(19, 105, 0, 60, 113, 73, '#96b1a3', '#77938b', '#56786e')}
+          ${box(14, 100, 73, 70, 123, 7, '#dbe2d6', '#b9c7ba', '#96b1a3')}
+          ${[24, 49].map((z) => line([80, 116, z], [80, 205, z], '#b9c7ba'))}
+          ${box(25, 133, 80, 44, 58, 4, '#e7bd80', '#c99462', '#b98760')}
+          <g transform=${tabletop(31, 146, 85)}><path fill="#d8dfd5" d="M5 0h9v30H5z"/><path d="M9 30v12" stroke-width="5"/><circle cx="26" cy="18" r="8" fill="#e8896d"/></g>
+        </g>`
             : ''
         }
-        ${owns('salmon_nigiri') ? svg`<g data-testid="art-salmon_nigiri"><path fill="#23655f" d="M526 262h90l-10 8h-70z"/><path fill="#fff4da" d="M539 250q28-17 53 0v10h-53z"/><path fill="#e8896d" d="M533 245q30-20 65 0l-5 10h-55z"/><path d="m552 240 6 9m12-12 6 10" stroke="#ffe2b9" stroke-width="3"/></g>` : ''}
-        ${owns('kappamaki') ? svg`<g data-testid="art-kappamaki"><g data-testid="art-kappa_maki"><path fill="#356e64" d="M452 262h68l-8 8h-52z"/><circle cx="468" cy="256" r="9" fill="#233d34"/><circle cx="468" cy="256" r="7" fill="#fff4da"/><rect x="465" y="253" width="6" height="6" fill="#68d391" rx="1"/><circle cx="488" cy="256" r="9" fill="#233d34"/><circle cx="488" cy="256" r="7" fill="#fff4da"/><rect x="485" y="253" width="6" height="6" fill="#68d391" rx="1"/><circle cx="508" cy="256" r="9" fill="#233d34"/><circle cx="508" cy="256" r="7" fill="#fff4da"/><rect x="505" y="253" width="6" height="6" fill="#68d391" rx="1"/></g></g>` : ''}
-        ${owns('maguro_nigiri') ? svg`<g data-testid="art-maguro_nigiri"><path fill="#a0c4bc" d="M622 262h66l-8 8h-50z"/><path fill="#fff4da" d="M632 252q20-14 44 0v8h-44z"/><path fill="#c53030" d="M628 246q24-18 52 0l-4 9h-44z"/><path d="m644 243 6 8m10-10 6 8" stroke="#feb2b2" stroke-width="2.5"/></g>` : ''}
-        ${owns('ebi_nigiri') ? svg`<g data-testid="art-ebi_nigiri"><path fill="#d4dfd5" d="M366 262h66l-8 8h-50z"/><path fill="#fff4da" d="M376 252q20-14 44 0v8h-44z"/><path fill="#f56565" d="M372 246q24-18 52 0l-4 9h-44z"/><path d="M378 248q12-8 24 0m2-7q10-7 20 0" stroke="#ffffff" stroke-width="3"/><path fill="#e53e3e" d="M420 248l12-8-4 12z"/></g>` : ''}
-        ${owns('tamago_nigiri') ? svg`<g data-testid="art-tamago_nigiri"><path fill="#4a5568" d="M280 262h66l-8 8h-50z"/><path fill="#fff4da" d="M290 252q20-14 44 0v8h-44z"/><rect x="286" y="244" width="52" height="13" rx="3" fill="#f6e05e"/><rect x="308" y="244" width="10" height="15" fill="#233d34"/></g>` : ''}
-        ${owns('sashimi_plate') ? svg`<g data-testid="art-sashimi_plate"><path fill="#2d3748" d="M690 260h74l-8 10h-58z"/><path fill="#48bb78" d="M696 252q14-16 28 0z"/><path fill="#e8896d" d="M710 248l24-10v8l-24 10z"/><path fill="#c53030" d="M720 246l24-10v8l-24 10z"/><circle cx="754" cy="254" r="5" fill="#68d391"/></g>` : ''}
-        ${owns('omakase_menu') ? svg`<g data-testid="art-omakase_menu"><rect x="768" y="248" width="76" height="22" rx="3" fill="#7b1113" stroke="#ecc94b" stroke-width="2"/><rect x="774" y="252" width="18" height="14" fill="#233d34"/><circle cx="783" cy="257" r="4" fill="#ed8936"/><path fill="#fff4da" d="M798 256h14v8h-14z"/><path fill="#c53030" d="M796 253h18v4h-18z"/><path fill="#fff4da" d="M818 256h14v8h-14z"/><path fill="#f6e05e" d="M816 253h18v4h-18z"/></g>` : ''}
-        ${wall === 'paper_lantern' && owns(wall) ? svg`<g data-testid="art-paper_lantern"><path d="M768 40v43"/><rect x="735" y="83" width="66" height="91" rx="28" fill="#e9a077"/><path d="M741 103h54m-58 18h62m-59 18h56m-49 18h42" stroke="#b9634e" stroke-width="2"/><path d="M754 82h28m-28 92h28" stroke-width="7"/></g>` : ''}
-        ${wall === 'wave_print' && owns(wall) ? svg`<g data-testid="art-wave_print"><path fill="#b6774c" d="M692 88h151v107H692z"/><path fill="#f8ebcc" d="M701 97h133v89H701z"/><circle cx="794" cy="120" r="13" fill="#db8668" stroke="none"/><path fill="#55988f" d="M703 172q40-92 69-25-22-22-28 13 50-32 88 4v20H703z" stroke="none"/><path d="M710 174q23-35 47-9t64 2" stroke="#fff4da" stroke-width="3"/></g>` : ''}
-        ${wall === 'noren_curtain' && owns(wall) ? svg`<g data-testid="art-noren_curtain"><path d="M678 72h174" stroke="#d69e2e" stroke-width="6"/><path fill="#1a365d" d="M684 75h52v85q-26 8-52 0zM740 75h52v85q-26 8-52 0zM796 75h52v85q-26 8-52 0z"/><circle cx="710" cy="115" r="14" fill="none" stroke="#fff4da" stroke-width="3"/><path d="M705 115h10M710 110v10" stroke="#fff4da" stroke-width="2"/><circle cx="766" cy="115" r="14" fill="none" stroke="#fff4da" stroke-width="3"/><path d="M761 115h10M766 110v10" stroke="#fff4da" stroke-width="2"/><circle cx="822" cy="115" r="14" fill="none" stroke="#fff4da" stroke-width="3"/><path d="M817 115h10M822 110v10" stroke="#fff4da" stroke-width="2"/></g>` : ''}
-        ${floor === 'potted_plant' && owns(floor) ? svg`<g data-testid="art-potted_plant"><path d="M853 440v-97m0 59-32-30m32 11 29-28" stroke="#416956"/><g fill="#65906c"><ellipse cx="819" cy="366" rx="24" ry="12" transform="rotate(32 819 366)"/><ellipse cx="878" cy="351" rx="23" ry="12" transform="rotate(-30 878 351)"/><ellipse cx="850" cy="333" rx="12" ry="26"/></g><path fill="#d99170" d="M821 418h64l-10 52h-44z"/><path fill="#ebaf87" d="M817 416h72v13h-72z"/></g>` : ''}
-        ${floor === 'andon_lantern' && owns(floor) ? svg`<g data-testid="art-andon_lantern"><path fill="#fefcbf" d="M826 355h54v90h-54z"/><rect x="822" y="348" width="62" height="100" rx="4" fill="none" stroke="#583e32" stroke-width="4"/><path d="M826 385h54M826 415h54M853 355v90" stroke="#583e32" stroke-width="3"/><path d="M824 448v18m58-18v18" stroke="#583e32" stroke-width="6"/><circle cx="853" cy="400" r="12" fill="#f6e05e" opacity="0.6" stroke="none"/></g>` : ''}
-        ${floor === 'sakura_bonsai' && owns(floor) ? svg`<g data-testid="art-sakura_bonsai"><ellipse cx="852" cy="450" rx="38" ry="14" fill="#2c5282"/><ellipse cx="852" cy="445" rx="32" ry="8" fill="#2f855a"/><path d="M852 445q-12-30 4-50t-6-40" stroke="#5a3a28" stroke-width="8" fill="none"/><path d="M848 385q20-15 32-5m-25 15q-18-10-24 5" stroke="#5a3a28" stroke-width="5" fill="none"/><circle cx="848" cy="345" r="18" fill="#fed7e2"/><circle cx="832" cy="355" r="14" fill="#fbb6ce"/><circle cx="866" cy="350" r="15" fill="#f687b3"/><circle cx="880" cy="375" r="14" fill="#fed7e2"/><circle cx="825" cy="390" r="12" fill="#fbb6ce"/></g>` : ''}
-        ${floor === 'golden_maneki_neko' && owns(floor) ? svg`<g data-testid="art-golden_maneki_neko"><path fill="#9b2c2c" d="M814 445h76l-6 18h-64z"/><circle cx="816" cy="456" r="3" fill="#ecc94b"/><circle cx="888" cy="456" r="3" fill="#ecc94b"/><ellipse cx="852" cy="415" rx="26" ry="28" fill="#ecc94b"/><circle cx="852" cy="372" r="20" fill="#ecc94b"/><polygon points="835,362 842,342 849,360" fill="#ecc94b"/><polygon points="855,360 862,342 869,362" fill="#ecc94b"/><path d="M866 385q14-20 6-36t-12 12" fill="#ecc94b" stroke="#583e32" stroke-width="3"/><rect x="838" y="386" width="28" height="6" rx="3" fill="#e53e3e"/><circle cx="852" cy="392" r="3" fill="#fefcbf"/><circle cx="845" cy="370" r="2" fill="#583e32"/><circle cx="859" cy="370" r="2" fill="#583e32"/></g>` : ''}
+        ${
+          owns('precision_knife')
+            ? svg`<g data-testid="art-precision_knife" transform=${tabletop(198, 34, 88)}>
+          <rect x="0" y="0" width="12" height="24" rx="2" fill="#754b37"/>
+          <path fill="#e2e8f0" d="M4 2h5l1 18-6 3z"/>
+        </g>`
+            : ''
+        }
+        ${
+          owns('service_counter')
+            ? svg`<g data-testid="art-service_counter" transform=${tabletop(90, 180, 93)}>
+          <rect x="4" y="4" width="310" height="80" rx="8" fill="none" stroke="#d4af37" stroke-width="4"/>
+        </g>`
+            : ''
+        }
+        ${
+          owns('sous_chef')
+            ? svg`<g data-testid="art-sous_chef" transform=${`translate(${project([272, 54, 82]).join(' ')})`}>
+          <path fill="#23655f" d="M-16 0h32l5 24h-42z"/>
+          <circle cy="-12" r="12" fill="#fde6c4"/>
+          <path fill="#ffffff" d="M-13-20q0-12 13-12t13 12v5h-26z"/>
+          <path fill="#356e64" d="M-13-17h26v3h-26z"/>
+        </g>`
+            : ''
+        }
+        ${
+          owns('master_license')
+            ? svg`<g data-testid="art-master_license" transform=${`matrix(${ISO_X} 0.5 0 1 ${project([0, 0, 200]).join(' ')})`}>
+          <rect x="195" y="42" width="44" height="52" rx="2" fill="#fff4da" stroke="#754b37" stroke-width="3"/>
+          <path d="M217 52v28M207 60h20M209 70h16" stroke="#583e32" stroke-width="2"/>
+          <rect x="224" y="76" width="8" height="8" fill="#c53030" stroke="none"/>
+        </g>`
+            : ''
+        }
+        <g transform=${tabletop(90, 180, 93)}>
+          ${
+            conveyor
+              ? svg`<g data-testid="art-conveyor-belt">
+            <rect x="7" y="8" width="304" height="72" rx="36" fill="#456d65"/>
+            <rect x="14" y="15" width="290" height="58" rx="29" fill="#a7c5af"/>
+            <rect class="sushi-belt-tread" x="25" y="24" width="268" height="40" rx="20" fill="none" stroke="#668e7b" stroke-width="12" stroke-dasharray="3 30"/>
+            <rect x="49" y="33" width="220" height="22" rx="11" fill="#456d65" stroke="none"/>
+            ${sushiPlate(46, 43)}${sushiPlate(151, 24)}${sushiPlate(270, 46)}
+          </g>`
+              : svg`
+            <rect x="20" y="22" width="80" height="44" rx="4" fill="#23655f"/>
+            ${sushiPlate(60, 44)}
+            <path d="M224 24h58m-58 7h58" stroke="#936346" stroke-width="3"/>
+            <circle cx="279" cy="55" r="12" fill="#77938b"/><circle cx="279" cy="55" r="7" fill="#315f50" stroke="none"/>`
+          }
+          ${owns('salmon_nigiri') ? svg`<g data-testid="art-salmon_nigiri">${sushiPlate(158, conveyor ? 66 : 48, true)}</g>` : ''}
+          ${
+            owns('kappamaki')
+              ? svg`<g data-testid="art-kappamaki"><g data-testid="art-kappa_maki" transform="translate(105 64)">
+            <rect x="-18" y="-10" width="36" height="20" rx="4" fill="#356e64"/>
+            <circle cx="-8" cy="0" r="6" fill="#fff4da"/><rect x="-10" y="-2" width="4" height="4" fill="#68d391"/>
+            <circle cx="8" cy="0" r="6" fill="#fff4da"/><rect x="6" y="-2" width="4" height="4" fill="#68d391"/>
+          </g></g>`
+              : ''
+          }
+          ${
+            owns('maguro_nigiri')
+              ? svg`<g data-testid="art-maguro_nigiri" transform="translate(212 64)">
+            <ellipse rx="20" ry="13" fill="#f8ebcc"/>
+            <rect x="-12" y="-8" width="24" height="12" rx="5" fill="#c53030"/>
+          </g>`
+              : ''
+          }
+          ${
+            owns('ebi_nigiri')
+              ? svg`<g data-testid="art-ebi_nigiri" transform="translate(98 24)">
+            <ellipse rx="20" ry="13" fill="#f8ebcc"/>
+            <rect x="-12" y="-8" width="24" height="12" rx="5" fill="#f56565"/>
+          </g>`
+              : ''
+          }
+          ${
+            owns('tamago_nigiri')
+              ? svg`<g data-testid="art-tamago_nigiri" transform="translate(205 24)">
+            <ellipse rx="20" ry="13" fill="#f8ebcc"/>
+            <rect x="-12" y="-8" width="24" height="12" rx="4" fill="#f6e05e"/>
+            <rect x="-3" y="-8" width="6" height="12" fill="#233d34"/>
+          </g>`
+              : ''
+          }
+          ${
+            owns('sashimi_plate')
+              ? svg`<g data-testid="art-sashimi_plate" transform="translate(254 22)">
+            <rect x="-18" y="-11" width="36" height="22" rx="4" fill="#2d3748"/>
+            <path fill="#e8896d" d="M-10-5h12l-3 10h-12z"/>
+            <path fill="#c53030" d="M2-5h12l-3 10H-1z"/>
+          </g>`
+              : ''
+          }
+          ${
+            owns('omakase_menu')
+              ? svg`<g data-testid="art-omakase_menu" transform="translate(32 68)">
+            <rect x="-18" y="-10" width="36" height="20" rx="3" fill="#7b1113" stroke="#ecc94b" stroke-width="2"/>
+            <circle cx="-6" cy="0" r="5" fill="#ed8936"/>
+            <rect x="3" y="-5" width="10" height="10" rx="2" fill="#f6e05e"/>
+          </g>`
+              : ''
+          }
+        </g>
+
+        <!-- Layer 4: Wall and floor decorations. -->
+        <g transform=${`matrix(${ISO_X} 0.5 0 1 ${project([0, 0, 200]).join(' ')})`}>
+          ${
+            wall === 'wave_print' && owns(wall)
+              ? svg`<g data-testid="art-wave_print">
+            <path fill="#b6774c" d="M270 34h125v91H270z"/>
+            <path fill="#f8ebcc" d="M277 41h111v77H277z"/>
+            <circle cx="360" cy="62" r="11" fill="#db8668" stroke="none"/>
+            <path fill="#55988f" d="M280 105q32-74 58-23-19-18-24 11 43-27 71 4v18H280z" stroke="none"/>
+            <path d="M284 109q20-30 41-8t53 1" fill="none" stroke="#fff4da" stroke-width="2.5"/>
+          </g>`
+              : ''
+          }
+          ${
+            wall === 'noren_curtain' && owns(wall)
+              ? svg`<g data-testid="art-noren_curtain">
+            <path d="M258 30h144" stroke="#d69e2e" stroke-width="4"/>
+            <path fill="#1a365d" d="M264 33h42v72q-21 7-42 0zM310 33h42v72q-21 7-42 0zM356 33h42v72q-21 7-42 0z"/>
+            <circle cx="285" cy="68" r="10" fill="none" stroke="#fff4da" stroke-width="2"/>
+            <circle cx="331" cy="68" r="10" fill="none" stroke="#fff4da" stroke-width="2"/>
+            <circle cx="377" cy="68" r="10" fill="none" stroke="#fff4da" stroke-width="2"/>
+          </g>`
+              : ''
+          }
+        </g>
+        ${
+          wall === 'paper_lantern' && owns(wall)
+            ? svg`<g data-testid="art-paper_lantern" transform=${`translate(${project([336, 12, 193]).join(' ')})`}>
+          <path d="M0 0v22"/><rect x="-23" y="22" width="46" height="64" rx="20" fill="#e9a077"/>
+          <path d="M-19 36h38m-41 13h44m-42 13h40m-35 13h30" stroke="#b9634e" stroke-width="1.5"/>
+          <path d="M-10 22h20m-20 64h20" stroke-width="4"/>
+        </g>`
+            : ''
+        }
+        ${
+          floor === 'potted_plant' && owns(floor)
+            ? svg`<g data-testid="art-potted_plant" transform=${`translate(${project([428, 194, 0]).join(' ')})`}>
+          <ellipse cy="-2" rx="27" ry="13" fill="#583e32" opacity="0.12" stroke="none"/>
+          <path fill="#d99170" d="M-23-41h46L17-5q-17 10-34 0z"/>
+          <ellipse cy="-41" rx="25" ry="12" fill="#ebaf87"/><ellipse cy="-41" rx="18" ry="7" fill="#79533b"/>
+          <path d="M0-42v-74m0 50-22-27m22 12 23-28" stroke="#416956" stroke-width="3"/>
+          <g fill="#65906c" stroke="#416956" stroke-width="2"><path d="M-19-87q-36-3-31-25 30-4 31 25z"/><path d="M18-96q5-31 34-29 1 26-34 29z"/><path d="M0-108q-20-28 1-47 21 25-1 47z"/></g>
+        </g>`
+            : ''
+        }
+        ${
+          floor === 'andon_lantern' && owns(floor)
+            ? svg`<g data-testid="art-andon_lantern" transform=${`translate(${project([428, 194, 0]).join(' ')})`}>
+          <ellipse cy="-2" rx="26" ry="12" fill="#583e32" opacity="0.12" stroke="none"/>
+          <rect x="-20" y="-88" width="40" height="72" rx="3" fill="#fefcbf" stroke="#583e32" stroke-width="3"/>
+          <path d="M-20-64h40M-20-40h40M0-88v72M-16-16v14M16-16v14" stroke="#583e32" stroke-width="2.5"/>
+          <circle cy="-52" r="9" fill="#f6e05e" opacity="0.6" stroke="none"/>
+        </g>`
+            : ''
+        }
+        ${
+          floor === 'sakura_bonsai' && owns(floor)
+            ? svg`<g data-testid="art-sakura_bonsai" transform=${`translate(${project([428, 194, 0]).join(' ')})`}>
+          <ellipse cy="-2" rx="28" ry="13" fill="#583e32" opacity="0.12" stroke="none"/>
+          <ellipse cy="-12" rx="26" ry="10" fill="#2c5282"/>
+          <ellipse cy="-16" rx="21" ry="6" fill="#2f855a"/>
+          <path d="M0-16q-10-24 4-42t-5-32" stroke="#5a3a28" stroke-width="6" fill="none"/>
+          <circle cx="-2" cy="-92" r="14" fill="#fed7e2"/>
+          <circle cx="-16" cy="-82" r="11" fill="#fbb6ce"/>
+          <circle cx="14" cy="-86" r="12" fill="#f687b3"/>
+        </g>`
+            : ''
+        }
+        ${
+          floor === 'golden_maneki_neko' && owns(floor)
+            ? svg`<g data-testid="art-golden_maneki_neko" transform=${`translate(${project([428, 194, 0]).join(' ')})`}>
+          <ellipse cy="-2" rx="28" ry="13" fill="#583e32" opacity="0.12" stroke="none"/>
+          <path fill="#9b2c2c" d="M-26-16h52l-4 14h-44z"/>
+          <ellipse cy="-38" rx="20" ry="22" fill="#ecc94b"/>
+          <circle cy="-68" r="15" fill="#ecc94b"/>
+          <polygon points="-13,-76 -8,-92 -2,-78" fill="#ecc94b"/>
+          <polygon points="2,-78 8,-92 13,-76" fill="#ecc94b"/>
+          <rect x="-11" y="-56" width="22" height="5" rx="2.5" fill="#e53e3e"/>
+        </g>`
+            : ''
+        }
       </g>
     </svg>
     <figcaption>

@@ -24,7 +24,10 @@ test('Sushi Security Rules: Owner read allowed, cross-user and direct client wri
   // Set up test apps with different identities
   const apps = {
     owner: initializeApp({ projectId: 'demo-japc11-delkurs2', apiKey: 'fake' }, 'sushi-owner'),
-    outsider: initializeApp({ projectId: 'demo-japc11-delkurs2', apiKey: 'fake' }, 'sushi-outsider'),
+    outsider: initializeApp(
+      { projectId: 'demo-japc11-delkurs2', apiKey: 'fake' },
+      'sushi-outsider',
+    ),
     anonymous: initializeApp({ projectId: 'demo-japc11-delkurs2', apiKey: 'fake' }, 'sushi-anon'),
     unauth: initializeApp({ projectId: 'demo-japc11-delkurs2', apiKey: 'fake' }, 'sushi-unauth'),
   };

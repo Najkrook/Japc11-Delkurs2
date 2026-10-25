@@ -11,3 +11,6 @@ playwright-report/
 Material/vocabulary.pdf
 
 functions/lib/
+/.scratch/sushi-game/preview-logs/
+/.scratch/sushi-game/asset-options/research-only/
+/output/playwright/sushi-playtest-*.png

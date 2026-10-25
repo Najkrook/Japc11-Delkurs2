@@ -1745,7 +1745,10 @@
   font-weight: 700;
   cursor: pointer;
   box-shadow: 0 4px 14px rgba(79, 70, 229, 0.22);
-  transition: transform 0.15s ease, box-shadow 0.15s ease, background 0.15s ease;
+  transition:
+    transform 0.15s ease,
+    box-shadow 0.15s ease,
+    background 0.15s ease;
 }
 
 .kanji-quiz-trigger-btn:hover {

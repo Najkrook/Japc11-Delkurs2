@@ -5,10 +5,7 @@ import {
   InMemorySushiRepository,
   type SushiRestaurantRepository,
 } from '../src/course/sushi-game/service.ts';
-import {
-  MS_PER_MINUTE,
-  type SushiRestaurantState,
-} from '../src/course/sushi-game/types.ts';
+import { MS_PER_MINUTE, type SushiRestaurantState } from '../src/course/sushi-game/types.ts';
 
 test('Medal Sync Concurrency: 50 simultaneous concurrent calls with overlapping and distinct grants converge to exact set union', async () => {
   const repo = new InMemorySushiRepository();
@@ -74,10 +71,7 @@ test('Medal Sync Concurrency: 50 simultaneous concurrent calls with overlapping 
     `Final set size (${finalSet.size}) must match all submitted distinct grants (${allSubmittedGrants.size})`,
   );
   for (const expected of allSubmittedGrants) {
-    assert.ok(
-      finalSet.has(expected),
-      `Final permanentGrants must include '${expected}'`,
-    );
+    assert.ok(finalSet.has(expected), `Final permanentGrants must include '${expected}'`);
   }
 
   // 2. Verify strict absence of duplicates
@@ -191,9 +185,7 @@ test('Medal Sync Concurrency: Multi-User Swarm (10 users x 20 concurrent calls =
       userUnion.add(userSpecificGrant);
       userUnion.add(sharedGrant);
 
-      allSwarmPromises.push(
-        service.syncMedalGrants(uid, batch, t0 + c * 20),
-      );
+      allSwarmPromises.push(service.syncMedalGrants(uid, batch, t0 + c * 20));
     }
   }
 
@@ -228,10 +220,7 @@ test('Medal Sync Concurrency: Multi-User Swarm (10 users x 20 concurrent calls =
 
     // 3. User union match
     for (const exp of expectedSet) {
-      assert.ok(
-        actualSet.has(exp),
-        `User ${uid} must have expected grant '${exp}'`,
-      );
+      assert.ok(actualSet.has(exp), `User ${uid} must have expected grant '${exp}'`);
     }
 
     // 4. Isolation: check that NO other user's specific grants leaked in
@@ -396,7 +385,9 @@ test('Medal Sync Concurrency: Artificial asynchronous latency and jitter maintai
   class JitterySushiRepository extends InMemorySushiRepository {
     public override async transaction<T>(
       uid: string,
-      updateFn: (current: SushiRestaurantState | null) => Promise<{ state: SushiRestaurantState; result: T }>,
+      updateFn: (
+        current: SushiRestaurantState | null,
+      ) => Promise<{ state: SushiRestaurantState; result: T }>,
     ): Promise<T> {
       return super.transaction(uid, async (current) => {
         // Inject random jitter before and after updateFn
@@ -515,4 +506,3 @@ test('Medal Sync Concurrency: High-volume stress (100 concurrent calls, large ov
     'Zero duplicates across 100 concurrent calls',
   );
 });
-

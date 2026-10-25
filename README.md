@@ -18,6 +18,7 @@ Kapitel 10 tränar ない-form för nekande planer, kapitel 11 tränar た-form 
 ```bash
 npm install
 npm run dev        # Starta utvecklingsserver
+npm run preview:sushi # Windows: starta lokalt sushispel med två förberedda testkonton
 npm run typecheck  # Kontrollera TypeScript-typer
 npm run build      # Bygg produktionspaket
 npm test           # Kör enhetstester (node --test)

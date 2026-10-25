@@ -518,8 +518,15 @@ test('Kanji Quiz Questions: Generates balanced questions with exactly 4 unique c
     assert.equal(q.category, 'kanji');
     assert.equal(q.choices.length, 4, `Question ${q.id} must have exactly 4 choices`);
     const uniqueChoices = new Set(q.choices);
-    assert.equal(uniqueChoices.size, 4, `Question ${q.id} must have 4 distinct choices without duplicates`);
-    assert.ok(q.choices.includes(q.answer), `Question ${q.id} choices must include the correct answer`);
+    assert.equal(
+      uniqueChoices.size,
+      4,
+      `Question ${q.id} must have 4 distinct choices without duplicates`,
+    );
+    assert.ok(
+      q.choices.includes(q.answer),
+      `Question ${q.id} choices must include the correct answer`,
+    );
     assert.ok(q.explanationSv.length > 0, `Question ${q.id} must include an explanation`);
     assert.ok(q.prompt.length > 0, `Question ${q.id} must have a prompt`);
     assert.ok(q.kanjiId, `Question ${q.id} must link to a valid kanji item`);

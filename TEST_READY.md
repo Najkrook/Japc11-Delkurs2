@@ -4,7 +4,7 @@
 **Date**: 2026-10-25  
 **Scope**: Japanese Language Study Platform — Sushi Restaurant Simulation (`src/course/sushi-game/`)  
 **Authority**: QA Lead & Release Verification (`worker_m4_1`), Lead Engineer, Game Director  
-**Specification**: Aligned with `TEST_INFRA.md`, `docs/sushi-game/qa-test-plan.md`, `docs/sushi-game/ticket-tracker.md`, and `docs/sushi-game/audit-logs.md`  
+**Specification**: Aligned with `TEST_INFRA.md`, `docs/sushi-game/qa-test-plan.md`, `docs/sushi-game/ticket-tracker.md`, and `docs/sushi-game/audit-logs.md`
 
 ---
 
@@ -56,48 +56,53 @@ Milestone 4 (R4 QA & Regression Verification) and the E2E Testing Track have suc
 
 ## 3. Test Suite Inventory & Coverage
 
-| Tier | Test Suite File | Tests | Status | Scope / Focus |
-|:---:|:---|:---:|:---:|:---|
-| **Tier 1** | `tests/sushi-economy.test.ts` | 14 | `PASS` | Canonical economy formulas, conversion functions, 1/60,000 math |
-| **Tier 1** | `tests/sushi-medals.test.ts` | 18 | `PASS` | Genki chapters 6–12 medal threshold mapping, tier evaluation |
-| **Tier 1** | `tests/sushi-purchase.test.ts` | 16 | `PASS` | Catalog requirements, price validations, single-purchase rule |
-| **Tier 1** | `tests/sushi-tier1-feature-coverage.test.ts` | 10 | `PASS` | Formal Tier 1 feature contracts (F01–F10) |
-| **Tier 1** | `tests/sushi-review-regressions.test.ts` | 12 | `PASS` | Historical bug regressions and architectural constraints |
-| **Tier 2** | `tests/sushi-economy.adversarial.test.ts` | 15 | `PASS` | Clock skew, negative elapsed time, extreme offline stress (1 year) |
-| **Tier 2** | `tests/sushi-purchase-adversarial.test.ts` | 14 | `PASS` | Boundary balance transactions, off-by-one unit affordance |
-| **Tier 2** | `tests/sushi-adversarial-concurrency.test.ts` | 12 | `PASS` | Concurrent transactions, repository mutex serialization |
-| **Tier 2** | `tests/sushi-sync-medals-concurrency.test.ts` | 15 | `PASS` | Multi-user grant swarms, cold-start stampedes, lock queue resilience |
-| **Tier 2** | `tests/sushi-personalization.test.ts` | 12 | `PASS` | Decoration slot equip mechanics (`wallSlot`, `floorSlot`), neutrality |
-| **Tier 2** | `tests/sushi-ticker.test.ts` | 8 | `PASS` | Page Visibility API throttling, background tab ticker suppression |
-| **Tier 2** | `tests/sushi-m1-math-challenge.test.ts` | 14 | `PASS` | Splitting invariance across 5,000 random partitions |
-| **Tier 2** | `tests/sushi-m2-adversarial.test.ts` | 16 | `PASS` | Chapter 6–12 progression pacing and rate equilibrium |
-| **Tier 2** | `tests/sushi-m3-adversarial-challenge.test.ts` | 18 | `PASS` | 21-item catalog boundary transactions and bottleneck shifts |
-| **Tier 2** | `tests/sushi-m3-features.test.ts` | 20 | `PASS` | M3 features, Swedish ARIA announcements, bottleneck banner |
-| **Tier 2** | `tests/sushi-tier2-boundary-adversarial.test.ts` | 8 | `PASS` | Formal Tier 2 boundary contracts (F04, F07, F09, F11, F13, F15) |
-| **Tier 2** | `tests/sushi-prototype-deep-adversarial.test.ts` | 12 | `PASS` | Deep persistent state mutations and schema transitions |
-| **Tier 1/2**| `tests/sushi-view.test.ts` | 24 | `PASS` | Lit-html DOM shell, auth gate, and controller lifecycle |
-| **Tier 1/2**| `tests/sushi-service.test.ts` | 20 | `PASS` | InMemorySushiRepository lifecycle, storage hydration, and errors |
-| **Regression**| `tests/sushi-m4-regression.test.ts` | 13 | `PASS` | **Milestone 4 comprehensive regression suite**: extended accrual (10m, 1h, 8h, 12h, 24h), monotonic non-revocation, purchases, and study platform non-interference |
-| **Study Core**| `tests/study-drills.test.ts` | 35 | `PASS` | Japanese vocab flashcards, dojo conjugation, kanji, mistake bank |
-| **Study Core**| `tests/course-progress.test.ts` | 10 | `PASS` | Pure study progress computation and cloud sync handlers |
-| **Study Core**| `tests/tae-kim-srs.test.ts` | 5 | `PASS` | Tae Kim immersion data and SM-2 spaced repetition scheduler |
-| **TOTAL** | **All In-Memory Test Suites** | **336** | **`336 PASS / 0 FAIL`** | **100% clean pass rate** |
+|      Tier      | Test Suite File                                  |  Tests  |         Status          | Scope / Focus                                                                                                                                                      |
+| :------------: | :----------------------------------------------- | :-----: | :---------------------: | :----------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+|   **Tier 1**   | `tests/sushi-economy.test.ts`                    |   14    |         `PASS`          | Canonical economy formulas, conversion functions, 1/60,000 math                                                                                                    |
+|   **Tier 1**   | `tests/sushi-medals.test.ts`                     |   18    |         `PASS`          | Genki chapters 6–12 medal threshold mapping, tier evaluation                                                                                                       |
+|   **Tier 1**   | `tests/sushi-purchase.test.ts`                   |   16    |         `PASS`          | Catalog requirements, price validations, single-purchase rule                                                                                                      |
+|   **Tier 1**   | `tests/sushi-tier1-feature-coverage.test.ts`     |   10    |         `PASS`          | Formal Tier 1 feature contracts (F01–F10)                                                                                                                          |
+|   **Tier 1**   | `tests/sushi-review-regressions.test.ts`         |   12    |         `PASS`          | Historical bug regressions and architectural constraints                                                                                                           |
+|   **Tier 2**   | `tests/sushi-economy.adversarial.test.ts`        |   15    |         `PASS`          | Clock skew, negative elapsed time, extreme offline stress (1 year)                                                                                                 |
+|   **Tier 2**   | `tests/sushi-purchase-adversarial.test.ts`       |   14    |         `PASS`          | Boundary balance transactions, off-by-one unit affordance                                                                                                          |
+|   **Tier 2**   | `tests/sushi-adversarial-concurrency.test.ts`    |   12    |         `PASS`          | Concurrent transactions, repository mutex serialization                                                                                                            |
+|   **Tier 2**   | `tests/sushi-sync-medals-concurrency.test.ts`    |   15    |         `PASS`          | Multi-user grant swarms, cold-start stampedes, lock queue resilience                                                                                               |
+|   **Tier 2**   | `tests/sushi-personalization.test.ts`            |   12    |         `PASS`          | Decoration slot equip mechanics (`wallSlot`, `floorSlot`), neutrality                                                                                              |
+|   **Tier 2**   | `tests/sushi-ticker.test.ts`                     |    8    |         `PASS`          | Page Visibility API throttling, background tab ticker suppression                                                                                                  |
+|   **Tier 2**   | `tests/sushi-m1-math-challenge.test.ts`          |   14    |         `PASS`          | Splitting invariance across 5,000 random partitions                                                                                                                |
+|   **Tier 2**   | `tests/sushi-m2-adversarial.test.ts`             |   16    |         `PASS`          | Chapter 6–12 progression pacing and rate equilibrium                                                                                                               |
+|   **Tier 2**   | `tests/sushi-m3-adversarial-challenge.test.ts`   |   18    |         `PASS`          | 21-item catalog boundary transactions and bottleneck shifts                                                                                                        |
+|   **Tier 2**   | `tests/sushi-m3-features.test.ts`                |   20    |         `PASS`          | M3 features, Swedish ARIA announcements, bottleneck banner                                                                                                         |
+|   **Tier 2**   | `tests/sushi-tier2-boundary-adversarial.test.ts` |    8    |         `PASS`          | Formal Tier 2 boundary contracts (F04, F07, F09, F11, F13, F15)                                                                                                    |
+|   **Tier 2**   | `tests/sushi-prototype-deep-adversarial.test.ts` |   12    |         `PASS`          | Deep persistent state mutations and schema transitions                                                                                                             |
+|  **Tier 1/2**  | `tests/sushi-view.test.ts`                       |   24    |         `PASS`          | Lit-html DOM shell, auth gate, and controller lifecycle                                                                                                            |
+|  **Tier 1/2**  | `tests/sushi-service.test.ts`                    |   20    |         `PASS`          | InMemorySushiRepository lifecycle, storage hydration, and errors                                                                                                   |
+| **Regression** | `tests/sushi-m4-regression.test.ts`              |   13    |         `PASS`          | **Milestone 4 comprehensive regression suite**: extended accrual (10m, 1h, 8h, 12h, 24h), monotonic non-revocation, purchases, and study platform non-interference |
+| **Study Core** | `tests/study-drills.test.ts`                     |   35    |         `PASS`          | Japanese vocab flashcards, dojo conjugation, kanji, mistake bank                                                                                                   |
+| **Study Core** | `tests/course-progress.test.ts`                  |   10    |         `PASS`          | Pure study progress computation and cloud sync handlers                                                                                                            |
+| **Study Core** | `tests/tae-kim-srs.test.ts`                      |    5    |         `PASS`          | Tae Kim immersion data and SM-2 spaced repetition scheduler                                                                                                        |
+|   **TOTAL**    | **All In-Memory Test Suites**                    | **336** | **`336 PASS / 0 FAIL`** | **100% clean pass rate**                                                                                                                                           |
 
 ---
 
 ## 4. Verification Commands & Evidence
 
 ### 4.1 Strict Typecheck
+
 ```powershell
 npm run typecheck
 ```
+
 **Result**: Exit code `0`. Zero TypeScript diagnostic errors.
 
 ### 4.2 Automated Test Runner
+
 ```powershell
 npm test
 ```
+
 **Result**: Exit code `0`.
+
 ```text
 ℹ tests 336
 ℹ suites 0
@@ -107,10 +112,13 @@ npm test
 ```
 
 ### 4.3 Milestone 4 Regression Suite Specifically
+
 ```powershell
 node --test tests/sushi-m4-regression.test.ts
 ```
+
 **Result**: Exit code `0`.
+
 ```text
 ✔ Suite 1.1: Extended offline accrual at 10m, 1h, and 8h default cap (20 ¥/min) (0.6296ms)
 ✔ Suite 1.2: Extended offline accrual with 12h cap extension at 12h and 24h with stopped time discarded (0.0948ms)
@@ -132,15 +140,19 @@ node --test tests/sushi-m4-regression.test.ts
 ```
 
 ### 4.4 Production Build & Chunk Isolation
+
 ```powershell
 npm run build
 ```
+
 **Result**: Exit code `0`. Generated assets:
+
 - `dist/assets/sushi-view-CuB43N9a.js` (63.05 kB) — **Deferred lazy chunk**
 - `dist/assets/sushi-DrZVPbTV.css` (20.01 kB) — **Deferred lazy style**
 - `dist/assets/index-GGPyIhR8.js` (325.73 kB) — **Core study application bundle**
 
 **Verification of Zero Sushi Strings in Core Bundle**:
+
 ```text
 Pattern 'Hämta intäkter'    -> In index chunk: FALSE | In sushi chunk: TRUE
 Pattern 'prep_counter'      -> In index chunk: FALSE | In sushi chunk: TRUE
@@ -152,6 +164,7 @@ Pattern 'sakura_bonsai'     -> In index chunk: FALSE | In sushi chunk: TRUE
 Pattern 'golden_maneki_neko'-> In index chunk: FALSE | In sushi chunk: TRUE
 Pattern 'andon_lantern'     -> In index chunk: FALSE | In sushi chunk: TRUE
 ```
+
 **Conclusion**: Bundle chunk splitting is 100% verified.
 
 ---

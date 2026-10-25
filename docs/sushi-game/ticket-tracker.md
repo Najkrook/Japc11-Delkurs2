@@ -2,37 +2,39 @@
 
 > **Standard:** Aligned with `docs/agents/issue-tracker.md` & `docs/game-studio/framework.md`  
 > **Milestones:** M1 (Studio Framework Docs), M2 (Economy Audit), M3 (Implementation & Polish), M4 (QA Verification), E2E Track  
-> **Source of Truth:** This file constitutes the master tracking board for the Sushi Game Evolution.  
+> **Source of Truth:** This file constitutes the master tracking board for the Sushi Game Evolution.
 
 ---
 
 ## 1. Master Board Overview
 
-| Ticket ID | Milestone | Title | Assignee | Status | Blocked by |
-|:---|:---|:---|:---|:---|:---|
-| **T-01** | M1 | Studio Framework Specification | Framework Worker | `done` | None — can start immediately |
-| **T-02** | M1 | Standardized Ticket Tracker & DoR/DoD | Tracking Worker | `done` | None — can start immediately |
-| **T-03** | M1 | Game Design Document (GDD) | GDD Worker | `done` | None — can start immediately |
-| **T-04** | M1 | Mathematical Economy & Balancing Model | Economy Worker | `done` | None — can start immediately |
-| **T-05** | M1 | UX & Art Quality Checklist | UX Worker | `done` | None — can start immediately |
-| **T-06** | M1 | 4-Tier QA Test Plan Specification | QA Worker | `done` | None — can start immediately |
-| **T-07** | M1 | Forensic Studio Audit Logs Template | Audit Worker | `done` | None — can start immediately |
-| **T-08** | M2 | Studio Economy & Pacing Audit | Economy Specialist | `done` | T-03, T-04, T-07 |
-| **T-09** | M2 | Bottleneck & Cap Balance Audit | Balance Specialist | `done` | T-04, T-07, T-08 |
-| **T-10** | M3 | Catalog & Economy Expansion (21-Item Master) | Gameplay Engineer | `done` | T-04, T-07, T-08, T-09 |
-| **T-11** | M3 | Curriculum Medal Grant Rules Expansion | Gameplay Engineer | `done` | T-03, T-10 |
-| **T-12** | M3 | Visual Scene Layer Polish & Asset Expansion | Art & UI Designer | `done` | T-05, T-10 |
-| **T-13** | M3 | UX, Accessibility & Bottleneck Feedback Polish | UI/UX Engineer | `done` | T-05, T-10 |
-| **T-14** | M4 | Automated Test Suite Expansion (Tiers 1 & 2) | QA Tester | `done` | T-06, T-10, T-11 |
-| **T-15** | M4 | Release Gate, Chunk Splitting & System Verification | QA Lead | `done` | T-10, T-11, T-12, T-13, T-14 |
-| **T-E2E** | E2E | Requirement-Driven Opaque-Box E2E Test Suite | E2E Test Writer | `done` | None — can start immediately |
+| Ticket ID | Milestone | Title                                               | Assignee           | Status | Blocked by                   |
+| :-------- | :-------- | :-------------------------------------------------- | :----------------- | :----- | :--------------------------- |
+| **T-01**  | M1        | Studio Framework Specification                      | Framework Worker   | `done` | None — can start immediately |
+| **T-02**  | M1        | Standardized Ticket Tracker & DoR/DoD               | Tracking Worker    | `done` | None — can start immediately |
+| **T-03**  | M1        | Game Design Document (GDD)                          | GDD Worker         | `done` | None — can start immediately |
+| **T-04**  | M1        | Mathematical Economy & Balancing Model              | Economy Worker     | `done` | None — can start immediately |
+| **T-05**  | M1        | UX & Art Quality Checklist                          | UX Worker          | `done` | None — can start immediately |
+| **T-06**  | M1        | 4-Tier QA Test Plan Specification                   | QA Worker          | `done` | None — can start immediately |
+| **T-07**  | M1        | Forensic Studio Audit Logs Template                 | Audit Worker       | `done` | None — can start immediately |
+| **T-08**  | M2        | Studio Economy & Pacing Audit                       | Economy Specialist | `done` | T-03, T-04, T-07             |
+| **T-09**  | M2        | Bottleneck & Cap Balance Audit                      | Balance Specialist | `done` | T-04, T-07, T-08             |
+| **T-10**  | M3        | Catalog & Economy Expansion (21-Item Master)        | Gameplay Engineer  | `done` | T-04, T-07, T-08, T-09       |
+| **T-11**  | M3        | Curriculum Medal Grant Rules Expansion              | Gameplay Engineer  | `done` | T-03, T-10                   |
+| **T-12**  | M3        | Visual Scene Layer Polish & Asset Expansion         | Art & UI Designer  | `done` | T-05, T-10                   |
+| **T-13**  | M3        | UX, Accessibility & Bottleneck Feedback Polish      | UI/UX Engineer     | `done` | T-05, T-10                   |
+| **T-14**  | M4        | Automated Test Suite Expansion (Tiers 1 & 2)        | QA Tester          | `done` | T-06, T-10, T-11             |
+| **T-15**  | M4        | Release Gate, Chunk Splitting & System Verification | QA Lead            | `done` | T-10, T-11, T-12, T-13, T-14 |
+| **T-E2E** | E2E       | Requirement-Driven Opaque-Box E2E Test Suite        | E2E Test Writer    | `done` | None — can start immediately |
 
 ---
 
 ## 2. Formal Quality Definitions
 
 ### 2.1 Definition of Ready (DoR)
+
 A ticket is **NOT READY** to be assigned or moved to `in-progress` until ALL six preconditions are verified:
+
 1. **[DoR-1] Pedagogical Value:** The task clearly articulates how it reinforces Genki I Japanese learning motivation.
 2. **[DoR-2] Exact Scope & File Boundaries:** The specific target file paths and functions to be modified are explicitly listed.
 3. **[DoR-3] Dependencies Resolved:** All prerequisite tickets listed in `Blocked by` are marked `done`.
@@ -41,7 +43,9 @@ A ticket is **NOT READY** to be assigned or moved to `in-progress` until ALL six
 6. **[DoR-6] Verification Commands Defined:** Concrete shell commands (e.g. `npm test`, `npm run typecheck`, `npm run build`) to validate the change are identified.
 
 ### 2.2 Definition of Done (DoD)
+
 A ticket is **NOT DONE** and cannot be closed until ALL eight postconditions are verified:
+
 1. **[DoD-1] Criteria Fulfillment:** Every acceptance criteria checkbox in the ticket is satisfied and verified.
 2. **[DoD-2] Zero Type Errors:** `npm run typecheck` exits with status 0 (`tsc --noEmit`).
 3. **[DoD-3] Zero Test Regressions:** `npm test` executes the complete test suite with 100% passing and 0 failures.
@@ -58,6 +62,7 @@ A ticket is **NOT DONE** and cannot be closed until ALL eight postconditions are
 ### Milestone 1: Studio Framework & Specifications
 
 #### Ticket T-01: Studio Framework Specification
+
 - **Milestone:** M1
 - **Status:** `done`
 - **Blocked by:** None — can start immediately
@@ -73,6 +78,7 @@ A ticket is **NOT DONE** and cannot be closed until ALL eight postconditions are
   - [x] Establishes 8 architectural non-negotiables for engineers.
 
 #### Ticket T-02: Standardized Ticket Tracker & Workflow
+
 - **Milestone:** M1
 - **Status:** `done`
 - **Blocked by:** None — can start immediately
@@ -88,6 +94,7 @@ A ticket is **NOT DONE** and cannot be closed until ALL eight postconditions are
   - [x] Full ticket specifications for T-01 through T-15 and T-E2E.
 
 #### Ticket T-03: Comprehensive Game Design Document (GDD)
+
 - **Milestone:** M1
 - **Status:** `done`
 - **Blocked by:** None — can start immediately
@@ -102,6 +109,7 @@ A ticket is **NOT DONE** and cannot be closed until ALL eight postconditions are
   - [x] Menu and decoration customization rules defined.
 
 #### Ticket T-04: Mathematical Economy & Balancing Model
+
 - **Milestone:** M1
 - **Status:** `done`
 - **Blocked by:** None — can start immediately
@@ -116,6 +124,7 @@ A ticket is **NOT DONE** and cannot be closed until ALL eight postconditions are
   - [x] Proof of zero permanent progression deadlocks.
 
 #### Ticket T-05: UX & Art Quality Checklist
+
 - **Milestone:** M1
 - **Status:** `done`
 - **Blocked by:** None — can start immediately
@@ -130,6 +139,7 @@ A ticket is **NOT DONE** and cannot be closed until ALL eight postconditions are
   - [x] WCAG 2.1 AA criteria (contrast, keyboard focus visible, ARIA live regions, reduced motion).
 
 #### Ticket T-06: 4-Tier QA Test Plan Specification
+
 - **Milestone:** M1
 - **Status:** `done`
 - **Blocked by:** None — can start immediately
@@ -144,6 +154,7 @@ A ticket is **NOT DONE** and cannot be closed until ALL eight postconditions are
   - [x] Tier 4 (Browser E2E, chunk splitting, user journeys) specified.
 
 #### Ticket T-07: Forensic Studio Audit Logs Template & Records
+
 - **Milestone:** M1
 - **Status:** `done`
 - **Blocked by:** None — can start immediately
@@ -161,6 +172,7 @@ A ticket is **NOT DONE** and cannot be closed until ALL eight postconditions are
 ### Milestone 2: Studio Economy & Design Audit
 
 #### Ticket T-08: Studio Economy & Pacing Audit
+
 - **Milestone:** M2
 - **Status:** `done`
 - **Blocked by:** T-03, T-04, T-07
@@ -180,6 +192,7 @@ A ticket is **NOT DONE** and cannot be closed until ALL eight postconditions are
   - [x] Audit record AUD-2026-10-25-05 signed off by ED and GD.
 
 #### Ticket T-09: Bottleneck & Cap Balance Audit
+
 - **Milestone:** M2
 - **Status:** `done`
 - **Blocked by:** T-04, T-07, T-08
@@ -203,6 +216,7 @@ A ticket is **NOT DONE** and cannot be closed until ALL eight postconditions are
 ### Milestone 3: Polish & Code Implementation
 
 #### Ticket T-10: Catalog & Economy Expansion (21-Item Master)
+
 - **Milestone:** M3
 - **Status:** `done`
 - **Blocked by:** T-04, T-07, T-08, T-09
@@ -235,6 +249,7 @@ A ticket is **NOT DONE** and cannot be closed until ALL eight postconditions are
   - [x] `npm test` passes all catalog unit tests cleanly.
 
 #### Ticket T-11: Curriculum Medal Grant Rules Expansion
+
 - **Milestone:** M3
 - **Status:** `done`
 - **Blocked by:** T-03, T-10
@@ -247,6 +262,7 @@ A ticket is **NOT DONE** and cannot be closed until ALL eight postconditions are
   - [x] `npm test` passes all medal unit tests cleanly.
 
 #### Ticket T-12: Visual Scene Layer Polish & Asset Expansion
+
 - **Milestone:** M3
 - **Status:** `done`
 - **Blocked by:** T-05, T-10
@@ -260,6 +276,7 @@ A ticket is **NOT DONE** and cannot be closed until ALL eight postconditions are
   - [x] Reduced motion styles verified.
 
 #### Ticket T-13: UX, Accessibility & Bottleneck Feedback Polish
+
 - **Milestone:** M3
 - **Status:** `done`
 - **Blocked by:** T-05, T-10
@@ -276,6 +293,7 @@ A ticket is **NOT DONE** and cannot be closed until ALL eight postconditions are
 ### Milestone 4: Quality Assurance & Regression Verification
 
 #### Ticket T-14: Automated Test Suite Expansion (Tiers 1 & 2)
+
 - **Milestone:** M4
 - **Status:** `done`
 - **Blocked by:** T-06, T-10, T-11
@@ -288,6 +306,7 @@ A ticket is **NOT DONE** and cannot be closed until ALL eight postconditions are
   - [x] All tests execute via `npm test` with 0 failures.
 
 #### Ticket T-15: Release Gate, Chunk Splitting & System Verification
+
 - **Milestone:** M4
 - **Status:** `done`
 - **Blocked by:** T-10, T-11, T-12, T-13, T-14
@@ -305,6 +324,7 @@ A ticket is **NOT DONE** and cannot be closed until ALL eight postconditions are
 ### E2E Track
 
 #### Ticket T-E2E: Requirement-Driven Opaque-Box E2E Test Suite
+
 - **Milestone:** E2E
 - **Status:** `done`
 - **Blocked by:** None — can start immediately

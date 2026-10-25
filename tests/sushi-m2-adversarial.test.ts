@@ -35,11 +35,7 @@ function getWeekTotalItems(week: CourseWeek): number {
 }
 
 // Helper to set progress ratio on a week
-function setWeekMasteryRatio(
-  progress: CourseProgressData,
-  week: CourseWeek,
-  ratio: number,
-): void {
+function setWeekMasteryRatio(progress: CourseProgressData, week: CourseWeek, ratio: number): void {
   const total = getWeekTotalItems(week);
   const target = Math.min(total, Math.ceil(total * ratio));
   let count = 0;
@@ -123,11 +119,7 @@ test('Adversarial M2-01: Student earns Chapters 6, 7, 9 medals, then suffers 100
   evaluated = evaluateMedalGrants(courseProgress);
   assert.deepEqual(evaluated, ['prep_counter', 'salmon_nigiri', 'paper_lantern']);
   rState = await service.syncMedalGrants(uid, evaluated, (nowMs += 1000));
-  assert.deepEqual(rState.permanentGrants, [
-    'prep_counter',
-    'salmon_nigiri',
-    'paper_lantern',
-  ]);
+  assert.deepEqual(rState.permanentGrants, ['prep_counter', 'salmon_nigiri', 'paper_lantern']);
 
   // Phase 5: Earn Chapter 7 Bronze (60%) -> cap_extension_12h
   setWeekMasteryRatio(courseProgress, w2, 0.6);
@@ -288,7 +280,11 @@ test('Adversarial M2-02: evaluateMedalGrants boundary inputs (null, undefined, f
   // Null / undefined inputs
   assert.deepEqual(evaluateMedalGrants(null), [], 'null courseState yields []');
   assert.deepEqual(evaluateMedalGrants(undefined), [], 'undefined courseState yields []');
-  assert.deepEqual(evaluateMedalGrants(createFreshCourseProgress(), []), [], 'empty weeks yields []');
+  assert.deepEqual(
+    evaluateMedalGrants(createFreshCourseProgress(), []),
+    [],
+    'empty weeks yields []',
+  );
   assert.deepEqual(
     evaluateMedalGrants(createFreshCourseProgress(), null as any),
     [],
@@ -328,10 +324,7 @@ test('Adversarial M2-03: evaluateMedalGrants on empty/partial courseState object
     assert.deepEqual(res, []);
   } catch (err: any) {
     // If it threw, verify the exact error behavior and record empirical finding
-    assert.ok(
-      err instanceof TypeError,
-      `Uninitialized {} triggers TypeError: ${err?.message}`,
-    );
+    assert.ok(err instanceof TypeError, `Uninitialized {} triggers TypeError: ${err?.message}`);
   }
 });
 
@@ -503,9 +496,7 @@ test('Adversarial M2-07: 50 concurrent syncMedalGrants with randomized grant set
     // Shuffle
     randomGrants.sort(() => Math.random() - 0.5);
 
-    promises.push(
-      service.syncMedalGrants(uid, randomGrants, nowMs + (i + 1) * 10),
-    );
+    promises.push(service.syncMedalGrants(uid, randomGrants, nowMs + (i + 1) * 10));
   }
 
   await Promise.all(promises);
@@ -528,10 +519,7 @@ test('Adversarial M2-07: 50 concurrent syncMedalGrants with randomized grant set
 
   // All grants in permanentGrants must be valid catalog IDs
   for (const g of final.permanentGrants) {
-    assert.ok(
-      allPossibleGrants.includes(g as UnlockGrantId),
-      `Unknown grant ID found: ${g}`,
-    );
+    assert.ok(allPossibleGrants.includes(g as UnlockGrantId), `Unknown grant ID found: ${g}`);
   }
 });
 
@@ -558,9 +546,7 @@ test('Adversarial M2-08: Monotonic non-revocation invariant fuzzer (100 random s
     nowMs += 100;
     // 30% chance of empty array (full reset / drop), 70% chance of random grants
     const isWipe = Math.random() < 0.3;
-    const inputGrants: string[] = isWipe
-      ? []
-      : grantPool.filter(() => Math.random() > 0.5);
+    const inputGrants: string[] = isWipe ? [] : grantPool.filter(() => Math.random() > 0.5);
 
     currentRestaurant = await service.syncMedalGrants(uid, inputGrants, nowMs);
 

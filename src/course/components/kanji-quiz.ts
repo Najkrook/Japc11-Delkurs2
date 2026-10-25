@@ -46,9 +46,7 @@ export function renderKanjiQuizModule(
     return html`
       <section class="course-module-section" aria-label="Resultat för kapitlets kanji-quiz">
         <div class="course-quiz-result-card">
-          <span class="course-eyebrow">
-            KANJI-QUIZ AVKLARAT · KAPITEL ${week.lessonNumber}
-          </span>
+          <span class="course-eyebrow"> KANJI-QUIZ AVKLARAT · KAPITEL ${week.lessonNumber} </span>
           <h1>
             ${pct >= 90 ? '🌟 Fantastiskt kanji-minne!' : pct >= 70 ? '🎉 Riktigt bra jobbat!' : '💪 Bra kämpat, övning ger färdighet!'}
           </h1>

@@ -110,7 +110,11 @@ test('M3-Preview: previewCatalogPurchase provides prospective rates and pedagogi
   assert.equal(prepPreview.prospectiveRate.yenPerMinute, 20);
   assert.equal(prepPreview.yenDelta, 10);
   assert.equal(prepPreview.isBottleneckLimiting, false);
-  assert.ok(prepPreview.educationalExplanation.includes('Intäktstakten ökar direkt från 10 till 20 ¥/min (+10 ¥/min)'));
+  assert.ok(
+    prepPreview.educationalExplanation.includes(
+      'Intäktstakten ökar direkt från 10 till 20 ¥/min (+10 ¥/min)',
+    ),
+  );
 
   // Preview conveyor belt on base state (where kitchen is bottleneck)
   const conveyorPreview = previewCatalogPurchase(baseState, 'conveyor_belt');
@@ -231,7 +235,11 @@ test('M3-Service: Uncollected revenue CANNOT pay for purchases (Security Invaria
   // Verify intermediate accrual was preserved in repo
   const afterCheck = await repo.get(uid);
   assert.ok(afterCheck);
-  assert.equal(afterCheck.uncollectedUnits, yenToUnits(600), 'Accrued register income must be preserved');
+  assert.equal(
+    afterCheck.uncollectedUnits,
+    yenToUnits(600),
+    'Accrued register income must be preserved',
+  );
   assert.equal(afterCheck.balanceUnits, yenToUnits(50), 'Spendable balance must be untouched');
   assert.equal(afterCheck.inventory.length, 0, 'No item purchased');
 });
@@ -314,7 +322,11 @@ test('M3-Service: Idempotency key avoids duplicate debit on retries', async () =
   assert.equal(res2.success, true);
   assert.equal(res2.wasAlreadyProcessed, true);
   assert.equal(unitsToWholeYen(res2.state.balanceUnits), 200, 'Balance must NOT be debited twice');
-  assert.deepEqual(res2.state.inventory, ['prep_counter'], 'Inventory must NOT contain duplicate item');
+  assert.deepEqual(
+    res2.state.inventory,
+    ['prep_counter'],
+    'Inventory must NOT contain duplicate item',
+  );
 });
 
 // Helper constant for test brevity
@@ -478,7 +490,11 @@ test('M3-Asymmetrical: Purchasing conveyor belt first gives ±0 yen/min, then pr
     res1.state.serviceCapacity,
     res1.state.averageRevenuePerOrder,
   );
-  assert.equal(rateAfterCB.yenPerMinute, 10, 'Rate must remain 10 yen/min due to kitchen bottleneck');
+  assert.equal(
+    rateAfterCB.yenPerMinute,
+    10,
+    'Rate must remain 10 yen/min due to kitchen bottleneck',
+  );
   assert.equal(rateAfterCB.bottleneck, 'kitchen');
 
   // Step 2: Now buy prep counter (+2 kitchen, costs 300 yen)
@@ -495,6 +511,10 @@ test('M3-Asymmetrical: Purchasing conveyor belt first gives ±0 yen/min, then pr
     res2.state.serviceCapacity,
     res2.state.averageRevenuePerOrder,
   );
-  assert.equal(finalRate.yenPerMinute, 30, 'Rate jumps directly to 30 yen/min unlocking latent conveyor capacity');
+  assert.equal(
+    finalRate.yenPerMinute,
+    30,
+    'Rate jumps directly to 30 yen/min unlocking latent conveyor capacity',
+  );
   assert.equal(finalRate.bottleneck, 'kitchen');
 });

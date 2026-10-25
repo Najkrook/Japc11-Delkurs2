@@ -1,15 +1,8 @@
 import test from 'node:test';
 import assert from 'node:assert/strict';
 import { initializeApp, deleteApp } from 'firebase/app';
-import {
-  connectFirestoreEmulator,
-  getFirestore,
-  setLogLevel,
-} from 'firebase/firestore';
-import {
-  FirestoreSushiRepository,
-  SushiService,
-} from '../../src/course/sushi-game/service.ts';
+import { connectFirestoreEmulator, getFirestore, setLogLevel } from 'firebase/firestore';
+import { FirestoreSushiRepository, SushiService } from '../../src/course/sushi-game/service.ts';
 
 setLogLevel('silent');
 

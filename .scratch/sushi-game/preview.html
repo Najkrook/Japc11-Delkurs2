@@ -1,0 +1,45 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>Sushi game · Local playtest</title>
+    <style>
+      * { box-sizing: border-box; }
+      body { margin: 0; padding: 32px 20px; background: #f6f0e5; color: #243b35; font: 17px/1.6 system-ui, sans-serif; }
+      main { max-width: 700px; margin: 5vh auto; }
+      h1 { font: 2.5rem Georgia, serif; line-height: 1.2; }
+      .profiles { display: grid; grid-template-columns: repeat(auto-fit, minmax(240px, 1fr)); gap: 18px; margin: 28px 0; }
+      article { padding: 24px; border: 1px solid #d5c9b5; border-radius: 16px; background: #fffdf7; }
+      h2 { margin-top: 0; font-size: 1.2rem; }
+      button { padding: 12px 18px; border: 0; border-radius: 8px; background: #315b4e; color: white; font: inherit; cursor: pointer; }
+      button:focus-visible { outline: 3px solid #d77b4c; outline-offset: 4px; }
+      button:disabled { opacity: .6; cursor: wait; }
+      small { display: block; }
+    </style>
+  </head>
+  <body>
+    <main>
+      <small>LOCAL PLAYTEST · TEST ACCOUNTS</small>
+      <h1>Your little sushi restaurant</h1>
+      <p>Choose a starting point. The game is in Swedish. These profiles use local test data and need no real Google login.</p>
+      <div class="profiles">
+        <article>
+          <h2>Fresh restaurant</h2>
+          <p>No medals, no purchases, and ¥0. Try earning and collecting income, then explore how studying unlocks rewards.</p>
+          <button data-profile="fresh" disabled>Play fresh</button>
+        </article>
+        <article>
+          <h2>Ready to experiment</h2>
+          <p>Gold medals for chapters 6, 7, and 9, ¥10,000 to spend, and income ready to collect. Nothing purchased yet.</p>
+          <button data-profile="progressed" disabled>Play with upgrades unlocked</button>
+        </article>
+      </div>
+      <p id="status" role="status">Checking the local preview…</p>
+      <p>Try collecting income, buying the prep counter and conveyor belt, adding a recipe, and buying and placing decorations. Reload to check that your choices stay saved.</p>
+      <p>Use your browser’s Back button to return here and switch profiles. Purchases persist during this preview session; restarting the preview resets both profiles.</p>
+      <small>Feedback to share: What feels unclear? Do upgrades feel rewarding? What would make you want to return?</small>
+    </main>
+    <script type="module" src="./preview.ts"></script>
+  </body>
+</html>

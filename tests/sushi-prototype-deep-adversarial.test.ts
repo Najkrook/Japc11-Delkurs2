@@ -5,9 +5,7 @@ import {
   InMemorySushiRepository,
   type SushiStorageLike,
 } from '../src/course/sushi-game/service.ts';
-import {
-  MS_PER_MINUTE,
-} from '../src/course/sushi-game/types.ts';
+import { MS_PER_MINUTE } from '../src/course/sushi-game/types.ts';
 
 test('Deep Adversarial: __proto__ key handles fresh collection, retry idempotency, and preserves Object.prototype purity', async () => {
   const repo = new InMemorySushiRepository();
@@ -21,24 +19,48 @@ test('Deep Adversarial: __proto__ key handles fresh collection, retry idempotenc
 
   // 1. Fresh call with '__proto__'
   const res1 = await service.collectRevenue(uid, '__proto__', t10m);
-  assert.equal(res1.wasAlreadyProcessed, false, '__proto__ key must NOT trigger false alreadyProcessed on fresh call');
+  assert.equal(
+    res1.wasAlreadyProcessed,
+    false,
+    '__proto__ key must NOT trigger false alreadyProcessed on fresh call',
+  );
   assert.equal(res1.collectedYen, 100, '__proto__ key must collect accrued 100 yen');
   assert.equal(res1.collectedUnits, 6_000_000, '__proto__ key must collect 6M units');
   assert.equal(res1.state.balanceUnits, 6_000_000, 'balanceUnits must reflect 6M units');
 
   // 2. Immediate retry with '__proto__'
   const res2 = await service.collectRevenue(uid, '__proto__', t10m + 1000);
-  assert.equal(res2.wasAlreadyProcessed, true, '__proto__ key retry must be recognized as already processed');
+  assert.equal(
+    res2.wasAlreadyProcessed,
+    true,
+    '__proto__ key retry must be recognized as already processed',
+  );
   assert.equal(res2.collectedYen, 0, '__proto__ retry must yield 0 yen');
   assert.equal(res2.collectedUnits, 0, '__proto__ retry must yield 0 units');
   assert.equal(res2.state.balanceUnits, 6_000_000, 'balanceUnits must not be double credited');
 
   // 3. Strict prototype purity check: verify Object.prototype was NOT polluted
   const cleanObject: any = {};
-  assert.equal(cleanObject.processedAtMs, undefined, 'Object.prototype must not have processedAtMs');
-  assert.equal(cleanObject.resultSummary, undefined, 'Object.prototype must not have resultSummary');
-  assert.equal(Object.prototype.hasOwnProperty('processedAtMs'), false, 'Object.prototype hasOwnProperty must be false');
-  assert.equal(Object.prototype.hasOwnProperty('resultSummary'), false, 'Object.prototype hasOwnProperty must be false');
+  assert.equal(
+    cleanObject.processedAtMs,
+    undefined,
+    'Object.prototype must not have processedAtMs',
+  );
+  assert.equal(
+    cleanObject.resultSummary,
+    undefined,
+    'Object.prototype must not have resultSummary',
+  );
+  assert.equal(
+    Object.prototype.hasOwnProperty('processedAtMs'),
+    false,
+    'Object.prototype hasOwnProperty must be false',
+  );
+  assert.equal(
+    Object.prototype.hasOwnProperty('resultSummary'),
+    false,
+    'Object.prototype hasOwnProperty must be false',
+  );
 });
 
 test('Deep Adversarial: Distinctiveness across all 5 prototype keys on the same restaurant instance', async () => {
@@ -66,7 +88,11 @@ test('Deep Adversarial: Distinctiveness across all 5 prototype keys on the same 
     );
     assert.equal(res.collectedYen, 100, `Key '${key}' must collect 100 yen`);
     assert.equal(res.collectedUnits, 6_000_000, `Key '${key}' must collect 6,000,000 units`);
-    assert.equal(res.state.balanceUnits, totalExpectedUnits, `Balance must accurately track accumulated units`);
+    assert.equal(
+      res.state.balanceUnits,
+      totalExpectedUnits,
+      `Balance must accurately track accumulated units`,
+    );
   }
 
   // Now verify that EVERY single one of the 5 keys is recognized as already processed upon retry
@@ -79,7 +105,11 @@ test('Deep Adversarial: Distinctiveness across all 5 prototype keys on the same 
     );
     assert.equal(retryRes.collectedYen, 0, `Retry for '${key}' must yield 0 yen`);
     assert.equal(retryRes.collectedUnits, 0, `Retry for '${key}' must yield 0 units`);
-    assert.equal(retryRes.state.balanceUnits, totalExpectedUnits, `Balance must not change on retry`);
+    assert.equal(
+      retryRes.state.balanceUnits,
+      totalExpectedUnits,
+      `Balance must not change on retry`,
+    );
   }
 
   // Check that an unrelated prototype property is STILL recognized as fresh
@@ -110,9 +140,7 @@ test('Deep Adversarial: Concurrent duplicate requests with __proto__ key seriali
   const t30m = t0 + 30 * MS_PER_MINUTE; // 300 yen (18,000,000 units)
   const N = 25;
 
-  const promises = Array.from({ length: N }, () =>
-    service.collectRevenue(uid, '__proto__', t30m),
-  );
+  const promises = Array.from({ length: N }, () => service.collectRevenue(uid, '__proto__', t30m));
 
   const results = await Promise.all(promises);
 
@@ -120,7 +148,11 @@ test('Deep Adversarial: Concurrent duplicate requests with __proto__ key seriali
   const duplicateCount = results.filter((r) => r.wasAlreadyProcessed).length;
 
   assert.equal(processedCount, 1, 'Exactly 1 request with key __proto__ must execute the transfer');
-  assert.equal(duplicateCount, N - 1, 'All other concurrent __proto__ requests must be flagged as duplicates');
+  assert.equal(
+    duplicateCount,
+    N - 1,
+    'All other concurrent __proto__ requests must be flagged as duplicates',
+  );
 
   const winner = results.find((r) => !r.wasAlreadyProcessed)!;
   assert.equal(winner.collectedYen, 300, 'Winner must collect 300 yen');
@@ -156,10 +188,18 @@ test('Deep Adversarial: Concurrent distinct prototype keys execute safely and co
 
   // Exact conservation of funds: sum of collectedUnits across all 5 must equal 36,000,000 units
   const totalCollectedUnits = results.reduce((sum, r) => sum + r.collectedUnits, 0);
-  assert.equal(totalCollectedUnits, 36_000_000, 'Sum of collected units must strictly equal 36M units');
+  assert.equal(
+    totalCollectedUnits,
+    36_000_000,
+    'Sum of collected units must strictly equal 36M units',
+  );
 
   const finalState = await service.getOrInitRestaurant(uid, t60m);
-  assert.equal(finalState.balanceUnits, 36_000_000, 'Final authoritative balance must equal 36M units');
+  assert.equal(
+    finalState.balanceUnits,
+    36_000_000,
+    'Final authoritative balance must equal 36M units',
+  );
   assert.equal(finalState.uncollectedUnits, 0, 'Uncollected units must be 0');
 
   // Retrying all 5 keys must now yield wasAlreadyProcessed: true
@@ -172,7 +212,11 @@ test('Deep Adversarial: Concurrent distinct prototype keys execute safely and co
       true,
       `Retry of key '${targetKeys[i]}' must be flagged as already processed`,
     );
-    assert.equal(retryResults[i].collectedUnits, 0, `Retry of key '${targetKeys[i]}' must yield 0 units`);
+    assert.equal(
+      retryResults[i].collectedUnits,
+      0,
+      `Retry of key '${targetKeys[i]}' must yield 0 units`,
+    );
   }
 });
 
@@ -180,8 +224,12 @@ test('Deep Adversarial: Backing storage JSON serialization roundtrip with protot
   const mockStorageMap = new Map<string, string>();
   const mockStorage: SushiStorageLike = {
     getItem: (key: string) => mockStorageMap.get(key) ?? null,
-    setItem: (key: string, val: string) => { mockStorageMap.set(key, val); },
-    removeItem: (key: string) => { mockStorageMap.delete(key); },
+    setItem: (key: string, val: string) => {
+      mockStorageMap.set(key, val);
+    },
+    removeItem: (key: string) => {
+      mockStorageMap.delete(key);
+    },
   };
 
   const repo1 = new InMemorySushiRepository(mockStorage);

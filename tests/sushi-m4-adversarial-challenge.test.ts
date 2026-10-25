@@ -43,10 +43,7 @@ import {
   MS_PER_MINUTE,
   YEN_UNIT_MULTIPLIER,
 } from '../src/course/sushi-game/types.ts';
-import type {
-  SushiEconomyState,
-  SushiRestaurantState,
-} from '../src/course/sushi-game/types.ts';
+import type { SushiEconomyState, SushiRestaurantState } from '../src/course/sushi-game/types.ts';
 import {
   SUSHI_CATALOG,
   getCatalogItem,
@@ -59,10 +56,7 @@ import {
   tierSatisfies,
 } from '../src/course/sushi-game/medals.ts';
 import type { UnlockGrantId } from '../src/course/sushi-game/medals.ts';
-import {
-  InMemorySushiRepository,
-  SushiService,
-} from '../src/course/sushi-game/domain-service.ts';
+import { InMemorySushiRepository, SushiService } from '../src/course/sushi-game/domain-service.ts';
 import { createFreshCourseProgress } from '../src/course/course-state.ts';
 import { courseWeeks } from '../src/course/data/index.ts';
 import type { CourseProgressData, CourseWeek } from '../src/course/types.ts';
@@ -116,7 +110,10 @@ test('Adversarial 1.1: Extreme offline intervals (7 days, 30 days, 1 year, 10 ye
     assert.equal(accrual.remainingCapMs, 0);
 
     // 4. Check safe integer bounds
-    assert.ok(Number.isSafeInteger(accrual.earnedUnits), `[${name}] earnedUnits must be a safe integer`);
+    assert.ok(
+      Number.isSafeInteger(accrual.earnedUnits),
+      `[${name}] earnedUnits must be a safe integer`,
+    );
     assert.ok(Number.isSafeInteger(accrual.excessMs), `[${name}] excessMs must be a safe integer`);
     assert.ok(!Number.isNaN(accrual.earnedUnits), `[${name}] earnedUnits must not be NaN`);
   }
@@ -200,7 +197,11 @@ test('Adversarial 1.3: Split collections vs continuous idle, and repeated same-t
   // Strategy A: Uninterrupted 10 hours offline (exceeds 8h cap)
   const single10h = calculateAccrual(initialState, startMs + 10 * MS_PER_HOUR);
   const single10hCollected = collectEarnings(initialState, startMs + 10 * MS_PER_HOUR);
-  assert.equal(single10hCollected.transferredUnits, 576_000_000, 'Uninterrupted 10h capped at 8h = 576M units');
+  assert.equal(
+    single10hCollected.transferredUnits,
+    576_000_000,
+    'Uninterrupted 10h capped at 8h = 576M units',
+  );
   assert.equal(single10hCollected.transferredYenWhole, 9_600);
 
   // Strategy B: Active student split collection:
@@ -217,7 +218,11 @@ test('Adversarial 1.3: Split collections vs continuous idle, and repeated same-t
   const t10h = t4h + 6 * MS_PER_HOUR;
   const collectAt10h = collectEarnings(collectAt4h.updatedState, t10h);
   // Because timer was reset, 6 hours < 8h cap! All 6 hours produce: 6h * 20 ¥/min = 7,200 ¥ = 432,000,000 units
-  assert.equal(collectAt10h.transferredUnits, 432_000_000, '6h fresh period yields 432M units = 7,200 yen');
+  assert.equal(
+    collectAt10h.transferredUnits,
+    432_000_000,
+    '6h fresh period yields 432M units = 7,200 yen',
+  );
   assert.equal(collectAt10h.newBalanceUnits, 288_000_000 + 432_000_000); // 720,000,000 units = 12,000 yen!
   assert.equal(unitsToWholeYen(collectAt10h.newBalanceUnits), 12_000);
 
@@ -269,7 +274,12 @@ test('Adversarial 2.1: Boundary balance values and spendable wallet vs uncollect
     uncollectedUnits: 0,
     inventory: [],
   });
-  const failMinusOne = await service.purchaseCatalogItem(uid, 'prep_counter', 'req-fail-minus-1', nowMs);
+  const failMinusOne = await service.purchaseCatalogItem(
+    uid,
+    'prep_counter',
+    'req-fail-minus-1',
+    nowMs,
+  );
   assert.equal(failMinusOne.success, false);
   if (!failMinusOne.success) {
     assert.equal(failMinusOne.reason, 'INSUFFICIENT_FUNDS');
@@ -299,7 +309,12 @@ test('Adversarial 2.1: Boundary balance values and spendable wallet vs uncollect
     uncollectedUnits: 0,
     inventory: [],
   });
-  const succPlusOne = await service.purchaseCatalogItem(uid, 'prep_counter', 'req-succ-plus-1', nowMs);
+  const succPlusOne = await service.purchaseCatalogItem(
+    uid,
+    'prep_counter',
+    'req-succ-plus-1',
+    nowMs,
+  );
   assert.equal(succPlusOne.success, true);
   if (succPlusOne.success) {
     assert.equal(succPlusOne.state.balanceUnits, 1, 'Surplus 1 unit must remain in balance');
@@ -314,13 +329,26 @@ test('Adversarial 2.1: Boundary balance values and spendable wallet vs uncollect
     uncollectedUnits: 500_000_000,
     inventory: [],
   });
-  const failUncollected = await service.purchaseCatalogItem(uid, 'prep_counter', 'req-fail-register-only', nowMs);
-  assert.equal(failUncollected.success, false, 'Uncollected register funds must never cover purchases');
+  const failUncollected = await service.purchaseCatalogItem(
+    uid,
+    'prep_counter',
+    'req-fail-register-only',
+    nowMs,
+  );
+  assert.equal(
+    failUncollected.success,
+    false,
+    'Uncollected register funds must never cover purchases',
+  );
   if (!failUncollected.success) {
     assert.equal(failUncollected.reason, 'INSUFFICIENT_FUNDS');
   }
   const stateAfterRegCheck = await repo.get(uid);
-  assert.equal(stateAfterRegCheck!.uncollectedUnits, 500_000_000, 'Uncollected register balance must be preserved');
+  assert.equal(
+    stateAfterRegCheck!.uncollectedUnits,
+    500_000_000,
+    'Uncollected register balance must be preserved',
+  );
   assert.equal(stateAfterRegCheck!.balanceUnits, 0, 'Spendable balance must remain 0');
 
   // Test 5: Locked item rejection (even with infinite funds)
@@ -330,13 +358,22 @@ test('Adversarial 2.1: Boundary balance values and spendable wallet vs uncollect
     permanentGrants: [], // no unlocks
     inventory: [],
   });
-  const failLocked = await service.purchaseCatalogItem(uid, 'prep_counter', 'req-fail-locked', nowMs);
+  const failLocked = await service.purchaseCatalogItem(
+    uid,
+    'prep_counter',
+    'req-fail-locked',
+    nowMs,
+  );
   assert.equal(failLocked.success, false);
   if (!failLocked.success) {
     assert.equal(failLocked.reason, 'ITEM_LOCKED');
   }
   const stateAfterLocked = await repo.get(uid);
-  assert.equal(stateAfterLocked!.balanceUnits, 10_000_000_000, 'Balance must not be deducted for locked items');
+  assert.equal(
+    stateAfterLocked!.balanceUnits,
+    10_000_000_000,
+    'Balance must not be deducted for locked items',
+  );
 });
 
 test('Adversarial 2.2: Rapid purchases, idempotency, and concurrent purchase stampede', async () => {
@@ -447,27 +484,57 @@ test('Adversarial 2.3: Full catalog inventory duplication immunity & decoration 
   // Upgrades: prep_counter, precision_knife, conveyor_belt, etc.
 
   // 1. Attempt to equip recipe into wallSlot
-  const eqRecipe = await service.equipDecoration(uid, 'wallSlot', 'salmon_nigiri', 'dec-key-recipe');
+  const eqRecipe = await service.equipDecoration(
+    uid,
+    'wallSlot',
+    'salmon_nigiri',
+    'dec-key-recipe',
+  );
   assert.equal(eqRecipe.success, false, 'Cannot equip recipe in wallSlot');
 
   // 2. Attempt to equip kitchen upgrade into floorSlot
-  const eqUpgrade = await service.equipDecoration(uid, 'floorSlot', 'prep_counter', 'dec-key-upgrade');
+  const eqUpgrade = await service.equipDecoration(
+    uid,
+    'floorSlot',
+    'prep_counter',
+    'dec-key-upgrade',
+  );
   assert.equal(eqUpgrade.success, false, 'Cannot equip kitchen upgrade in floorSlot');
 
   // 3. Slot mismatch: Attempt to equip wall decoration in floorSlot
-  const eqMismatch = await service.equipDecoration(uid, 'floorSlot', 'paper_lantern', 'dec-key-mismatch');
+  const eqMismatch = await service.equipDecoration(
+    uid,
+    'floorSlot',
+    'paper_lantern',
+    'dec-key-mismatch',
+  );
   assert.equal(eqMismatch.success, false, 'Cannot equip wall decoration in floorSlot');
 
   // 4. Slot mismatch: Attempt to equip floor decoration in wallSlot
-  const eqMismatch2 = await service.equipDecoration(uid, 'wallSlot', 'golden_maneki_neko', 'dec-key-mismatch-2');
+  const eqMismatch2 = await service.equipDecoration(
+    uid,
+    'wallSlot',
+    'golden_maneki_neko',
+    'dec-key-mismatch-2',
+  );
   assert.equal(eqMismatch2.success, false, 'Cannot equip floor decoration in wallSlot');
 
   // 5. Valid equips
-  const eqWallValid = await service.equipDecoration(uid, 'wallSlot', 'paper_lantern', 'dec-key-valid-wall');
+  const eqWallValid = await service.equipDecoration(
+    uid,
+    'wallSlot',
+    'paper_lantern',
+    'dec-key-valid-wall',
+  );
   assert.equal(eqWallValid.success, true);
   assert.equal(eqWallValid.state.equipped.wallSlot, 'paper_lantern');
 
-  const eqFloorValid = await service.equipDecoration(uid, 'floorSlot', 'golden_maneki_neko', 'dec-key-valid-floor');
+  const eqFloorValid = await service.equipDecoration(
+    uid,
+    'floorSlot',
+    'golden_maneki_neko',
+    'dec-key-valid-floor',
+  );
   assert.equal(eqFloorValid.success, true);
   assert.equal(eqFloorValid.state.equipped.floorSlot, 'golden_maneki_neko');
 
@@ -487,7 +554,11 @@ test('Adversarial 2.3: Full catalog inventory duplication immunity & decoration 
     stateUnequipped!.serviceCapacity,
     stateUnequipped!.averageRevenuePerOrder,
   );
-  assert.deepEqual(rateBefore, rateAfter, 'Equipping/unequipping decor must have zero economic effect');
+  assert.deepEqual(
+    rateBefore,
+    rateAfter,
+    'Equipping/unequipping decor must have zero economic effect',
+  );
 });
 
 // =============================================================================
@@ -538,7 +609,8 @@ test('Adversarial 3.1: Bizarre student progress (Gold in Ch 12 with 0% progress 
   // Master at least 60% of total items in Ch 6 (vocab + kanji + dojo + quiz)
   const ch6Week = courseWeeks.find((w) => w.lessonNumber === 6)!;
   const progressCh12AndCh6Bronze = structuredClone(progressCh12Only);
-  const totalCh6Items = ch6Week.vocab.length + ch6Week.kanji.length + ch6Week.conjugations.length + ch6Week.quiz.length;
+  const totalCh6Items =
+    ch6Week.vocab.length + ch6Week.kanji.length + ch6Week.conjugations.length + ch6Week.quiz.length;
   const targetBronze = Math.ceil(totalCh6Items * 0.65); // 65% > 60% threshold
   let added = 0;
   for (const v of ch6Week.vocab) {
@@ -585,10 +657,20 @@ test('Adversarial 3.1: Bizarre student progress (Gold in Ch 12 with 0% progress 
 
   // Sync to restaurant: Permanent grants MUST NOT revoke Ch 12 rewards!
   const state3 = await service.syncMedalGrants(uid, grantsAfterCh12Reset, nowMs + 2000);
-  assert.equal(state3.permanentGrants.length, 4, 'Permanent grants must strictly preserve all 4 items');
-  assert.ok(state3.permanentGrants.includes('master_license'), 'master_license must remain granted');
+  assert.equal(
+    state3.permanentGrants.length,
+    4,
+    'Permanent grants must strictly preserve all 4 items',
+  );
+  assert.ok(
+    state3.permanentGrants.includes('master_license'),
+    'master_license must remain granted',
+  );
   assert.ok(state3.permanentGrants.includes('omakase_menu'), 'omakase_menu must remain granted');
-  assert.ok(state3.permanentGrants.includes('golden_maneki_neko'), 'golden_maneki_neko must remain granted');
+  assert.ok(
+    state3.permanentGrants.includes('golden_maneki_neko'),
+    'golden_maneki_neko must remain granted',
+  );
   assert.ok(state3.permanentGrants.includes('prep_counter'), 'prep_counter must remain granted');
 });
 
@@ -613,7 +695,8 @@ test('Adversarial 3.2: Swiss cheese fragmented curriculum progress across non-co
 
   function grantWeekMastery(lessonNumber: number, percent: number) {
     const week = courseWeeks.find((w) => w.lessonNumber === lessonNumber)!;
-    const totalItems = week.vocab.length + week.kanji.length + week.conjugations.length + week.quiz.length;
+    const totalItems =
+      week.vocab.length + week.kanji.length + week.conjugations.length + week.quiz.length;
     const targetItems = Math.ceil(totalItems * (percent / 100));
 
     let added = 0;
@@ -643,7 +726,7 @@ test('Adversarial 3.2: Swiss cheese fragmented curriculum progress across non-co
   }
 
   grantWeekMastery(7, 100); // Ch 7 Gold
-  grantWeekMastery(8, 65);  // Ch 8 Bronze
+  grantWeekMastery(8, 65); // Ch 8 Bronze
   grantWeekMastery(10, 85); // Ch 10 Silver
   grantWeekMastery(12, 100); // Ch 12 Gold
 
@@ -665,7 +748,11 @@ test('Adversarial 3.2: Swiss cheese fragmented curriculum progress across non-co
   assert.equal(wipedEvaluated.length, 0);
 
   const state2 = await service.syncMedalGrants(uid, wipedEvaluated, nowMs + 1000);
-  assert.equal(state2.permanentGrants.length, 9, 'All 9 grants must be strictly preserved after wipe');
+  assert.equal(
+    state2.permanentGrants.length,
+    9,
+    'All 9 grants must be strictly preserved after wipe',
+  );
 });
 
 test('Adversarial 3.3: Reverse curriculum order (12 to 6) and mergePermanentGrants sanitization', () => {
@@ -707,7 +794,11 @@ test('Adversarial 3.3: Reverse curriculum order (12 to 6) and mergePermanentGran
     );
   }
 
-  assert.equal(accumulatedGrants.length, 21, 'Full reverse walkthrough must accumulate all 21 grants');
+  assert.equal(
+    accumulatedGrants.length,
+    21,
+    'Full reverse walkthrough must accumulate all 21 grants',
+  );
 
   // Merging empty array into accumulated grants must yield identical 21 grants
   const postReset = mergePermanentGrants(accumulatedGrants, []);

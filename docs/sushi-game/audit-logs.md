@@ -4,21 +4,25 @@
 > **Origin:** Adapted from Claude-Code-Game-Studios `/audit-log` and forensic review protocol  
 > **Target Scope:** Sushi Restaurant Tycoon (`src/course/sushi-game/`, `docs/sushi-game/`)  
 > **Document Owner:** Lead QA Auditor & Producer (QL / PM)  
-> **Status:** Active Forensic Register  
+> **Status:** Active Forensic Register
 
 ---
 
 ## 1. Audit Framework & Logging Protocol
 
 ### 1.1 Purpose & Policy
+
 Every change to economic balance parameters, progression gating, currency conversion formulas, Firestore security rules, or visual layer stacks requires an authoritative audit entry in this log.
 
 Audit records are **immutable**, **quantitative**, and **traceable**:
+
 - No vague descriptions: exact values, delta percentages, time-to-earn metrics, and code references are mandatory.
 - All conclusions must be supported by automated test execution results (`npm test`, `npm run typecheck`, `npm run build`).
 
 ### 1.2 Standard Audit Log Entry Schema
+
 Each audit record adheres to the following specification:
+
 - **Audit ID:** `AUD-YYYY-MM-DD-NN`
 - **Timestamp (UTC):** ISO 8601 UTC timestamp.
 - **Auditor & Discipline:** Auditor agent identity and studio role (GD, ED, AD, LE, QL, PM).
@@ -35,6 +39,7 @@ Each audit record adheres to the following specification:
 ## 2. Historical Baseline Audit Records
 
 ### AUD-2026-10-22-01: Approved Accounting Contract & MVP Rules
+
 - **Timestamp:** 2026-10-22T14:00:00Z
 - **Auditor & Discipline:** Product Owner & Lead Systems Architect (PO / LE)
 - **Audit Scope & Target:** `sushigame.md` Section 5.4–5.5 (Ticket 01 decisions)
@@ -56,6 +61,7 @@ Each audit record adheres to the following specification:
 ---
 
 ### AUD-2026-10-25-01: Architecture Boundary & Code-Splitting Audit
+
 - **Timestamp:** 2026-10-25T11:45:00Z
 - **Auditor & Discipline:** Lead Systems Engineer (LE)
 - **Audit Scope & Target:** `vite.config.ts`, `src/course/course-view.ts`, `dist/assets/`
@@ -74,6 +80,7 @@ Each audit record adheres to the following specification:
 ---
 
 ### AUD-2026-10-25-02: Genki I Chapters 6–12 Curriculum & Economy Balance Audit
+
 - **Timestamp:** 2026-10-25T12:15:00Z
 - **Auditor & Discipline:** Economy & Balance Designer (ED)
 - **Audit Scope & Target:** `src/course/sushi-game/catalog.ts`, `medals.ts`, `economy.ts`, `sushigame.md`
@@ -102,6 +109,7 @@ Each audit record adheres to the following specification:
 ---
 
 ### AUD-2026-10-25-03: UX, Responsive & WCAG 2.1 AA Accessibility Audit
+
 - **Timestamp:** 2026-10-25T12:30:00Z
 - **Auditor & Discipline:** Art & UX Director (AD)
 - **Audit Scope & Target:** `src/course/sushi-game/sushi.css`, `restaurant-scene.ts`, `sushi-view.ts`
@@ -122,6 +130,7 @@ Each audit record adheres to the following specification:
 ---
 
 ### AUD-2026-10-25-04: Milestone 1 Studio Documentation & Specification Sign-Off
+
 - **Timestamp:** 2026-10-25T12:45:00Z
 - **Auditor & Discipline:** Studio Framework Worker & QA Lead (Worker M1-1 / QL)
 - **Audit Scope & Target:** All 7 Studio Documentation files:
@@ -152,6 +161,7 @@ Each audit record adheres to the following specification:
 ---
 
 ### AUD-2026-10-25-05: Studio Economy, Pacing & Curriculum Balance Audit
+
 - **Timestamp:** 2026-10-25T13:50:00Z
 - **Auditor & Discipline:** Economy Audit Explorer & Worker (ED / GD)
 - **Audit Scope & Target:** `src/course/sushi-game/economy.ts`, `catalog.ts`, `medals.ts`, `docs/sushi-game/economy-balance-model.md`, `ticket-tracker.md`
@@ -184,6 +194,7 @@ Each audit record adheres to the following specification:
 ---
 
 ### AUD-2026-10-25-06: Final Studio Release & Regression Gate Audit
+
 - **Timestamp:** 2026-10-25T15:15:00Z
 - **Auditor & Discipline:** QA Lead & Release Verification Worker (worker_m4_1 / QL)
 - **Audit Scope & Target:** `tests/sushi-m4-regression.test.ts`, `src/course/sushi-game/`, `dist/`, `docs/sushi-game/ticket-tracker.md`, `TEST_READY.md`
@@ -230,12 +241,12 @@ Each audit record adheres to the following specification:
 
 ## 3. Audit Verification & Regression Gate Sign-Off Matrix
 
-| Audit ID | Scope Area | Status | Verified Commands | Sign-Off Date |
-|:---:|:---|:---:|:---|:---:|
-| **AUD-2026-10-22-01** | Accounting Contract & MVP Rules | `APPROVED` | `node --test tests/sushi-economy.test.ts` | 2026-10-22 |
-| **AUD-2026-10-25-01** | Architecture Boundary & Code-Splitting | `APPROVED` | `npm run build`, `npm run typecheck` | 2026-10-25 |
-| **AUD-2026-10-25-02** | Curriculum & Economy Balance Model | `APPROVED` | `node --test tests/sushi-medals.test.ts` | 2026-10-25 |
-| **AUD-2026-10-25-03** | UX, Responsive & WCAG 2.1 AA | `APPROVED` | `npm run test:e2e` | 2026-10-25 |
-| **AUD-2026-10-25-04** | Milestone 1 Studio Documentation Sign-Off | `APPROVED` | `npm run typecheck`, `npm test`, `npm run build` | 2026-10-25 |
-| **AUD-2026-10-25-05** | Studio Economy, Pacing & Curriculum Balance | `APPROVED` | `npm run typecheck`, `npm test`, `npm run build` | 2026-10-25 |
-| **AUD-2026-10-25-06** | Final Release Gate & Regression Verification | `APPROVED` | `npm run typecheck`, `npm test`, `npm run build` | 2026-10-25 |
+|       Audit ID        | Scope Area                                   |   Status   | Verified Commands                                | Sign-Off Date |
+| :-------------------: | :------------------------------------------- | :--------: | :----------------------------------------------- | :-----------: |
+| **AUD-2026-10-22-01** | Accounting Contract & MVP Rules              | `APPROVED` | `node --test tests/sushi-economy.test.ts`        |  2026-10-22   |
+| **AUD-2026-10-25-01** | Architecture Boundary & Code-Splitting       | `APPROVED` | `npm run build`, `npm run typecheck`             |  2026-10-25   |
+| **AUD-2026-10-25-02** | Curriculum & Economy Balance Model           | `APPROVED` | `node --test tests/sushi-medals.test.ts`         |  2026-10-25   |
+| **AUD-2026-10-25-03** | UX, Responsive & WCAG 2.1 AA                 | `APPROVED` | `npm run test:e2e`                               |  2026-10-25   |
+| **AUD-2026-10-25-04** | Milestone 1 Studio Documentation Sign-Off    | `APPROVED` | `npm run typecheck`, `npm test`, `npm run build` |  2026-10-25   |
+| **AUD-2026-10-25-05** | Studio Economy, Pacing & Curriculum Balance  | `APPROVED` | `npm run typecheck`, `npm test`, `npm run build` |  2026-10-25   |
+| **AUD-2026-10-25-06** | Final Release Gate & Regression Verification | `APPROVED` | `npm run typecheck`, `npm test`, `npm run build` |  2026-10-25   |

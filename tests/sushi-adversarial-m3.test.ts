@@ -5,10 +5,7 @@ import {
   leaveSushiView,
   SushiClientController,
 } from '../src/course/sushi-game/sushi-view.ts';
-import {
-  sushiService,
-  InMemorySushiRepository,
-} from '../src/course/sushi-game/service.ts';
+import { sushiService, InMemorySushiRepository } from '../src/course/sushi-game/service.ts';
 import { SUSHI_CATALOG } from '../src/course/sushi-game/catalog.ts';
 import { SUSHI_UNLOCK_CATALOG } from '../src/course/sushi-game/medals.ts';
 import { unitsToWholeYen } from '../src/course/sushi-game/economy.ts';
@@ -118,10 +115,7 @@ test('Adversarial Bottleneck Banner: Comprehensive K < S scenarios (Kitchen Bott
 
     // 2. Banner content accuracy
     const expectedMsg = `Köket begränsar intjäningen (${k} ord/min mot ${s} ord/min service). Uppgradera kökskapaciteten för att höja takten.`;
-    assert.ok(
-      html.includes(expectedMsg),
-      `[${label}] Banner message must match: "${expectedMsg}"`,
-    );
+    assert.ok(html.includes(expectedMsg), `[${label}] Banner message must match: "${expectedMsg}"`);
 
     // 3. Rate bar tags
     assert.ok(
@@ -167,10 +161,7 @@ test('Adversarial Bottleneck Banner: Comprehensive K > S scenarios (Service Bott
 
     // 2. Banner content accuracy
     const expectedMsg = `Servicen begränsar intjäningen (${s} ord/min mot ${k} ord/min kök). Uppgradera transportband eller service för att höja takten.`;
-    assert.ok(
-      html.includes(expectedMsg),
-      `[${label}] Banner message must match: "${expectedMsg}"`,
-    );
+    assert.ok(html.includes(expectedMsg), `[${label}] Banner message must match: "${expectedMsg}"`);
 
     // 3. Rate bar tags
     assert.ok(
@@ -451,7 +442,11 @@ test('Adversarial Swedish Announcement: Medal unlock collection - Zero, Partial,
   const controller = new SushiClientController();
   try {
     // 1. Zero unlocks
-    assert.equal(controller.formatAnnouncement([]), '', 'Empty grant array yields empty announcement');
+    assert.equal(
+      controller.formatAnnouncement([]),
+      '',
+      'Empty grant array yields empty announcement',
+    );
 
     // 2. Single unlock (partial)
     const single = controller.formatAnnouncement(['maguro_nigiri']);
@@ -468,7 +463,11 @@ test('Adversarial Swedish Announcement: Medal unlock collection - Zero, Partial,
     );
 
     // 3. Multi unlock (partial)
-    const triple = controller.formatAnnouncement(['knife_sharpener', 'salmon_nigiri', 'noren_curtain']);
+    const triple = controller.formatAnnouncement([
+      'knife_sharpener',
+      'salmon_nigiri',
+      'noren_curtain',
+    ]);
     assert.ok(
       triple.startsWith('Grattis! 3 nya kursbelöningar upplåsta från dina kursmedaljer:'),
       'Multi unlock has plural Swedish heading with count',
@@ -480,7 +479,9 @@ test('Adversarial Swedish Announcement: Medal unlock collection - Zero, Partial,
 
     const fullAnnouncement = controller.formatAnnouncement(allGrantIds);
     assert.ok(
-      fullAnnouncement.startsWith('Grattis! 21 nya kursbelöningar upplåsta från dina kursmedaljer:'),
+      fullAnnouncement.startsWith(
+        'Grattis! 21 nya kursbelöningar upplåsta från dina kursmedaljer:',
+      ),
       'Full collection heading specifies 21 items',
     );
     for (const item of SUSHI_UNLOCK_CATALOG) {
@@ -563,11 +564,7 @@ test('Adversarial Collection Error: Network failure triggers Swedish error annou
     await controller.collect();
 
     // Verify error state
-    assert.equal(
-      controller.isCollecting,
-      false,
-      'isCollecting flag must be cleared upon error',
-    );
+    assert.equal(controller.isCollecting, false, 'isCollecting flag must be cleared upon error');
     assert.equal(
       controller.error,
       'Kunde inte hämta intäkterna på grund av nätverksfel. Försök igen.',
@@ -616,7 +613,9 @@ test('Adversarial Collection Idempotency: Duplicate calls with identical idempot
     }),
   );
 
-  const service = new (await import('../src/course/sushi-game/domain-service.ts')).SushiService(repo);
+  const service = new (await import('../src/course/sushi-game/domain-service.ts')).SushiService(
+    repo,
+  );
   const idempotencyKey = 'key_unique_collect_123';
 
   // First collect call
@@ -635,4 +634,3 @@ test('Adversarial Collection Idempotency: Duplicate calls with identical idempot
     'Balance remains 2200 yen without double crediting',
   );
 });
-

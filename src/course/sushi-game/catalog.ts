@@ -6,16 +6,8 @@
  * lookup functions, and prospective purchase/bottleneck impact calculators.
  */
 
-import {
-  YEN_UNIT_MULTIPLIER,
-  EXTENDED_CAP_MS,
-  MS_PER_HOUR,
-} from './types.ts';
-import type {
-  SushiEconomyState,
-  SushiRestaurantState,
-  ProductionRate,
-} from './types.ts';
+import { YEN_UNIT_MULTIPLIER, EXTENDED_CAP_MS, MS_PER_HOUR } from './types.ts';
+import type { SushiEconomyState, SushiRestaurantState, ProductionRate } from './types.ts';
 import { calculateProductionRate } from './economy.ts';
 import type { UnlockGrantId, MedalTier } from './medals.ts';
 
@@ -43,10 +35,10 @@ export interface SushiCatalogItem {
   // Typed upgrade effects for economy & visual scene
   readonly kitchenCapacityDelta?: number; // e.g. +2 for prep_counter
   readonly serviceCapacityDelta?: number; // e.g. +2 for conveyor_belt
-  readonly averageRevenueDelta?: number;  // For future recipe variants
-  readonly newCapMs?: number;             // e.g. 43,200,000 ms (12h) for cap_extension_12h
+  readonly averageRevenueDelta?: number; // For future recipe variants
+  readonly newCapMs?: number; // e.g. 43,200,000 ms (12h) for cap_extension_12h
   readonly slotType?: 'wallSlot' | 'floorSlot'; // For M4 decorations
-  readonly recipeId?: string;             // For M4 recipes
+  readonly recipeId?: string; // For M4 recipes
 }
 
 export interface UpgradeStatDeltas {
@@ -286,7 +278,8 @@ export const SUSHI_CATALOG: readonly SushiCatalogItem[] = [
     priceYen: 1500,
     priceUnits: 1500 * YEN_UNIT_MULTIPLIER, // 90,000,000
     recipeId: 'ebi_nigiri',
-    effectDescription: 'Färgglad söt räknigiri med klassiskt fjärilssnitt. Visuell menyförbättring.',
+    effectDescription:
+      'Färgglad söt räknigiri med klassiskt fjärilssnitt. Visuell menyförbättring.',
     targetWeekId: 'week-4',
   },
   {
@@ -506,17 +499,15 @@ export function previewUpgradeImpact(
   let educationalExplanation = '';
   if (isBottleneckLimiting) {
     if ((deltas.serviceCapacityDelta ?? 0) > 0 && currentRate.bottleneck === 'kitchen') {
-      educationalExplanation =
-        `Detta köp ökar servicekapaciteten till ${newService} ordrar/min, men köket producerar bara ${newKitchen} ${
-          newKitchen === 1 ? 'order' : 'ordrar'
-        }/min. Eftersom intäkten styrs av min(kök, service), förblir intäktstakten ${
-          currentRate.yenPerMinute
-        } ¥/min tills du uppgraderar köket.`;
+      educationalExplanation = `Detta köp ökar servicekapaciteten till ${newService} ordrar/min, men köket producerar bara ${newKitchen} ${
+        newKitchen === 1 ? 'order' : 'ordrar'
+      }/min. Eftersom intäkten styrs av min(kök, service), förblir intäktstakten ${
+        currentRate.yenPerMinute
+      } ¥/min tills du uppgraderar köket.`;
     } else if ((deltas.kitchenCapacityDelta ?? 0) > 0 && currentRate.bottleneck === 'service') {
-      educationalExplanation =
-        `Detta köp ökar kökskapaciteten till ${newKitchen} ordrar/min, men servicen kan bara hantera ${newService} ${
-          newService === 1 ? 'order' : 'ordrar'
-        }/min. Intäktstakten förblir ${currentRate.yenPerMinute} ¥/min tills du uppgraderar servicen.`;
+      educationalExplanation = `Detta köp ökar kökskapaciteten till ${newKitchen} ordrar/min, men servicen kan bara hantera ${newService} ${
+        newService === 1 ? 'order' : 'ordrar'
+      }/min. Intäktstakten förblir ${currentRate.yenPerMinute} ¥/min tills du uppgraderar servicen.`;
     }
   } else if ((deltas.averageRevenueDelta ?? 0) > 0 && yenDelta > 0) {
     educationalExplanation = `Ökar genomsnittlig intäkt från ${currentState.averageRevenuePerOrder} till ${newAvgRev} ¥/order. Intäktstakten ökar direkt från ${currentRate.yenPerMinute} till ${prospectiveRate.yenPerMinute} ¥/min (+${yenDelta} ¥/min).`;

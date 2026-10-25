@@ -51,26 +51,16 @@ import {
   DEFAULT_CAP_MS,
   EXTENDED_CAP_MS,
 } from '../src/course/sushi-game/types.ts';
-import type {
-  SushiEconomyState,
-  SushiRestaurantState,
-} from '../src/course/sushi-game/types.ts';
+import type { SushiEconomyState, SushiRestaurantState } from '../src/course/sushi-game/types.ts';
 
 import { courseWeeks, getCourseWeekById } from '../src/course/data/index.ts';
 import { createFreshCourseProgress } from '../src/course/course-state.ts';
 import type { CourseProgressData, CourseWeek } from '../src/course/types.ts';
 
-import {
-  SushiService,
-  InMemorySushiRepository,
-} from '../src/course/sushi-game/service.ts';
+import { SushiService, InMemorySushiRepository } from '../src/course/sushi-game/service.ts';
 
 // Helper to set week progress ratio
-function setWeekMasteryRatio(
-  progress: CourseProgressData,
-  week: CourseWeek,
-  ratio: number,
-): void {
+function setWeekMasteryRatio(progress: CourseProgressData, week: CourseWeek, ratio: number): void {
   const total = week.vocab.length + week.kanji.length + week.conjugations.length + week.quiz.length;
   const target = Math.min(total, Math.ceil(total * ratio));
   let count = 0;
@@ -152,9 +142,18 @@ test('M3-CHALLENGE-01: Exhaustive Catalog Integrity & Economic Constant Verifica
     // 3. String properties non-empty
     assert.ok(item.name && item.name.trim().length > 0, `Item ${item.id} name required`);
     assert.ok(item.icon && item.icon.trim().length > 0, `Item ${item.id} icon required`);
-    assert.ok(item.category && typeof item.category === 'string', `Item ${item.id} category required`);
-    assert.ok(item.categoryLabel && item.categoryLabel.trim().length > 0, `Item ${item.id} categoryLabel required`);
-    assert.ok(item.effectDescription && item.effectDescription.trim().length > 0, `Item ${item.id} description required`);
+    assert.ok(
+      item.category && typeof item.category === 'string',
+      `Item ${item.id} category required`,
+    );
+    assert.ok(
+      item.categoryLabel && item.categoryLabel.trim().length > 0,
+      `Item ${item.id} categoryLabel required`,
+    );
+    assert.ok(
+      item.effectDescription && item.effectDescription.trim().length > 0,
+      `Item ${item.id} description required`,
+    );
 
     // 4. Non-negative integer pricing
     assert.ok(Number.isInteger(item.priceYen), `Item ${item.id} priceYen must be integer`);
@@ -225,9 +224,21 @@ test('M3-CHALLENGE-01: Exhaustive Catalog Integrity & Economic Constant Verifica
   assert.equal(silver.length, 7);
   assert.equal(gold.length, 7);
 
-  assert.equal(bronze.reduce((acc, i) => acc + i.priceYen, 0), 31_500, 'Bronze upgrades sum to 31,500 Yen');
-  assert.equal(silver.reduce((acc, i) => acc + i.priceYen, 0), 11_400, 'Silver recipes sum to 11,400 Yen');
-  assert.equal(gold.reduce((acc, i) => acc + i.priceYen, 0), 5_100, 'Gold decor sum to 5,100 Yen');
+  assert.equal(
+    bronze.reduce((acc, i) => acc + i.priceYen, 0),
+    31_500,
+    'Bronze upgrades sum to 31,500 Yen',
+  );
+  assert.equal(
+    silver.reduce((acc, i) => acc + i.priceYen, 0),
+    11_400,
+    'Silver recipes sum to 11,400 Yen',
+  );
+  assert.equal(
+    gold.reduce((acc, i) => acc + i.priceYen, 0),
+    5_100,
+    'Gold decor sum to 5,100 Yen',
+  );
 });
 
 // =============================================================================
@@ -263,7 +274,11 @@ test('M3-CHALLENGE-02: Prospective Rate Impact Oracle & master_license Math Veri
       assert.equal(preview.yenDelta, expectedDelta, `master_license delta for orders=${orders}`);
 
       assert.equal(preview.hasImmediateEffect, true, 'Immediate rate increase');
-      assert.equal(preview.isBottleneckLimiting, false, 'master_license is never bottleneck limited');
+      assert.equal(
+        preview.isBottleneckLimiting,
+        false,
+        'master_license is never bottleneck limited',
+      );
 
       // Educational explanation must explain +5 yen and rate delta
       assert.ok(
@@ -354,9 +369,25 @@ test('M3-CHALLENGE-03: Exhaustive Bottleneck Space & Alternation Verification (3
   const canonicalSteps = [
     { desc: 'Start (Base)', k: 1, s: 2, a: 10, o: 1, r: 10, bottleneck: 'kitchen' },
     { desc: 'Ch 6 Bronze (prep_counter)', k: 3, s: 2, a: 10, o: 2, r: 20, bottleneck: 'service' },
-    { desc: 'Ch 8 Bronze (precision_knife)', k: 4, s: 2, a: 10, o: 2, r: 20, bottleneck: 'service' },
+    {
+      desc: 'Ch 8 Bronze (precision_knife)',
+      k: 4,
+      s: 2,
+      a: 10,
+      o: 2,
+      r: 20,
+      bottleneck: 'service',
+    },
     { desc: 'Ch 9 Bronze (conveyor_belt)', k: 4, s: 4, a: 10, o: 4, r: 40, bottleneck: 'none' },
-    { desc: 'Ch 10 Bronze (service_counter)', k: 4, s: 6, a: 10, o: 4, r: 40, bottleneck: 'kitchen' },
+    {
+      desc: 'Ch 10 Bronze (service_counter)',
+      k: 4,
+      s: 6,
+      a: 10,
+      o: 4,
+      r: 40,
+      bottleneck: 'kitchen',
+    },
     { desc: 'Ch 11 Bronze (sous_chef)', k: 6, s: 6, a: 10, o: 6, r: 60, bottleneck: 'none' },
     { desc: 'Ch 12 Bronze (master_license)', k: 6, s: 6, a: 15, o: 6, r: 90, bottleneck: 'none' },
   ];
@@ -373,8 +404,16 @@ test('M3-CHALLENGE-03: Exhaustive Bottleneck Space & Alternation Verification (3
   assert.equal(calculateProductionRate(4, -5, 10).ordersPerMinute, 0, 'Negative S clamps to 0');
   assert.equal(calculateProductionRate(4, 4, -10).yenPerMinute, 0, 'Negative A clamps to 0');
   assert.equal(calculateProductionRate(0, 0, 10).bottleneck, 'none', '0/0 is balanced none');
-  assert.equal(calculateProductionRate(0, 5, 10).bottleneck, 'kitchen', '0 kitchen is kitchen bottleneck');
-  assert.equal(calculateProductionRate(5, 0, 10).bottleneck, 'service', '0 service is service bottleneck');
+  assert.equal(
+    calculateProductionRate(0, 5, 10).bottleneck,
+    'kitchen',
+    '0 kitchen is kitchen bottleneck',
+  );
+  assert.equal(
+    calculateProductionRate(5, 0, 10).bottleneck,
+    'service',
+    '0 service is service bottleneck',
+  );
 });
 
 // =============================================================================
@@ -386,13 +425,55 @@ test('M3-CHALLENGE-04: Full Curriculum Lifecycle Simulation (Chapters 6 to 12)',
   let cumulativeGrants: string[] = [];
 
   const chapterMilestones = [
-    { chapter: 6, weekId: 'week-1', bronze: 'prep_counter', silver: 'salmon_nigiri', gold: 'paper_lantern' },
-    { chapter: 7, weekId: 'week-2', bronze: 'cap_extension_12h', silver: 'kappamaki', gold: 'potted_plant' },
-    { chapter: 8, weekId: 'week-3', bronze: 'precision_knife', silver: 'maguro_nigiri', gold: 'noren_curtain' },
-    { chapter: 9, weekId: 'week-4', bronze: 'conveyor_belt', silver: 'ebi_nigiri', gold: 'wave_print' },
-    { chapter: 10, weekId: 'week-5', bronze: 'service_counter', silver: 'tamago_nigiri', gold: 'andon_lantern' },
-    { chapter: 11, weekId: 'week-6', bronze: 'sous_chef', silver: 'sashimi_plate', gold: 'sakura_bonsai' },
-    { chapter: 12, weekId: 'week-7', bronze: 'master_license', silver: 'omakase_menu', gold: 'golden_maneki_neko' },
+    {
+      chapter: 6,
+      weekId: 'week-1',
+      bronze: 'prep_counter',
+      silver: 'salmon_nigiri',
+      gold: 'paper_lantern',
+    },
+    {
+      chapter: 7,
+      weekId: 'week-2',
+      bronze: 'cap_extension_12h',
+      silver: 'kappamaki',
+      gold: 'potted_plant',
+    },
+    {
+      chapter: 8,
+      weekId: 'week-3',
+      bronze: 'precision_knife',
+      silver: 'maguro_nigiri',
+      gold: 'noren_curtain',
+    },
+    {
+      chapter: 9,
+      weekId: 'week-4',
+      bronze: 'conveyor_belt',
+      silver: 'ebi_nigiri',
+      gold: 'wave_print',
+    },
+    {
+      chapter: 10,
+      weekId: 'week-5',
+      bronze: 'service_counter',
+      silver: 'tamago_nigiri',
+      gold: 'andon_lantern',
+    },
+    {
+      chapter: 11,
+      weekId: 'week-6',
+      bronze: 'sous_chef',
+      silver: 'sashimi_plate',
+      gold: 'sakura_bonsai',
+    },
+    {
+      chapter: 12,
+      weekId: 'week-7',
+      bronze: 'master_license',
+      silver: 'omakase_menu',
+      gold: 'golden_maneki_neko',
+    },
   ];
 
   let expectedTotal = 0;
@@ -564,7 +645,12 @@ test('M3-CHALLENGE-05: End-to-End Purchase Transaction Stress & Boundary Invaria
   poorInit.balanceUnits = 300 * YEN_UNIT_MULTIPLIER - 1; // 1 unit short of 300 yen
   await repo.set(poorInit);
 
-  const poorBuy = await service.purchaseCatalogItem(poorStudentUid, 'prep_counter', 'poor-tx-1', nowMs);
+  const poorBuy = await service.purchaseCatalogItem(
+    poorStudentUid,
+    'prep_counter',
+    'poor-tx-1',
+    nowMs,
+  );
   assert.equal(poorBuy.success, false);
   assert.equal(poorBuy.reason, 'INSUFFICIENT_FUNDS');
 });
@@ -616,18 +702,17 @@ test('M3-CHALLENGE-06: Edge Case Mining: Invalid Inputs, Unknown IDs & Scene Ren
     mergePermanentGrants(['  prep_counter  ', ''], ['prep_counter', '   ', 'salmon_nigiri']),
     ['prep_counter', 'salmon_nigiri'],
   );
-  assert.deepEqual(
-    mergePermanentGrants(['a', 'b', 'c'], ['b', 'c', 'd']),
-    ['a', 'b', 'c', 'd'],
-  );
+  assert.deepEqual(mergePermanentGrants(['a', 'b', 'c'], ['b', 'c', 'd']), ['a', 'b', 'c', 'd']);
 
   // 6. Extreme timestamp accrual (10 years elapsed)
   const base = createInitialEconomyState(1_000_000);
   const tenYearsMs = 10 * 365 * 24 * 3600 * 1000;
   const extremeAccrual = calculateAccrual(base, 1_000_000 + tenYearsMs);
-  assert.ok(extremeAccrual.producedMs <= DEFAULT_CAP_MS, 'Produced time strictly clamped to 8h cap');
+  assert.ok(
+    extremeAccrual.producedMs <= DEFAULT_CAP_MS,
+    'Produced time strictly clamped to 8h cap',
+  );
   assert.equal(extremeAccrual.producedMs, DEFAULT_CAP_MS);
   assert.equal(extremeAccrual.earnedUnits, 10 * DEFAULT_CAP_MS);
   assert.ok(extremeAccrual.excessMs > 0, 'Excess time accounted for');
 });
-

@@ -1,10 +1,10 @@
 # Restaurangens bildstil — beslut och bildkällor
 
-Produktägaren valde 2026-10-24: **Illustrerad 2D framifrån, som ett tvärsnitt av restaurangen**.
+Ursprungligt val 2026-10-24: illustrerad 2D framifrån. På önskemål 2026-10-25 har den lokala prototypen ändrats till **isometrisk vy snett uppifrån genom ett öppet hörn**.
 
 ## Utförande
 
-En lugn sushibar med trä, gräddvit puts, dämpad turkos och korallfärgade detaljer. Illustrationerna har gemensamma konturer och en fast koordinatyta. Gränssnittet använder systemets sans-serif för läsbar text och Georgia för bildens korta rubrik. Bilden ligger ovanför kassan; text och interaktiva kontroller ligger utanför bilden.
+En lugn sushibar med trä, gräddvit puts, dämpad turkos och korallfärgade detaljer. Två bakväggar ramar in trägolvet; de främre sidorna är öppna. Rum, möbler och uppgraderingar använder samma isometriska 30-gradersprojektion, med synliga ovansidor och skuggade sidoytor. Scenen skalar i en gemensam SVG-yta på 960 × 710. Gränssnittet använder systemets sans-serif för läsbar text och Georgia för bildens korta rubrik. Bilden ligger ovanför kassan; text och interaktiva kontroller ligger utanför bilden.
 
 ## Ursprung och användning
 
@@ -12,7 +12,7 @@ Alla vektorformer i `src/course/sushi-game/restaurant-scene.ts` skapades direkt 
 
 Bildlager:
 
-- Bas: restaurangens väggar, trästomme, fönster, gardin, grundkök, serveringsdisk och pallar.
+- Bas: två väggar, trästomme, brädgolv, fönster, gardin, grundkök längs bakväggen, fristående serveringsdisk och tre pallar.
 - Beredningsbänk: extra arbetsyta, skärbräda, kniv och förvaring när prep_counter ägs.
 - Transportband: band och tallrikar när conveyor_belt ägs; en dekorativ CSS-rörelse på bandets yta.
 - Laxnigiri: extra uppläggning när salmon_nigiri ägs.

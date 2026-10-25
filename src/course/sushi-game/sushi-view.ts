@@ -726,9 +726,11 @@ function renderSushiAuthenticatedStage(
                     data-testid="sushi-register-bottleneck-explainer"
                   >
                     💡 <strong>Flaskhalsguide:</strong>
-                    ${rate.bottleneck === 'kitchen'
-                      ? `Köket begränsar intjäningen (${state ? state.kitchenCapacity : 1} ord/min mot ${state ? state.serviceCapacity : 2} ord/min service). Uppgradera kökskapaciteten för att höja takten.`
-                      : `Servicen begränsar intjäningen (${state ? state.serviceCapacity : 2} ord/min mot ${state ? state.kitchenCapacity : 1} ord/min kök). Uppgradera transportband eller service för att höja takten.`}
+                    ${
+                      rate.bottleneck === 'kitchen'
+                        ? `Köket begränsar intjäningen (${state ? state.kitchenCapacity : 1} ord/min mot ${state ? state.serviceCapacity : 2} ord/min service). Uppgradera kökskapaciteten för att höja takten.`
+                        : `Servicen begränsar intjäningen (${state ? state.serviceCapacity : 2} ord/min mot ${state ? state.kitchenCapacity : 1} ord/min kök). Uppgradera transportband eller service för att höja takten.`
+                    }
                   </div>
                 `
               : ''

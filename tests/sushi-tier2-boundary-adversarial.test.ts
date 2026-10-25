@@ -14,14 +14,8 @@ import {
   MS_PER_HOUR,
   MS_PER_MINUTE,
 } from '../src/course/sushi-game/types.ts';
-import {
-  mergePermanentGrants,
-  evaluateMedalGrants,
-} from '../src/course/sushi-game/medals.ts';
-import {
-  SushiService,
-  InMemorySushiRepository,
-} from '../src/course/sushi-game/service.ts';
+import { mergePermanentGrants, evaluateMedalGrants } from '../src/course/sushi-game/medals.ts';
+import { SushiService, InMemorySushiRepository } from '../src/course/sushi-game/service.ts';
 import { getCatalogItem } from '../src/course/sushi-game/catalog.ts';
 import { courseWeeks } from '../src/course/data/index.ts';
 import { createFreshCourseProgress } from '../src/course/course-state.ts';

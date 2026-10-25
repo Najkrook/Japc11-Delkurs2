@@ -104,14 +104,14 @@ Show the current bottleneck and actual income effect of a proposed purchase. A k
 
 ### 5.3 Purchase categories
 
-| Category | Example | First-version purpose |
-| --- | --- | --- |
-| Staff and kitchen equipment | Chef or prep-counter improvement | Improve kitchen capacity |
-| Service | Server improvement or chapter 9 conveyor belt | Improve service capacity |
-| Recipes | Additional dishes | Menu variety; any revenue effects need balancing |
-| Collection-cap upgrades | Longer unattended production period | Increase the time cap after a chapter unlock and yen purchase |
-| Seating and room appearance | Tables or a visual expansion | Visual progression; no independent seating bottleneck |
-| Decorations | Lanterns, plants, wall art | Personalization only, with no income or appeal bonus |
+| Category                    | Example                                       | First-version purpose                                         |
+| --------------------------- | --------------------------------------------- | ------------------------------------------------------------- |
+| Staff and kitchen equipment | Chef or prep-counter improvement              | Improve kitchen capacity                                      |
+| Service                     | Server improvement or chapter 9 conveyor belt | Improve service capacity                                      |
+| Recipes                     | Additional dishes                             | Menu variety; any revenue effects need balancing              |
+| Collection-cap upgrades     | Longer unattended production period           | Increase the time cap after a chapter unlock and yen purchase |
+| Seating and room appearance | Tables or a visual expansion                  | Visual progression; no independent seating bottleneck         |
+| Decorations                 | Lanterns, plants, wall art                    | Personalization only, with no income or appeal bonus          |
 
 Only eligible items can be purchased. Shop entries may show locked items and explain their requirements. Section 5.6 selects provisional items, prices, and effects; final balance remains open. The conveyor-belt milestone itself is confirmed.
 
@@ -162,15 +162,15 @@ Whole-yen prices are checked and debited in the same exact units. Collection tra
 
 The starting restaurant has **0 spendable yen**, **0 uncollected yen**, kitchen capacity **1 order/minute**, service capacity **2 orders/minute**, and average revenue **10 yen/order**. It starts producing **10 yen/minute** immediately, with an **eight-hour** cap and zero used production time. No medal is needed to operate it.
 
-| Item | Permanent medal requirement | Price | Effect and location |
-| --- | --- | --- | --- |
-| Förbättrad beredningsbänk | Chapter 6 bronze | 300 yen | Kitchen +2 orders/minute, from 1 to 3; fixed prep-counter upgrade state. With starting service, income rises from 10 to 20 yen/minute. |
-| Längre produktionstid | Chapter 7 bronze | 1800 yen | Raise the production-time cap from 8 to 12 hours, immediately under section 5.4. No rate change. |
-| Transportband | Chapter 9 bronze | 3600 yen | Service +2 orders/minute, from 2 to 4; one predefined installation. With the prep-counter improvement, income rises from 20 to 30 yen/minute. |
-| Laxnigiri | Chapter 6 silver | 600 yen | Visible menu variation only; no revenue or capacity effect and no manual recipe-selection system. |
-| Papperslykta | Chapter 6 gold | 300 yen | Purely visual decoration for the single fixed wall slot. |
-| Krukväxt | Chapter 7 gold | 450 yen | Purely visual decoration for the single fixed floor slot. |
-| Vågmotiv | Chapter 9 gold | 600 yen | Purely visual alternative for the same wall slot as Papperslykta. |
+| Item                      | Permanent medal requirement | Price    | Effect and location                                                                                                                           |
+| ------------------------- | --------------------------- | -------- | --------------------------------------------------------------------------------------------------------------------------------------------- |
+| Förbättrad beredningsbänk | Chapter 6 bronze            | 300 yen  | Kitchen +2 orders/minute, from 1 to 3; fixed prep-counter upgrade state. With starting service, income rises from 10 to 20 yen/minute.        |
+| Längre produktionstid     | Chapter 7 bronze            | 1800 yen | Raise the production-time cap from 8 to 12 hours, immediately under section 5.4. No rate change.                                              |
+| Transportband             | Chapter 9 bronze            | 3600 yen | Service +2 orders/minute, from 2 to 4; one predefined installation. With the prep-counter improvement, income rises from 20 to 30 yen/minute. |
+| Laxnigiri                 | Chapter 6 silver            | 600 yen  | Visible menu variation only; no revenue or capacity effect and no manual recipe-selection system.                                             |
+| Papperslykta              | Chapter 6 gold              | 300 yen  | Purely visual decoration for the single fixed wall slot.                                                                                      |
+| Krukväxt                  | Chapter 7 gold              | 450 yen  | Purely visual decoration for the single fixed floor slot.                                                                                     |
+| Vågmotiv                  | Chapter 9 gold              | 600 yen  | Purely visual alternative for the same wall slot as Papperslykta.                                                                             |
 
 Every item has **one purchasable level** and may be bought once. There are no item prerequisites beyond the listed medal eligibility and sufficient collected funds. Higher chapter medal tiers satisfy lower-tier requirements. Use permanent grants and map chapters through `lessonNumber`, including chapter 9 / `week-4`.
 
@@ -184,16 +184,16 @@ At 10 yen/minute, the first improvement costs 30 minutes of production, followed
 
 Times below are measured from the start of a collection period. Amounts are exact yen, not rounded estimates. Each independent scenario starts with base production and the eight-hour cap. Except for the first-purchase example, it starts with **10000 previously collected yen** and the required permanent grants; pending income never funds a purchase. Linked rows continue the same scenario.
 
-| Scenario | Operation and expected income | Spendable balance and used production time |
-| --- | --- | --- |
-| First purchase, starting balance 0 | At 00:30, pending income is 30 × 10 = 300. Collect, then buy the prep-counter improvement for 300. Production becomes 20 yen/minute. | Balance 0; pending 0; used time 0 immediately after collection and purchase. |
-| Ordinary purchase | At 02:00, pending income is 120 × 10 = 1200. Buy the prep-counter improvement for 300 without collecting. At 03:00, pending is 1200 + 60 × 20 = 2400. | Balance 9700; used time 2 hours at purchase and 3 hours at 03:00. |
-| Ordinary purchase, subsequent collection | Collect the 2400 at 03:00. Start a new period at 20 yen/minute with the unchanged eight-hour cap. | Balance 12100; pending 0; used time 0. |
-| Purchase at a full register | At 10:00, eight productive hours have earned 480 × 10 = 4800. Buy the prep-counter improvement for 300. Pending stays 4800 and production remains stopped. | Balance 9700; used time stays 8 hours. The two stopped hours earn nothing. |
-| Same full period, raised cap | Also buy the cap upgrade at 10:00 for 1800. Four future hours become available at 20 yen/minute. At 11:00, pending is 4800 + 60 × 20 = 6000. At 14:00, pending reaches 4800 + 240 × 20 = 9600 and stops. | Balance 7900; used time 8 hours at purchase, 9 hours at 11:00, and 12 hours at 14:00. |
-| Same period, subsequent collection | Collect at 14:00 or later without further purchases: transfer exactly 9600. The new period has a twelve-hour cap and 20 yen/minute production. | Balance 17500; pending 0; used time 0. Any further stopped time is discarded. |
-| Cap purchase before the old limit | In a separate base-rate period, buy only the cap upgrade at 02:00. Pending stays 1200 and 10 production hours remain. At 12:00, pending is 720 × 10 = 7200. | Balance 8200; used time 2 hours at purchase and 12 hours at the new cap. |
-| Cap purchase exactly at the old limit | In a separate base-rate period, buy only the cap upgrade at 08:00. Pending stays 4800; four future hours remain. At 09:00, pending is 5400, and at 12:00 it is 7200. | Balance 8200; used time 8 hours at purchase, then 9 and 12 hours respectively. |
+| Scenario                                 | Operation and expected income                                                                                                                                                                            | Spendable balance and used production time                                            |
+| ---------------------------------------- | -------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- | ------------------------------------------------------------------------------------- |
+| First purchase, starting balance 0       | At 00:30, pending income is 30 × 10 = 300. Collect, then buy the prep-counter improvement for 300. Production becomes 20 yen/minute.                                                                     | Balance 0; pending 0; used time 0 immediately after collection and purchase.          |
+| Ordinary purchase                        | At 02:00, pending income is 120 × 10 = 1200. Buy the prep-counter improvement for 300 without collecting. At 03:00, pending is 1200 + 60 × 20 = 2400.                                                    | Balance 9700; used time 2 hours at purchase and 3 hours at 03:00.                     |
+| Ordinary purchase, subsequent collection | Collect the 2400 at 03:00. Start a new period at 20 yen/minute with the unchanged eight-hour cap.                                                                                                        | Balance 12100; pending 0; used time 0.                                                |
+| Purchase at a full register              | At 10:00, eight productive hours have earned 480 × 10 = 4800. Buy the prep-counter improvement for 300. Pending stays 4800 and production remains stopped.                                               | Balance 9700; used time stays 8 hours. The two stopped hours earn nothing.            |
+| Same full period, raised cap             | Also buy the cap upgrade at 10:00 for 1800. Four future hours become available at 20 yen/minute. At 11:00, pending is 4800 + 60 × 20 = 6000. At 14:00, pending reaches 4800 + 240 × 20 = 9600 and stops. | Balance 7900; used time 8 hours at purchase, 9 hours at 11:00, and 12 hours at 14:00. |
+| Same period, subsequent collection       | Collect at 14:00 or later without further purchases: transfer exactly 9600. The new period has a twelve-hour cap and 20 yen/minute production.                                                           | Balance 17500; pending 0; used time 0. Any further stopped time is discarded.         |
+| Cap purchase before the old limit        | In a separate base-rate period, buy only the cap upgrade at 02:00. Pending stays 1200 and 10 production hours remain. At 12:00, pending is 720 × 10 = 7200.                                              | Balance 8200; used time 2 hours at purchase and 12 hours at the new cap.              |
+| Cap purchase exactly at the old limit    | In a separate base-rate period, buy only the cap upgrade at 08:00. Pending stays 4800; four future hours remain. At 09:00, pending is 5400, and at 12:00 it is 7200.                                     | Balance 8200; used time 8 hours at purchase, then 9 and 12 hours respectively.        |
 
 **Fractional example, starting balance 0:** At 10 yen/minute, 1 ms earns 10 accounting units, or 1/6000 yen. Collecting that amount transfers all 10 units to the spendable balance even though both displayed amounts round down to zero. After 6000 such 1 ms production-and-collection intervals, the spendable balance contains 60000 units, exactly 1 yen: the same result as one 6000 ms interval followed by one collection. Separately, a 300-yen purchase debits exactly 18000000 units from a sufficient spendable balance and preserves any fractional remainder in it.
 
@@ -222,15 +222,15 @@ Do not modify study exercises, medal thresholds, or scoring to fit the game. Per
 
 The tier policy is confirmed: **bronze = main feature; silver = extra recipe or variant; gold = decoration**. There is no extra chapter-test gate. Specific reward items remain proposals except where marked confirmed.
 
-| Chapter | Bronze/main feature | Status and intended effect |
-| --- | --- | --- |
-| 6 | First restaurant improvement | Confirmed role; provisional prep-counter improvement selected in section 5.6. The basic restaurant already operates before this medal. |
-| 7 | Longer production-time cap | Provisional MVP selection: purchase a twelve-hour cap. Replaces the earlier staffing-improvement proposal for this catalog. |
-| 8 | Additional recipes | Proposed; menu variety and possible balanced revenue effects. |
-| 9 | Conveyor belt | Confirmed; one predefined installation improving service capacity. Map through `lessonNumber: 9`, currently `week-4`. |
-| 10 | Restaurant expansion | Proposed visual expansion and decoration room; no seating bottleneck. |
-| 11 | Specialist chef or premium dishes | Proposed production or recipe improvement. |
-| 12 | Final milestone | Exact goal and reward remain open. |
+| Chapter | Bronze/main feature               | Status and intended effect                                                                                                             |
+| ------- | --------------------------------- | -------------------------------------------------------------------------------------------------------------------------------------- |
+| 6       | First restaurant improvement      | Confirmed role; provisional prep-counter improvement selected in section 5.6. The basic restaurant already operates before this medal. |
+| 7       | Longer production-time cap        | Provisional MVP selection: purchase a twelve-hour cap. Replaces the earlier staffing-improvement proposal for this catalog.            |
+| 8       | Additional recipes                | Proposed; menu variety and possible balanced revenue effects.                                                                          |
+| 9       | Conveyor belt                     | Confirmed; one predefined installation improving service capacity. Map through `lessonNumber: 9`, currently `week-4`.                  |
+| 10      | Restaurant expansion              | Proposed visual expansion and decoration room; no seating bottleneck.                                                                  |
+| 11      | Specialist chef or premium dishes | Proposed production or recipe improvement.                                                                                             |
+| 12      | Final milestone                   | Exact goal and reward remain open.                                                                                                     |
 
 Section 5.6 selects the provisional MVP cap upgrade and silver/gold catalog. Other proposed chapter rewards are not additional MVP catalog entries; further rewards and final balancing remain open. Necessary functional progression must not require gold.
 

@@ -1,9 +1,9 @@
 # Game Studio Framework & Workflow Specification
 
 > **Version:** 1.0.0  
-> **Origin:** Adapted from Donchitos' *Claude-Code-Game-Studios*  
+> **Origin:** Adapted from Donchitos' _Claude-Code-Game-Studios_  
 > **Context:** Japanese Study Platform (`JAPC11 Delkurs 2`) — Sushi Restaurant Tycoon  
-> **Status:** Active Standard  
+> **Status:** Active Standard
 
 ---
 
@@ -12,14 +12,18 @@
 This framework establishes a disciplined multi-agent game studio development workflow for the personal sushi restaurant tycoon embedded within the Genki I Japanese language learning platform.
 
 ### 1.1 The "Study-First" Prime Directive
+
 Unlike conventional mobile or idle games, the sushi restaurant's primary objective is to serve as an **intrinsically motivating companion** to Japanese studies (Genki I Chapters 6–12). The studio workflow enforces four non-negotiable pedagogical boundaries:
+
 1. **Curriculum Synchronization:** Restaurant unlocks (kitchen upgrades, recipes, decorations) are earned exclusively via Genki study mastery (Bronze 60%, Silver 80%, Gold 100% medals).
 2. **Anti-Grind Mechanics:** Answering exercises repeatedly never yields direct currency; income is earned exclusively through the bounded idle economy.
 3. **Bounded Rest Intervals:** Production accumulates for a maximum of 8 hours (or 12 hours once upgraded) before halting, matching healthy student study and sleep cycles.
 4. **Permanent Progress Grants:** Once earned, an unlock is permanently awarded; declining study scores or reset decks never revoke restaurant eligibility.
 
 ### 1.2 Anti-Features
+
 The studio framework explicitly forbids:
+
 - Microtransactions, real-money purchases, or pay-to-win mechanics.
 - Premium gems, energy bars, or pay-for-speed cooldown skips.
 - Loot boxes, random gacha rolls, or probabilistic item drops.
@@ -63,14 +67,14 @@ The 49 roles of Claude-Code-Game-Studios are distilled into 6 functional studio 
 
 ### 2.1 Role Specifications
 
-| Role | Title | Core Responsibilities | Key Deliverables & Artifacts |
-|---|---|---|---|
-| **GD** | Game Director | Guards pedagogical integrity, aesthetic tone, and milestone roadmaps. | `docs/sushi-game/gdd.md`, milestone approvals |
-| **ED** | Economy & Balancing Designer | Designs mathematical models ($O = \min(K, S)$), 1/60,000 yen math, 8h/12h caps, pricing curves, and Genki 6–12 sync. | `docs/sushi-game/economy-balance-model.md`, balance scripts |
-| **AD** | Art & UX Director | Directs Edo-modern vector visuals, SVG layer hierarchies, WCAG 2.1 AA accessibility, keyboard focus, and responsive mobile layouts. | `docs/sushi-game/ux-art-quality-checklist.md`, SVG assets, CSS tokens |
-| **LE** | Lead Engineer | Enforces architectural purity, lit-html templates, Vite code-splitting, Firebase Cloud Function atomicity, and zero-error typechecking. | `src/course/sushi-game/`, `functions/src/`, `vite.config.ts` |
-| **QL** | QA Lead | Architects the 4-tier testing hierarchy (Domain math, Concurrency/adversarial, Backend rules/Cloud functions, Playwright browser E2E). | `docs/sushi-game/qa-test-plan.md`, test suites in `tests/` |
-| **PM** | Producer / Ticket Tracker | Oversees ticket lifecycle, Definition of Ready (DoR), Definition of Done (DoD), dependency sequencing, and audit logs. | `docs/sushi-game/ticket-tracker.md`, `docs/sushi-game/audit-logs.md` |
+| Role   | Title                        | Core Responsibilities                                                                                                                   | Key Deliverables & Artifacts                                          |
+| ------ | ---------------------------- | --------------------------------------------------------------------------------------------------------------------------------------- | --------------------------------------------------------------------- |
+| **GD** | Game Director                | Guards pedagogical integrity, aesthetic tone, and milestone roadmaps.                                                                   | `docs/sushi-game/gdd.md`, milestone approvals                         |
+| **ED** | Economy & Balancing Designer | Designs mathematical models ($O = \min(K, S)$), 1/60,000 yen math, 8h/12h caps, pricing curves, and Genki 6–12 sync.                    | `docs/sushi-game/economy-balance-model.md`, balance scripts           |
+| **AD** | Art & UX Director            | Directs Edo-modern vector visuals, SVG layer hierarchies, WCAG 2.1 AA accessibility, keyboard focus, and responsive mobile layouts.     | `docs/sushi-game/ux-art-quality-checklist.md`, SVG assets, CSS tokens |
+| **LE** | Lead Engineer                | Enforces architectural purity, lit-html templates, Vite code-splitting, Firebase Cloud Function atomicity, and zero-error typechecking. | `src/course/sushi-game/`, `functions/src/`, `vite.config.ts`          |
+| **QL** | QA Lead                      | Architects the 4-tier testing hierarchy (Domain math, Concurrency/adversarial, Backend rules/Cloud functions, Playwright browser E2E).  | `docs/sushi-game/qa-test-plan.md`, test suites in `tests/`            |
+| **PM** | Producer / Ticket Tracker    | Oversees ticket lifecycle, Definition of Ready (DoR), Definition of Done (DoD), dependency sequencing, and audit logs.                  | `docs/sushi-game/ticket-tracker.md`, `docs/sushi-game/audit-logs.md`  |
 
 ---
 
@@ -79,12 +83,13 @@ The 49 roles of Claude-Code-Game-Studios are distilled into 6 functional studio 
 Development proceeds through five strictly sequenced review gates. No work may bypass a gate.
 
 ```
- [ Backlog ] ──► [ Gate 1: Design ] ──► [ Gate 2: DoR ] ──► [ Implementation ] 
+ [ Backlog ] ──► [ Gate 1: Design ] ──► [ Gate 2: DoR ] ──► [ Implementation ]
                                                                     │
  [ Release ] ◄── [ Gate 5: Release ] ◄── [ Gate 4: QA ] ◄── [ Gate 3: Local QA ]
 ```
 
 ### 3.1 Gate 1: Design & Balance Gate (G1)
+
 - **Objective:** Ensure feature designs and economy tweaks strictly satisfy pedagogical and mathematical constraints.
 - **Criteria:**
   - GDD entry updated with player motivation, invariants, and anti-feature check.
@@ -93,6 +98,7 @@ Development proceeds through five strictly sequenced review gates. No work may b
 - **Sign-off:** GD and ED.
 
 ### 3.2 Gate 2: Ticket Readiness Gate (DoR) (G2)
+
 - **Objective:** Guarantee that tasks are fully specified, unblocked, and testable before assignment.
 - **Criteria:**
   - Full compliance with Definition of Ready (DoR) in `docs/sushi-game/ticket-tracker.md`.
@@ -101,6 +107,7 @@ Development proceeds through five strictly sequenced review gates. No work may b
 - **Sign-off:** PM and LE.
 
 ### 3.3 Gate 3: Local Technical Verification Gate (G3)
+
 - **Objective:** Verify code implementation quality at the component and domain level.
 - **Criteria:**
   - `npm run typecheck` exits with status 0 (`tsc --noEmit`).
@@ -109,6 +116,7 @@ Development proceeds through five strictly sequenced review gates. No work may b
 - **Sign-off:** LE.
 
 ### 3.4 Gate 4: QA Regression Gate (G4)
+
 - **Objective:** Verify end-to-end system stability, adversarial resilience, and bundle isolation.
 - **Criteria:**
   - Full test suite passes: `npm test` (all tests passing with 0 failures).
@@ -118,6 +126,7 @@ Development proceeds through five strictly sequenced review gates. No work may b
 - **Sign-off:** QL.
 
 ### 3.5 Gate 5: Release Audit Gate (G5)
+
 - **Objective:** Authorize production release and record permanent forensic audit trail.
 - **Criteria:**
   - Formal audit record appended to `docs/sushi-game/audit-logs.md`.
@@ -131,16 +140,16 @@ Development proceeds through five strictly sequenced review gates. No work may b
 
 In our autonomous multi-agent engineering workflow, Claude-Code-Game-Studios slash commands map to concrete scripts, verification tools, and protocols:
 
-| Studio Slash Command | Multi-Agent Skill / Execution Equivalent | Primary Role |
-|---|---|---|
-| `/balance-check` | Run mathematical simulation scripts and assert non-inflationary pacing curves ($O = \min(K, S)$). | ED |
-| `/art-bible` | Inspect and enforce CSS custom properties, color palette tokens, and SVG viewBox standards (`0 0 960 520`). | AD |
-| `/asset-audit` | Verify SVG element layering, `<title>`/`<desc>` screen reader accessibility, and bundle asset weight. | AD / LE |
-| `/create-architecture` | Review component boundaries: lit-html template purity, separate CSS scoping, and dual Firestore transactions. | LE |
-| `/dev-story` | Execute targeted implementation strictly within file and ticket boundaries defined by DoR. | Specialist / LE |
-| `/qa-plan` | Execute 4-tier test runner: pure logic, adversarial concurrency, backend rules emulator, and Playwright E2E. | QL |
-| `/gate-check` | Execute `npm run typecheck && npm test && npm run build` and inspect generated chunks. | LE / QL |
-| `/audit-log` | Append structured forensic balance and regression records to `docs/sushi-game/audit-logs.md`. | PM / GD |
+| Studio Slash Command   | Multi-Agent Skill / Execution Equivalent                                                                      | Primary Role    |
+| ---------------------- | ------------------------------------------------------------------------------------------------------------- | --------------- |
+| `/balance-check`       | Run mathematical simulation scripts and assert non-inflationary pacing curves ($O = \min(K, S)$).             | ED              |
+| `/art-bible`           | Inspect and enforce CSS custom properties, color palette tokens, and SVG viewBox standards (`0 0 960 520`).   | AD              |
+| `/asset-audit`         | Verify SVG element layering, `<title>`/`<desc>` screen reader accessibility, and bundle asset weight.         | AD / LE         |
+| `/create-architecture` | Review component boundaries: lit-html template purity, separate CSS scoping, and dual Firestore transactions. | LE              |
+| `/dev-story`           | Execute targeted implementation strictly within file and ticket boundaries defined by DoR.                    | Specialist / LE |
+| `/qa-plan`             | Execute 4-tier test runner: pure logic, adversarial concurrency, backend rules emulator, and Playwright E2E.  | QL              |
+| `/gate-check`          | Execute `npm run typecheck && npm test && npm run build` and inspect generated chunks.                        | LE / QL         |
+| `/audit-log`           | Append structured forensic balance and regression records to `docs/sushi-game/audit-logs.md`.                 | PM / GD         |
 
 ---
 

@@ -26,9 +26,7 @@ test('all seven week tabs are reachable and preview stays accessible on desktop 
     await tab.scrollIntoViewIfNeeded();
     await tab.click();
     await expect(page).toHaveURL(new RegExp(`#/vecka/${week.id}$`));
-    await expect(page.locator('main h1')).toContainText(
-      `Kapitel ${week.lessonNumber}`,
-    );
+    await expect(page.locator('main h1')).toContainText(`Kapitel ${week.lessonNumber}`);
     await expect(page.locator('main')).toContainText(`Genki I Kapitel ${week.lessonNumber}`);
     if (week.isPreview)
       await expect(page.locator('.course-badge-preview')).toHaveText('Förhandsvisning');

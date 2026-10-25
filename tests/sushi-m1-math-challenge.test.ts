@@ -194,34 +194,255 @@ interface CatalogSpecItem {
 
 // Canonical 21-item specification from docs/sushi-game/economy-balance-model.md
 const SPEC_CATALOG: readonly CatalogSpecItem[] = [
-  { chapter: 6, tier: 'Start', id: 'base', name: 'Grundkök', category: 'Base', priceYen: 0, kDelta: 0, sDelta: 0, aDelta: 0 },
-  { chapter: 6, tier: 'Bronze', id: 'prep_counter', name: 'Förbättrad beredningsbänk', category: 'Kitchen', priceYen: 300, kDelta: 2, sDelta: 0, aDelta: 0 },
-  { chapter: 6, tier: 'Silver', id: 'salmon_nigiri', name: 'Laxnigiri', category: 'Recipe', priceYen: 600, kDelta: 0, sDelta: 0, aDelta: 0 },
-  { chapter: 6, tier: 'Gold', id: 'paper_lantern', name: 'Papperslykta', category: 'Decor', priceYen: 300, kDelta: 0, sDelta: 0, aDelta: 0 },
+  {
+    chapter: 6,
+    tier: 'Start',
+    id: 'base',
+    name: 'Grundkök',
+    category: 'Base',
+    priceYen: 0,
+    kDelta: 0,
+    sDelta: 0,
+    aDelta: 0,
+  },
+  {
+    chapter: 6,
+    tier: 'Bronze',
+    id: 'prep_counter',
+    name: 'Förbättrad beredningsbänk',
+    category: 'Kitchen',
+    priceYen: 300,
+    kDelta: 2,
+    sDelta: 0,
+    aDelta: 0,
+  },
+  {
+    chapter: 6,
+    tier: 'Silver',
+    id: 'salmon_nigiri',
+    name: 'Laxnigiri',
+    category: 'Recipe',
+    priceYen: 600,
+    kDelta: 0,
+    sDelta: 0,
+    aDelta: 0,
+  },
+  {
+    chapter: 6,
+    tier: 'Gold',
+    id: 'paper_lantern',
+    name: 'Papperslykta',
+    category: 'Decor',
+    priceYen: 300,
+    kDelta: 0,
+    sDelta: 0,
+    aDelta: 0,
+  },
 
-  { chapter: 7, tier: 'Bronze', id: 'cap_extension_12h', name: 'Längre produktionstid', category: 'Cap', priceYen: 1800, kDelta: 0, sDelta: 0, aDelta: 0, newCapMs: EXTENDED_CAP_MS },
-  { chapter: 7, tier: 'Silver', id: 'kappamaki', name: 'Kappamaki', category: 'Recipe', priceYen: 900, kDelta: 0, sDelta: 0, aDelta: 0 },
-  { chapter: 7, tier: 'Gold', id: 'potted_plant', name: 'Krukväxt', category: 'Decor', priceYen: 450, kDelta: 0, sDelta: 0, aDelta: 0 },
+  {
+    chapter: 7,
+    tier: 'Bronze',
+    id: 'cap_extension_12h',
+    name: 'Längre produktionstid',
+    category: 'Cap',
+    priceYen: 1800,
+    kDelta: 0,
+    sDelta: 0,
+    aDelta: 0,
+    newCapMs: EXTENDED_CAP_MS,
+  },
+  {
+    chapter: 7,
+    tier: 'Silver',
+    id: 'kappamaki',
+    name: 'Kappamaki',
+    category: 'Recipe',
+    priceYen: 900,
+    kDelta: 0,
+    sDelta: 0,
+    aDelta: 0,
+  },
+  {
+    chapter: 7,
+    tier: 'Gold',
+    id: 'potted_plant',
+    name: 'Krukväxt',
+    category: 'Decor',
+    priceYen: 450,
+    kDelta: 0,
+    sDelta: 0,
+    aDelta: 0,
+  },
 
-  { chapter: 8, tier: 'Bronze', id: 'precision_knife', name: 'Precisionskniv', category: 'Kitchen', priceYen: 2400, kDelta: 1, sDelta: 0, aDelta: 0 },
-  { chapter: 8, tier: 'Silver', id: 'maguro_nigiri', name: 'Maguronigiri', category: 'Recipe', priceYen: 1200, kDelta: 0, sDelta: 0, aDelta: 0 },
-  { chapter: 8, tier: 'Gold', id: 'noren_curtain', name: 'Noren-gardin', category: 'Decor', priceYen: 600, kDelta: 0, sDelta: 0, aDelta: 0 },
+  {
+    chapter: 8,
+    tier: 'Bronze',
+    id: 'precision_knife',
+    name: 'Precisionskniv',
+    category: 'Kitchen',
+    priceYen: 2400,
+    kDelta: 1,
+    sDelta: 0,
+    aDelta: 0,
+  },
+  {
+    chapter: 8,
+    tier: 'Silver',
+    id: 'maguro_nigiri',
+    name: 'Maguronigiri',
+    category: 'Recipe',
+    priceYen: 1200,
+    kDelta: 0,
+    sDelta: 0,
+    aDelta: 0,
+  },
+  {
+    chapter: 8,
+    tier: 'Gold',
+    id: 'noren_curtain',
+    name: 'Noren-gardin',
+    category: 'Decor',
+    priceYen: 600,
+    kDelta: 0,
+    sDelta: 0,
+    aDelta: 0,
+  },
 
-  { chapter: 9, tier: 'Bronze', id: 'conveyor_belt', name: 'Transportband', category: 'Service', priceYen: 3600, kDelta: 0, sDelta: 2, aDelta: 0 },
-  { chapter: 9, tier: 'Silver', id: 'ebi_nigiri', name: 'Ebinigiri', category: 'Recipe', priceYen: 1500, kDelta: 0, sDelta: 0, aDelta: 0 },
-  { chapter: 9, tier: 'Gold', id: 'wave_print', name: 'Vågmotiv', category: 'Decor', priceYen: 600, kDelta: 0, sDelta: 0, aDelta: 0 },
+  {
+    chapter: 9,
+    tier: 'Bronze',
+    id: 'conveyor_belt',
+    name: 'Transportband',
+    category: 'Service',
+    priceYen: 3600,
+    kDelta: 0,
+    sDelta: 2,
+    aDelta: 0,
+  },
+  {
+    chapter: 9,
+    tier: 'Silver',
+    id: 'ebi_nigiri',
+    name: 'Ebinigiri',
+    category: 'Recipe',
+    priceYen: 1500,
+    kDelta: 0,
+    sDelta: 0,
+    aDelta: 0,
+  },
+  {
+    chapter: 9,
+    tier: 'Gold',
+    id: 'wave_print',
+    name: 'Vågmotiv',
+    category: 'Decor',
+    priceYen: 600,
+    kDelta: 0,
+    sDelta: 0,
+    aDelta: 0,
+  },
 
-  { chapter: 10, tier: 'Bronze', id: 'service_counter', name: 'Utökad serveringsdisk', category: 'Service', priceYen: 5400, kDelta: 0, sDelta: 2, aDelta: 0 },
-  { chapter: 10, tier: 'Silver', id: 'tamago_nigiri', name: 'Tamagonigiri', category: 'Recipe', priceYen: 1800, kDelta: 0, sDelta: 0, aDelta: 0 },
-  { chapter: 10, tier: 'Gold', id: 'andon_lantern', name: 'Andon-golvlykta', category: 'Decor', priceYen: 750, kDelta: 0, sDelta: 0, aDelta: 0 },
+  {
+    chapter: 10,
+    tier: 'Bronze',
+    id: 'service_counter',
+    name: 'Utökad serveringsdisk',
+    category: 'Service',
+    priceYen: 5400,
+    kDelta: 0,
+    sDelta: 2,
+    aDelta: 0,
+  },
+  {
+    chapter: 10,
+    tier: 'Silver',
+    id: 'tamago_nigiri',
+    name: 'Tamagonigiri',
+    category: 'Recipe',
+    priceYen: 1800,
+    kDelta: 0,
+    sDelta: 0,
+    aDelta: 0,
+  },
+  {
+    chapter: 10,
+    tier: 'Gold',
+    id: 'andon_lantern',
+    name: 'Andon-golvlykta',
+    category: 'Decor',
+    priceYen: 750,
+    kDelta: 0,
+    sDelta: 0,
+    aDelta: 0,
+  },
 
-  { chapter: 11, tier: 'Bronze', id: 'sous_chef', name: 'Assisterande kock', category: 'Kitchen', priceYen: 7200, kDelta: 2, sDelta: 0, aDelta: 0 },
-  { chapter: 11, tier: 'Silver', id: 'sashimi_plate', name: 'Sashimi Moriawase', category: 'Recipe', priceYen: 2400, kDelta: 0, sDelta: 0, aDelta: 0 },
-  { chapter: 11, tier: 'Gold', id: 'sakura_bonsai', name: 'Sakura Bonsai', category: 'Decor', priceYen: 900, kDelta: 0, sDelta: 0, aDelta: 0 },
+  {
+    chapter: 11,
+    tier: 'Bronze',
+    id: 'sous_chef',
+    name: 'Assisterande kock',
+    category: 'Kitchen',
+    priceYen: 7200,
+    kDelta: 2,
+    sDelta: 0,
+    aDelta: 0,
+  },
+  {
+    chapter: 11,
+    tier: 'Silver',
+    id: 'sashimi_plate',
+    name: 'Sashimi Moriawase',
+    category: 'Recipe',
+    priceYen: 2400,
+    kDelta: 0,
+    sDelta: 0,
+    aDelta: 0,
+  },
+  {
+    chapter: 11,
+    tier: 'Gold',
+    id: 'sakura_bonsai',
+    name: 'Sakura Bonsai',
+    category: 'Decor',
+    priceYen: 900,
+    kDelta: 0,
+    sDelta: 0,
+    aDelta: 0,
+  },
 
-  { chapter: 12, tier: 'Bronze', id: 'master_license', name: 'Mästarcertifiering', category: 'Revenue', priceYen: 10800, kDelta: 0, sDelta: 0, aDelta: 5 },
-  { chapter: 12, tier: 'Silver', id: 'omakase_menu', name: 'Omakase-meny', category: 'Recipe', priceYen: 3000, kDelta: 0, sDelta: 0, aDelta: 0 },
-  { chapter: 12, tier: 'Gold', id: 'golden_maneki_neko', name: 'Gyllene Maneki-Neko', category: 'Decor', priceYen: 1500, kDelta: 0, sDelta: 0, aDelta: 0 },
+  {
+    chapter: 12,
+    tier: 'Bronze',
+    id: 'master_license',
+    name: 'Mästarcertifiering',
+    category: 'Revenue',
+    priceYen: 10800,
+    kDelta: 0,
+    sDelta: 0,
+    aDelta: 5,
+  },
+  {
+    chapter: 12,
+    tier: 'Silver',
+    id: 'omakase_menu',
+    name: 'Omakase-meny',
+    category: 'Recipe',
+    priceYen: 3000,
+    kDelta: 0,
+    sDelta: 0,
+    aDelta: 0,
+  },
+  {
+    chapter: 12,
+    tier: 'Gold',
+    id: 'golden_maneki_neko',
+    name: 'Gyllene Maneki-Neko',
+    category: 'Decor',
+    priceYen: 1500,
+    kDelta: 0,
+    sDelta: 0,
+    aDelta: 0,
+  },
 ];
 
 test('CHALLENGE-04: Empirical validation of the 21-item progression matrix and pacing rates', () => {
@@ -231,29 +452,32 @@ test('CHALLENGE-04: Empirical validation of the 21-item progression matrix and p
   let activeCapMs = DEFAULT_CAP_MS;
 
   // Expected progression checkpoints from docs/sushi-game/economy-balance-model.md
-  const expectedRates: Record<string, { k: number; s: number; a: number; rate: number; bottleneck: string }> = {
-    'base': { k: 1, s: 2, a: 10, rate: 10, bottleneck: 'kitchen' },
-    'prep_counter': { k: 3, s: 2, a: 10, rate: 20, bottleneck: 'service' },
-    'salmon_nigiri': { k: 3, s: 2, a: 10, rate: 20, bottleneck: 'service' },
-    'paper_lantern': { k: 3, s: 2, a: 10, rate: 20, bottleneck: 'service' },
-    'cap_extension_12h': { k: 3, s: 2, a: 10, rate: 20, bottleneck: 'service' },
-    'kappamaki': { k: 3, s: 2, a: 10, rate: 20, bottleneck: 'service' },
-    'potted_plant': { k: 3, s: 2, a: 10, rate: 20, bottleneck: 'service' },
-    'precision_knife': { k: 4, s: 2, a: 10, rate: 20, bottleneck: 'service' },
-    'maguro_nigiri': { k: 4, s: 2, a: 10, rate: 20, bottleneck: 'service' },
-    'noren_curtain': { k: 4, s: 2, a: 10, rate: 20, bottleneck: 'service' },
-    'conveyor_belt': { k: 4, s: 4, a: 10, rate: 40, bottleneck: 'none' }, // Balanced
-    'ebi_nigiri': { k: 4, s: 4, a: 10, rate: 40, bottleneck: 'none' },
-    'wave_print': { k: 4, s: 4, a: 10, rate: 40, bottleneck: 'none' },
-    'service_counter': { k: 4, s: 6, a: 10, rate: 40, bottleneck: 'kitchen' },
-    'tamago_nigiri': { k: 4, s: 6, a: 10, rate: 40, bottleneck: 'kitchen' },
-    'andon_lantern': { k: 4, s: 6, a: 10, rate: 40, bottleneck: 'kitchen' },
-    'sous_chef': { k: 6, s: 6, a: 10, rate: 60, bottleneck: 'none' }, // Balanced
-    'sashimi_plate': { k: 6, s: 6, a: 10, rate: 60, bottleneck: 'none' },
-    'sakura_bonsai': { k: 6, s: 6, a: 10, rate: 60, bottleneck: 'none' },
-    'master_license': { k: 6, s: 6, a: 15, rate: 90, bottleneck: 'none' }, // Capstone
-    'omakase_menu': { k: 6, s: 6, a: 15, rate: 90, bottleneck: 'none' },
-    'golden_maneki_neko': { k: 6, s: 6, a: 15, rate: 90, bottleneck: 'none' },
+  const expectedRates: Record<
+    string,
+    { k: number; s: number; a: number; rate: number; bottleneck: string }
+  > = {
+    base: { k: 1, s: 2, a: 10, rate: 10, bottleneck: 'kitchen' },
+    prep_counter: { k: 3, s: 2, a: 10, rate: 20, bottleneck: 'service' },
+    salmon_nigiri: { k: 3, s: 2, a: 10, rate: 20, bottleneck: 'service' },
+    paper_lantern: { k: 3, s: 2, a: 10, rate: 20, bottleneck: 'service' },
+    cap_extension_12h: { k: 3, s: 2, a: 10, rate: 20, bottleneck: 'service' },
+    kappamaki: { k: 3, s: 2, a: 10, rate: 20, bottleneck: 'service' },
+    potted_plant: { k: 3, s: 2, a: 10, rate: 20, bottleneck: 'service' },
+    precision_knife: { k: 4, s: 2, a: 10, rate: 20, bottleneck: 'service' },
+    maguro_nigiri: { k: 4, s: 2, a: 10, rate: 20, bottleneck: 'service' },
+    noren_curtain: { k: 4, s: 2, a: 10, rate: 20, bottleneck: 'service' },
+    conveyor_belt: { k: 4, s: 4, a: 10, rate: 40, bottleneck: 'none' }, // Balanced
+    ebi_nigiri: { k: 4, s: 4, a: 10, rate: 40, bottleneck: 'none' },
+    wave_print: { k: 4, s: 4, a: 10, rate: 40, bottleneck: 'none' },
+    service_counter: { k: 4, s: 6, a: 10, rate: 40, bottleneck: 'kitchen' },
+    tamago_nigiri: { k: 4, s: 6, a: 10, rate: 40, bottleneck: 'kitchen' },
+    andon_lantern: { k: 4, s: 6, a: 10, rate: 40, bottleneck: 'kitchen' },
+    sous_chef: { k: 6, s: 6, a: 10, rate: 60, bottleneck: 'none' }, // Balanced
+    sashimi_plate: { k: 6, s: 6, a: 10, rate: 60, bottleneck: 'none' },
+    sakura_bonsai: { k: 6, s: 6, a: 10, rate: 60, bottleneck: 'none' },
+    master_license: { k: 6, s: 6, a: 15, rate: 90, bottleneck: 'none' }, // Capstone
+    omakase_menu: { k: 6, s: 6, a: 15, rate: 90, bottleneck: 'none' },
+    golden_maneki_neko: { k: 6, s: 6, a: 15, rate: 90, bottleneck: 'none' },
   };
 
   for (const item of SPEC_CATALOG) {
@@ -301,9 +525,18 @@ test('CHALLENGE-05: Pacing Plateau Analysis: Time-to-earn is strictly capped at 
     // Update current rate after functional upgrade
     if (item.kDelta > 0 || item.sDelta > 0 || item.aDelta > 0) {
       // Find new rate
-      const k = SPEC_CATALOG.filter((it, idx) => idx <= SPEC_CATALOG.indexOf(item)).reduce((acc, it) => acc + it.kDelta, 1);
-      const s = SPEC_CATALOG.filter((it, idx) => idx <= SPEC_CATALOG.indexOf(item)).reduce((acc, it) => acc + it.sDelta, 2);
-      const a = SPEC_CATALOG.filter((it, idx) => idx <= SPEC_CATALOG.indexOf(item)).reduce((acc, it) => acc + it.aDelta, 10);
+      const k = SPEC_CATALOG.filter((it, idx) => idx <= SPEC_CATALOG.indexOf(item)).reduce(
+        (acc, it) => acc + it.kDelta,
+        1,
+      );
+      const s = SPEC_CATALOG.filter((it, idx) => idx <= SPEC_CATALOG.indexOf(item)).reduce(
+        (acc, it) => acc + it.sDelta,
+        2,
+      );
+      const a = SPEC_CATALOG.filter((it, idx) => idx <= SPEC_CATALOG.indexOf(item)).reduce(
+        (acc, it) => acc + it.aDelta,
+        10,
+      );
       currentRate = calculateProductionRate(k, s, a).yenPerMinute;
     }
   }
@@ -374,7 +607,9 @@ test('CHALLENGE-08: Monte Carlo Simulation of 500 Playthroughs with Arbitrary Or
     const owned = new Set<string>();
 
     for (let ch = 6; ch <= 12; ch++) {
-      const chapterItems = SPEC_CATALOG.filter(it => it.chapter <= ch && it.priceYen > 0 && !owned.has(it.id));
+      const chapterItems = SPEC_CATALOG.filter(
+        (it) => it.chapter <= ch && it.priceYen > 0 && !owned.has(it.id),
+      );
 
       while (chapterItems.length > 0) {
         // Pick random item among all unlocked items

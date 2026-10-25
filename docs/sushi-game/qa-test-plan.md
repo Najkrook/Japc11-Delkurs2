@@ -4,7 +4,7 @@
 > **Origin:** Adapted from Claude-Code-Game-Studios `/qa-plan`, `/regression-suite`, and `/soak-test`  
 > **Target Scope:** Sushi Restaurant Game (`src/course/sushi-game/`, `functions/src/`, `tests/`)  
 > **Document Owner:** Quality Assurance Department (QL)  
-> **Status:** Active Standard  
+> **Status:** Active Standard
 
 ---
 
@@ -43,11 +43,13 @@ The Sushi Game testing methodology uses a rigorous 4-tier testing hierarchy desi
 ## 2. Tier 1: Domain Logic & Mathematics
 
 ### 2.1 Execution & Environment
+
 - **Command:** `node --test tests/*.test.ts`
 - **Execution Target:** $< 2.5$ seconds across the full test suite.
 - **Dependencies:** Pure Node.js native test runner, zero external cloud dependencies, in-memory repository (`InMemorySushiRepository`).
 
 ### 2.2 Test Matrices & Verifications
+
 1. **Two-Capacity Production Formula:**
    - Evaluates $O = \min(K, S)$ and $R = O \times A$ across all combinations.
    - Verified in `tests/sushi-economy.test.ts`.
@@ -72,6 +74,7 @@ The Sushi Game testing methodology uses a rigorous 4-tier testing hierarchy desi
 ## 3. Tier 2: Concurrency, Idempotency & Adversarial Scenarios
 
 ### 3.1 Execution & Suites
+
 - **Target Test Suites:**
   - `tests/sushi-adversarial-concurrency.test.ts`
   - `tests/sushi-sync-medals-concurrency.test.ts`
@@ -80,6 +83,7 @@ The Sushi Game testing methodology uses a rigorous 4-tier testing hierarchy desi
   - `tests/sushi-economy.adversarial.test.ts`
 
 ### 3.2 Adversarial Test Scenarios
+
 1. **Clock Skew & Time Rewind:**
    - If a client's system clock steps backwards ($t_{\text{now}} < t_{\text{accounted}}$), elapsed time is clamped to $0$. Timestamps never move backward, and uncollected revenue is never deducted.
 2. **Idempotency Key Replay & Action Namespacing:**
@@ -96,12 +100,14 @@ The Sushi Game testing methodology uses a rigorous 4-tier testing hierarchy desi
 ## 4. Tier 3: Backend Security Rules & Cloud Functions Integration
 
 ### 4.1 Execution & Environment
+
 - **Commands:**
   - `npm run test:rules` (Firestore security rules testing).
   - `npm run test:backend` (Cloud Functions transaction testing).
 - **Prerequisites:** Firebase Emulator Suite running Firestore, Auth, and Functions.
 
 ### 4.2 Security Test Scenarios
+
 1. **Authentication Gate:**
    - Anonymous sessions or unauthenticated requests are rejected with `unauthenticated` / `permission-denied`.
    - Only verified Google Sign-In user tokens are authorized to access `/users/{uid}/sushi/restaurant`.
@@ -124,12 +130,14 @@ The Sushi Game testing methodology uses a rigorous 4-tier testing hierarchy desi
 ## 5. Tier 4: Browser E2E, Lazy-Loading & Integration (Playwright)
 
 ### 5.1 Execution & Tooling
+
 - **Commands:** `npm run test:e2e` (`npx playwright test`)
 - **Configurations:**
   - `playwright.config.ts`: Pure frontend test server (Vite port 5176).
   - `playwright.backend.config.ts`: Full integration server with Firebase Emulators (Port 5177).
 
 ### 5.2 Browser E2E Scenarios
+
 1. **Code-Splitting & Deferred Loading Boundary:**
    - Loading the study home page (`#/`) or chapter view (`#/vecka/week-1`) makes **0 network requests** for `sushi-view-*.js` or `sushi-*.css`.
    - Only navigating to `#/sushi` dynamically imports the restaurant module.
@@ -152,12 +160,12 @@ The Sushi Game testing methodology uses a rigorous 4-tier testing hierarchy desi
 
 ## 6. Test Automation Execution Matrix
 
-| Tier | Area | Test Command | Target Scope | Runner | Target SLA | Pass Threshold |
-|:---:|:---|:---|:---|:---|:---:|:---:|
-| **Tier 1** | Pure Logic & Math | `npm test` | `tests/*.test.ts` | Node 24 Native | $< 2.5\text{s}$ | 100% pass (0 fails) |
-| **Tier 1** | TypeScript Types | `npm run typecheck` | `src/**/*.ts`, `tests/**/*.ts` | `tsc --noEmit` | $< 5\text{s}$ | Code 0 (0 errors) |
-| **Tier 1** | Bundle & Chunks | `npm run build` | Full application | Vite / Rollup | $< 8\text{s}$ | Code 0 (Isolated chunk) |
-| **Tier 2** | Concurrency & Idempotency | `node --test tests/*concurrency*.test.ts` | Concurrency test files | Node 24 Native | $< 3\text{s}$ | 100% pass (0 fails) |
-| **Tier 3** | Security Rules | `npm run test:rules` | `tests/firestore/sushi-rules.test.ts` | Firebase Emulator | $< 10\text{s}$ | 100% pass (0 fails) |
-| **Tier 3** | Backend Callable | `npm run test:backend` | `tests/backend/sushi-callable.test.ts` | Firebase Emulator | $< 15\text{s}$ | 100% pass (0 fails) |
-| **Tier 4** | Browser E2E & A11y | `npm run test:e2e` | `tests/e2e/*.spec.ts` | Playwright | $< 30\text{s}$ | 100% pass (0 fails) |
+|    Tier    | Area                      | Test Command                              | Target Scope                           | Runner            |   Target SLA    |     Pass Threshold      |
+| :--------: | :------------------------ | :---------------------------------------- | :------------------------------------- | :---------------- | :-------------: | :---------------------: |
+| **Tier 1** | Pure Logic & Math         | `npm test`                                | `tests/*.test.ts`                      | Node 24 Native    | $< 2.5\text{s}$ |   100% pass (0 fails)   |
+| **Tier 1** | TypeScript Types          | `npm run typecheck`                       | `src/**/*.ts`, `tests/**/*.ts`         | `tsc --noEmit`    |  $< 5\text{s}$  |    Code 0 (0 errors)    |
+| **Tier 1** | Bundle & Chunks           | `npm run build`                           | Full application                       | Vite / Rollup     |  $< 8\text{s}$  | Code 0 (Isolated chunk) |
+| **Tier 2** | Concurrency & Idempotency | `node --test tests/*concurrency*.test.ts` | Concurrency test files                 | Node 24 Native    |  $< 3\text{s}$  |   100% pass (0 fails)   |
+| **Tier 3** | Security Rules            | `npm run test:rules`                      | `tests/firestore/sushi-rules.test.ts`  | Firebase Emulator | $< 10\text{s}$  |   100% pass (0 fails)   |
+| **Tier 3** | Backend Callable          | `npm run test:backend`                    | `tests/backend/sushi-callable.test.ts` | Firebase Emulator | $< 15\text{s}$  |   100% pass (0 fails)   |
+| **Tier 4** | Browser E2E & A11y        | `npm run test:e2e`                        | `tests/e2e/*.spec.ts`                  | Playwright        | $< 30\text{s}$  |   100% pass (0 fails)   |

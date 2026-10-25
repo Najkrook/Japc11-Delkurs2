@@ -1,6 +1,10 @@
 import test from 'node:test';
 import assert from 'node:assert/strict';
-import { SUSHI_CATALOG, getCatalogItem, previewCatalogPurchase } from '../src/course/sushi-game/catalog.ts';
+import {
+  SUSHI_CATALOG,
+  getCatalogItem,
+  previewCatalogPurchase,
+} from '../src/course/sushi-game/catalog.ts';
 import { MEDAL_GRANT_RULES } from '../src/course/sushi-game/medals.ts';
 import { renderRestaurantScene } from '../src/course/sushi-game/restaurant-scene.ts';
 import {
@@ -8,10 +12,7 @@ import {
   leaveSushiView,
   SushiClientController,
 } from '../src/course/sushi-game/sushi-view.ts';
-import {
-  sushiService,
-  InMemorySushiRepository,
-} from '../src/course/sushi-game/service.ts';
+import { sushiService, InMemorySushiRepository } from '../src/course/sushi-game/service.ts';
 import type { CourseHostContext } from '../src/course/types.ts';
 import type { SushiRestaurantState } from '../src/course/sushi-game/types.ts';
 import { unitsToWholeYen } from '../src/course/sushi-game/economy.ts';
@@ -126,10 +127,23 @@ test('Milestone 3 Medal Rules: All 21 items mapped to chapters 6-12 with correct
 
   for (let chapter = 6; chapter <= 12; chapter++) {
     const chapterRules = MEDAL_GRANT_RULES.filter((r) => r.lessonNumber === chapter);
-    assert.equal(chapterRules.length, 3, `Chapter ${chapter} must have bronze, silver, gold grants`);
-    assert.ok(chapterRules.some((r) => r.requiredTier === 'bronze'), `Chapter ${chapter} bronze`);
-    assert.ok(chapterRules.some((r) => r.requiredTier === 'silver'), `Chapter ${chapter} silver`);
-    assert.ok(chapterRules.some((r) => r.requiredTier === 'gold'), `Chapter ${chapter} gold`);
+    assert.equal(
+      chapterRules.length,
+      3,
+      `Chapter ${chapter} must have bronze, silver, gold grants`,
+    );
+    assert.ok(
+      chapterRules.some((r) => r.requiredTier === 'bronze'),
+      `Chapter ${chapter} bronze`,
+    );
+    assert.ok(
+      chapterRules.some((r) => r.requiredTier === 'silver'),
+      `Chapter ${chapter} silver`,
+    );
+    assert.ok(
+      chapterRules.some((r) => r.requiredTier === 'gold'),
+      `Chapter ${chapter} gold`,
+    );
   }
 });
 
@@ -173,10 +187,22 @@ test('Milestone 3 Restaurant Scene: Renders equipment visual cues and wall/floor
   for (const eq of equipment) {
     assert.ok(htmlStr.includes(`data-testid=\\"art-${eq}\\"`), `Contains visual cue art-${eq}`);
   }
-  assert.ok(htmlStr.includes('data-testid=\\"art-noren_curtain\\"'), 'Contains wall art-noren_curtain');
-  assert.ok(htmlStr.includes('data-testid=\\"art-golden_maneki_neko\\"'), 'Contains floor art-golden_maneki_neko');
-  assert.ok(htmlStr.includes('Gyllene Maneki-neko på golvet.'), 'Accessible description describes golden cat');
-  assert.ok(htmlStr.includes('Norendraperi på väggen.'), 'Accessible description describes noren curtain');
+  assert.ok(
+    htmlStr.includes('data-testid=\\"art-noren_curtain\\"'),
+    'Contains wall art-noren_curtain',
+  );
+  assert.ok(
+    htmlStr.includes('data-testid=\\"art-golden_maneki_neko\\"'),
+    'Contains floor art-golden_maneki_neko',
+  );
+  assert.ok(
+    htmlStr.includes('Gyllene Maneki-neko på golvet.'),
+    'Accessible description describes golden cat',
+  );
+  assert.ok(
+    htmlStr.includes('Norendraperi på väggen.'),
+    'Accessible description describes noren curtain',
+  );
 });
 
 test('Milestone 3 Prospective Upgrade Preview: Previews revenue deltas and bottleneck impact', () => {
@@ -264,9 +290,15 @@ test('Milestone 3 Equipment Badges: Renders exact balanced capacities and revenu
     const html = renderTemplateToString(await renderLoadedShell(host, () => {}));
 
     assert.ok(html.includes('Precisionskniv (+1 kök)'), 'Precisionskniv badge shows +1 kök');
-    assert.ok(html.includes('Utökad serveringsdisk (+2 service)'), 'Serveringsdisk badge shows +2 service');
+    assert.ok(
+      html.includes('Utökad serveringsdisk (+2 service)'),
+      'Serveringsdisk badge shows +2 service',
+    );
     assert.ok(html.includes('Souschef (+2 kök)'), 'Souschef badge shows +2 kök');
-    assert.ok(html.includes('Mästarcertifiering (+5 ¥/order)'), 'Mästarcertifiering badge shows +5 ¥/order');
+    assert.ok(
+      html.includes('Mästarcertifiering (+5 ¥/order)'),
+      'Mästarcertifiering badge shows +5 ¥/order',
+    );
   } finally {
     leaveSushiView();
   }
@@ -280,7 +312,9 @@ test('Milestone 3 Register Bottleneck Explainer: Renders when K != S with pedago
     // 1. Kitchen bottleneck (K=1, S=2)
     const uidK1 = 'user-k1-s2';
     await repo.set(createMockState({ id: uidK1, kitchenCapacity: 1, serviceCapacity: 2 }));
-    const hostK1 = createMockHost({ user: { uid: uidK1, displayName: 'Kitchen Bottleneck Student' } });
+    const hostK1 = createMockHost({
+      user: { uid: uidK1, displayName: 'Kitchen Bottleneck Student' },
+    });
     const htmlK1 = renderTemplateToString(await renderLoadedShell(hostK1, () => {}));
 
     assert.ok(
@@ -298,7 +332,9 @@ test('Milestone 3 Register Bottleneck Explainer: Renders when K != S with pedago
     // 2. Service bottleneck (K=3, S=2)
     const uidS2 = 'user-k3-s2';
     await repo.set(createMockState({ id: uidS2, kitchenCapacity: 3, serviceCapacity: 2 }));
-    const hostS2 = createMockHost({ user: { uid: uidS2, displayName: 'Service Bottleneck Student' } });
+    const hostS2 = createMockHost({
+      user: { uid: uidS2, displayName: 'Service Bottleneck Student' },
+    });
     const htmlS2 = renderTemplateToString(await renderLoadedShell(hostS2, () => {}));
 
     assert.ok(
@@ -316,7 +352,9 @@ test('Milestone 3 Register Bottleneck Explainer: Renders when K != S with pedago
     // 3. Balanced state (K=2, S=2)
     const uidBalanced = 'user-k2-s2';
     await repo.set(createMockState({ id: uidBalanced, kitchenCapacity: 2, serviceCapacity: 2 }));
-    const hostBalanced = createMockHost({ user: { uid: uidBalanced, displayName: 'Balanced Student' } });
+    const hostBalanced = createMockHost({
+      user: { uid: uidBalanced, displayName: 'Balanced Student' },
+    });
     const htmlBalanced = renderTemplateToString(await renderLoadedShell(hostBalanced, () => {}));
 
     assert.ok(

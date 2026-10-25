@@ -13,13 +13,8 @@ import {
   InMemorySushiRepository,
   type SushiStorageLike,
 } from '../src/course/sushi-game/service.ts';
-import {
-  yenToUnits,
-  unitsToWholeYen,
-} from '../src/course/sushi-game/economy.ts';
-import {
-  MS_PER_MINUTE,
-} from '../src/course/sushi-game/types.ts';
+import { yenToUnits, unitsToWholeYen } from '../src/course/sushi-game/economy.ts';
+import { MS_PER_MINUTE } from '../src/course/sushi-game/types.ts';
 
 test('Adversarial-Purchase: __proto__ key handles fresh purchase, retry idempotency, and preserves Object.prototype purity', async () => {
   const repo = new InMemorySushiRepository();
@@ -37,22 +32,42 @@ test('Adversarial-Purchase: __proto__ key handles fresh purchase, retry idempote
   // 1. Fresh purchase with '__proto__'
   const res1 = await service.purchaseCatalogItem(uid, 'prep_counter', '__proto__', t0 + 1000);
   assert.equal(res1.success, true);
-  assert.equal(res1.wasAlreadyProcessed, false, '__proto__ key must NOT trigger false alreadyProcessed on fresh call');
+  assert.equal(
+    res1.wasAlreadyProcessed,
+    false,
+    '__proto__ key must NOT trigger false alreadyProcessed on fresh call',
+  );
   assert.equal(res1.debitedYen, 300);
   assert.equal(unitsToWholeYen(res1.state.balanceUnits), 200);
 
   // 2. Retry with '__proto__' key
   const res2 = await service.purchaseCatalogItem(uid, 'prep_counter', '__proto__', t0 + 2000);
   assert.equal(res2.success, true);
-  assert.equal(res2.wasAlreadyProcessed, true, '__proto__ retry must be recognized as already processed');
+  assert.equal(
+    res2.wasAlreadyProcessed,
+    true,
+    '__proto__ retry must be recognized as already processed',
+  );
   assert.equal(res2.debitedUnits, 18_000_000);
   assert.equal(unitsToWholeYen(res2.state.balanceUnits), 200, 'Balance must NOT be debited twice');
 
   // 3. Strict prototype purity check: verify Object.prototype was NOT polluted
   const cleanObject: any = {};
-  assert.equal(cleanObject.processedAtMs, undefined, 'Object.prototype must not have processedAtMs');
-  assert.equal(cleanObject.resultSummary, undefined, 'Object.prototype must not have resultSummary');
-  assert.equal(Object.prototype.hasOwnProperty('processedAtMs'), false, 'Object.prototype hasOwnProperty must be false');
+  assert.equal(
+    cleanObject.processedAtMs,
+    undefined,
+    'Object.prototype must not have processedAtMs',
+  );
+  assert.equal(
+    cleanObject.resultSummary,
+    undefined,
+    'Object.prototype must not have resultSummary',
+  );
+  assert.equal(
+    Object.prototype.hasOwnProperty('processedAtMs'),
+    false,
+    'Object.prototype hasOwnProperty must be false',
+  );
 });
 
 test('Adversarial-Purchase: Concurrent duplicate rapid-clicks with SAME idempotency key serialize safely', async () => {
@@ -93,7 +108,11 @@ test('Adversarial-Purchase: Concurrent duplicate rapid-clicks with SAME idempote
   const finalState = await repo.get(uid);
   assert.ok(finalState);
   assert.equal(finalState.balanceUnits, 0, 'Balance must be 0 (no double debiting)');
-  assert.deepEqual(finalState.inventory, ['prep_counter'], 'Item must appear in inventory exactly once');
+  assert.deepEqual(
+    finalState.inventory,
+    ['prep_counter'],
+    'Item must appear in inventory exactly once',
+  );
   assert.equal(finalState.kitchenCapacity, 3);
 });
 
@@ -113,7 +132,9 @@ test('Adversarial-Purchase: Concurrent swarm with DIFFERENT idempotency keys can
   // 20 concurrent purchase calls with DISTINCT idempotency keys
   const promises = [];
   for (let i = 0; i < 20; i++) {
-    promises.push(service.purchaseCatalogItem(uid, 'prep_counter', `key_distinct_${i}`, t0 + i * 5));
+    promises.push(
+      service.purchaseCatalogItem(uid, 'prep_counter', `key_distinct_${i}`, t0 + i * 5),
+    );
   }
 
   const results = await Promise.all(promises);
@@ -213,7 +234,11 @@ test('Adversarial-Purchase: Multi-user swarm (10 users x 10 concurrent requests)
     const uid = `swarm-user-${i}`;
     const state = await repo.get(uid);
     assert.ok(state, `State for ${uid} must exist`);
-    assert.equal(unitsToWholeYen(state.balanceUnits), 300, `${uid} must have exactly 600 - 300 = 300 yen`);
+    assert.equal(
+      unitsToWholeYen(state.balanceUnits),
+      300,
+      `${uid} must have exactly 600 - 300 = 300 yen`,
+    );
     assert.deepEqual(state.inventory, ['prep_counter']);
     assert.equal(state.kitchenCapacity, 3);
   }

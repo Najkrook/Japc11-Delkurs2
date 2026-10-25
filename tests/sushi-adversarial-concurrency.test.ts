@@ -1,17 +1,8 @@
 import test from 'node:test';
 import assert from 'node:assert/strict';
-import {
-  SushiService,
-  InMemorySushiRepository,
-} from '../src/course/sushi-game/service.ts';
-import {
-  unitsToWholeYen,
-  yenToUnits,
-} from '../src/course/sushi-game/economy.ts';
-import {
-  MS_PER_MINUTE,
-  MS_PER_HOUR,
-} from '../src/course/sushi-game/types.ts';
+import { SushiService, InMemorySushiRepository } from '../src/course/sushi-game/service.ts';
+import { unitsToWholeYen, yenToUnits } from '../src/course/sushi-game/economy.ts';
+import { MS_PER_MINUTE, MS_PER_HOUR } from '../src/course/sushi-game/types.ts';
 
 test('Adversarial Concurrency: 50 simultaneous identical idempotencyKey requests yield exactly 1 transfer', async () => {
   const repo = new InMemorySushiRepository();
@@ -27,9 +18,7 @@ test('Adversarial Concurrency: 50 simultaneous identical idempotencyKey requests
 
   // Fire 50 concurrent requests simultaneously
   const N = 50;
-  const promises = Array.from({ length: N }, () =>
-    service.collectRevenue(uid, duplicateKey, t60m),
-  );
+  const promises = Array.from({ length: N }, () => service.collectRevenue(uid, duplicateKey, t60m));
 
   const results = await Promise.all(promises);
 
@@ -41,7 +30,11 @@ test('Adversarial Concurrency: 50 simultaneous identical idempotencyKey requests
 
   const processedResult = results.find((r) => !r.wasAlreadyProcessed)!;
   assert.equal(processedResult.collectedYen, 600, 'Processed request must collect 600 yen');
-  assert.equal(processedResult.collectedUnits, 36_000_000, 'Processed request must collect 36M units');
+  assert.equal(
+    processedResult.collectedUnits,
+    36_000_000,
+    'Processed request must collect 36M units',
+  );
 
   for (const dup of results.filter((r) => r.wasAlreadyProcessed)) {
     assert.equal(dup.collectedYen, 0, 'Duplicate request must yield 0 yen');
@@ -50,8 +43,16 @@ test('Adversarial Concurrency: 50 simultaneous identical idempotencyKey requests
 
   // Inspect authoritative state in repository
   const finalState = await service.getOrInitRestaurant(uid, t60m);
-  assert.equal(unitsToWholeYen(finalState.balanceUnits), 600, 'Authoritative balance must be exactly 600 yen');
-  assert.equal(finalState.balanceUnits, 36_000_000, 'Authoritative balance must be exactly 36M units');
+  assert.equal(
+    unitsToWholeYen(finalState.balanceUnits),
+    600,
+    'Authoritative balance must be exactly 600 yen',
+  );
+  assert.equal(
+    finalState.balanceUnits,
+    36_000_000,
+    'Authoritative balance must be exactly 36M units',
+  );
   assert.equal(finalState.uncollectedUnits, 0, 'Uncollected units must be 0');
 });
 
@@ -77,19 +78,39 @@ test('Adversarial Concurrency: 30 simultaneous distinct idempotencyKey requests 
   const totalCollectedUnits = results.reduce((acc, r) => acc + r.collectedUnits, 0);
   const totalCollectedYen = results.reduce((acc, r) => acc + r.collectedYen, 0);
 
-  assert.equal(totalCollectedUnits, 72_000_000, 'Conservation of money: sum of collectedUnits must equal exactly 72M units');
-  assert.equal(totalCollectedYen, 1200, 'Conservation of money: sum of collectedYen must equal exactly 1200 yen');
+  assert.equal(
+    totalCollectedUnits,
+    72_000_000,
+    'Conservation of money: sum of collectedUnits must equal exactly 72M units',
+  );
+  assert.equal(
+    totalCollectedYen,
+    1200,
+    'Conservation of money: sum of collectedYen must equal exactly 1200 yen',
+  );
 
   // Verify that every distinct key was recorded and none was flagged as already processed
   for (const res of results) {
-    assert.equal(res.wasAlreadyProcessed, false, 'Each distinct key is unique and not already processed');
+    assert.equal(
+      res.wasAlreadyProcessed,
+      false,
+      'Each distinct key is unique and not already processed',
+    );
   }
 
   // Authoritative state check
   const finalState = await service.getOrInitRestaurant(uid, t120m);
-  assert.equal(finalState.balanceUnits, 72_000_000, 'Final balance must strictly equal total collected units');
+  assert.equal(
+    finalState.balanceUnits,
+    72_000_000,
+    'Final balance must strictly equal total collected units',
+  );
   assert.equal(finalState.uncollectedUnits, 0, 'Final uncollected units must be 0');
-  assert.equal(Object.keys(finalState.processedRequests || {}).length, N, 'All distinct keys must be recorded in processedRequests');
+  assert.equal(
+    Object.keys(finalState.processedRequests || {}).length,
+    N,
+    'All distinct keys must be recorded in processedRequests',
+  );
 });
 
 test('Adversarial Concurrency: Rapid alternating collection waves maintain exact fund conservation', async () => {
@@ -120,7 +141,11 @@ test('Adversarial Concurrency: Rapid alternating collection waves maintain exact
     assert.equal(waveCollectedUnits, 600_000, `Wave ${wave} must collect exactly 600,000 units`);
   }
 
-  assert.equal(totalAccumulatedUnits, 6_000_000, '10 minutes of production must accumulate exactly 6,000,000 units (100 yen)');
+  assert.equal(
+    totalAccumulatedUnits,
+    6_000_000,
+    '10 minutes of production must accumulate exactly 6,000,000 units (100 yen)',
+  );
 
   const finalState = await service.getOrInitRestaurant(uid, currentTime);
   assert.equal(finalState.balanceUnits, 6_000_000, 'Final balance must match accumulated units');
@@ -213,7 +238,13 @@ test('Adversarial Stress: Prototype pollution / Object prototype keys in idempot
 
   // Test idempotencyKey collision with Object.prototype properties
   // E.g. 'toString', 'valueOf', 'constructor', '__proto__'
-  const prototypeProperties = ['toString', 'valueOf', 'constructor', 'hasOwnProperty', 'isPrototypeOf'];
+  const prototypeProperties = [
+    'toString',
+    'valueOf',
+    'constructor',
+    'hasOwnProperty',
+    'isPrototypeOf',
+  ];
 
   for (const prop of prototypeProperties) {
     const userForProp = `${uid}-${prop}`;

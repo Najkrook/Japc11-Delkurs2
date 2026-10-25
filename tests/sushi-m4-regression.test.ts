@@ -29,10 +29,7 @@ import {
   MS_PER_MINUTE,
   YEN_UNIT_MULTIPLIER,
 } from '../src/course/sushi-game/types.ts';
-import type {
-  SushiEconomyState,
-  SushiRestaurantState,
-} from '../src/course/sushi-game/types.ts';
+import type { SushiEconomyState, SushiRestaurantState } from '../src/course/sushi-game/types.ts';
 import {
   SUSHI_CATALOG,
   getCatalogItem,
@@ -46,10 +43,7 @@ import {
   tierSatisfies,
 } from '../src/course/sushi-game/medals.ts';
 import type { UnlockGrantId } from '../src/course/sushi-game/medals.ts';
-import {
-  InMemorySushiRepository,
-  SushiService,
-} from '../src/course/sushi-game/domain-service.ts';
+import { InMemorySushiRepository, SushiService } from '../src/course/sushi-game/domain-service.ts';
 
 // Core Study Platform Imports
 import {
@@ -59,10 +53,7 @@ import {
 } from '../src/course/study-drills.ts';
 import { recordQuizMistakes } from '../src/course/components/week-quiz.ts';
 import { createCourseProgress } from '../src/course/course-progress.ts';
-import {
-  createFreshCourseProgress,
-  getWeekProgressSummary,
-} from '../src/course/course-state.ts';
+import { createFreshCourseProgress, getWeekProgressSummary } from '../src/course/course-state.ts';
 import { courseWeeks } from '../src/course/data/index.ts';
 import type { CourseProgressData, CourseWeek } from '../src/course/types.ts';
 
@@ -146,7 +137,11 @@ test('Suite 1.1: Extended offline accrual at 10m, 1h, and 8h default cap (20 ¥/
   assert.equal(accrual1h.producedMs, 3_600_000, 'Produced ms should be 3,600,000 ms');
   assert.equal(accrual1h.excessMs, 0, 'Excess ms should be 0');
   assert.equal(accrual1h.earnedUnits, 72_000_000, 'Earned units should be exactly 72,000,000');
-  assert.equal(unitsToWholeYen(accrual1h.earnedUnits), 1_200, 'Whole yen should be exactly 1,200 ¥');
+  assert.equal(
+    unitsToWholeYen(accrual1h.earnedUnits),
+    1_200,
+    'Whole yen should be exactly 1,200 ¥',
+  );
   assert.equal(accrual1h.isCapped, false, 'Should not be capped at 1 hour');
   assert.equal(accrual1h.remainingCapMs, DEFAULT_CAP_MS - 3_600_000);
 
@@ -158,7 +153,11 @@ test('Suite 1.1: Extended offline accrual at 10m, 1h, and 8h default cap (20 ¥/
   assert.equal(accrual8h.producedMs, 28_800_000, 'Produced ms should be 28,800,000 ms');
   assert.equal(accrual8h.excessMs, 0, 'Excess ms should be 0 exactly at the cap');
   assert.equal(accrual8h.earnedUnits, 576_000_000, 'Earned units should be exactly 576,000,000');
-  assert.equal(unitsToWholeYen(accrual8h.earnedUnits), 9_600, '8h default cap must equal 9,600 ¥ at 20 ¥/min');
+  assert.equal(
+    unitsToWholeYen(accrual8h.earnedUnits),
+    9_600,
+    '8h default cap must equal 9,600 ¥ at 20 ¥/min',
+  );
   assert.equal(accrual8h.isCapped, true, 'Must report isCapped = true at 8h cap');
   assert.equal(accrual8h.remainingCapMs, 0, 'Remaining cap must be 0 ms');
 });
@@ -181,7 +180,11 @@ test('Suite 1.2: Extended offline accrual with 12h cap extension at 12h and 24h 
   assert.equal(accrual12h.producedMs, 43_200_000, 'Produced ms should be 43,200,000 ms');
   assert.equal(accrual12h.excessMs, 0, 'Excess ms should be 0 at 12h cap');
   assert.equal(accrual12h.earnedUnits, 864_000_000, 'Earned units should be exactly 864,000,000');
-  assert.equal(unitsToWholeYen(accrual12h.earnedUnits), 14_400, '12h extended cap must equal 14,400 ¥ at 20 ¥/min');
+  assert.equal(
+    unitsToWholeYen(accrual12h.earnedUnits),
+    14_400,
+    '12h extended cap must equal 14,400 ¥ at 20 ¥/min',
+  );
   assert.equal(accrual12h.isCapped, true, 'Must report isCapped = true at 12h cap');
   assert.equal(accrual12h.remainingCapMs, 0, 'Remaining cap must be 0 ms');
 
@@ -190,10 +193,26 @@ test('Suite 1.2: Extended offline accrual with 12h cap extension at 12h and 24h 
   const t24h = startMs + 24 * MS_PER_HOUR;
   const accrual24h = calculateAccrual(state, t24h);
   assert.equal(accrual24h.elapsedMs, 86_400_000, 'Elapsed ms should be 86,400,000 ms (24 hours)');
-  assert.equal(accrual24h.producedMs, 43_200_000, 'Produced ms must be clamped to 43,200,000 ms (12 hours)');
-  assert.equal(accrual24h.excessMs, 43_200_000, '43,200,000 ms (12 hours) of excess time must be discarded');
-  assert.equal(accrual24h.earnedUnits, 864_000_000, 'Earned units must remain capped at 864,000,000');
-  assert.equal(unitsToWholeYen(accrual24h.earnedUnits), 14_400, 'Whole yen remains strictly 14,400 ¥');
+  assert.equal(
+    accrual24h.producedMs,
+    43_200_000,
+    'Produced ms must be clamped to 43,200,000 ms (12 hours)',
+  );
+  assert.equal(
+    accrual24h.excessMs,
+    43_200_000,
+    '43,200,000 ms (12 hours) of excess time must be discarded',
+  );
+  assert.equal(
+    accrual24h.earnedUnits,
+    864_000_000,
+    'Earned units must remain capped at 864,000,000',
+  );
+  assert.equal(
+    unitsToWholeYen(accrual24h.earnedUnits),
+    14_400,
+    'Whole yen remains strictly 14,400 ¥',
+  );
   assert.equal(accrual24h.isCapped, true, 'Must report isCapped = true');
   assert.equal(accrual24h.remainingCapMs, 0, 'Remaining cap must be 0 ms');
 });
@@ -220,15 +239,27 @@ test('Suite 1.3: Manual collection clearing the cap, transferring revenue, and r
   const postState = collection.updatedState;
   assert.equal(postState.uncollectedUnits, 0, 'Uncollected register balance must be reset to 0');
   assert.equal(postState.usedProductionMs, 0, 'usedProductionMs must be reset to 0');
-  assert.equal(postState.accountedAtMs, collectionTimeMs, 'accountedAtMs must be advanced to collection time');
-  assert.equal(postState.periodStartMs, collectionTimeMs, 'periodStartMs must be reset to collection time');
+  assert.equal(
+    postState.accountedAtMs,
+    collectionTimeMs,
+    'accountedAtMs must be advanced to collection time',
+  );
+  assert.equal(
+    postState.periodStartMs,
+    collectionTimeMs,
+    'periodStartMs must be reset to collection time',
+  );
 
   // Verify that subsequent accrual begins afresh with full 12h remaining cap
   const postAccrual = calculateAccrual(postState, collectionTimeMs + 1 * MS_PER_HOUR);
   assert.equal(postAccrual.producedMs, 3_600_000, 'Should produce 1h after collection');
   assert.equal(postAccrual.earnedUnits, 72_000_000, 'Should earn 72,000,000 units (1,200 ¥)');
   assert.equal(postAccrual.isCapped, false, 'Should not be capped after fresh collection');
-  assert.equal(postAccrual.remainingCapMs, EXTENDED_CAP_MS - 3_600_000, 'Remaining cap must be 11h');
+  assert.equal(
+    postAccrual.remainingCapMs,
+    EXTENDED_CAP_MS - 3_600_000,
+    'Remaining cap must be 11h',
+  );
 });
 
 // =============================================================================
@@ -358,8 +389,17 @@ test('Suite 3.1: Purchase transactions: exact 60,000 units/yen debit and balance
     accountedAtMs: nowMs,
   });
 
-  const failureUnderfunded = await service.purchaseCatalogItem(uid, 'prep_counter', 'req-fail-floor', nowMs);
-  assert.equal(failureUnderfunded.success, false, 'Purchase must fail when underfunded by even 1 unit');
+  const failureUnderfunded = await service.purchaseCatalogItem(
+    uid,
+    'prep_counter',
+    'req-fail-floor',
+    nowMs,
+  );
+  assert.equal(
+    failureUnderfunded.success,
+    false,
+    'Purchase must fail when underfunded by even 1 unit',
+  );
   if (!failureUnderfunded.success) {
     assert.equal(failureUnderfunded.reason, 'INSUFFICIENT_FUNDS');
     assert.equal(failureUnderfunded.requiredUnits, 18_000_000);
@@ -375,8 +415,17 @@ test('Suite 3.1: Purchase transactions: exact 60,000 units/yen debit and balance
     accountedAtMs: nowMs,
   });
 
-  const failureUncollected = await service.purchaseCatalogItem(uid, 'prep_counter', 'req-fail-register', nowMs);
-  assert.equal(failureUncollected.success, false, 'Uncollected register funds must not fund purchases');
+  const failureUncollected = await service.purchaseCatalogItem(
+    uid,
+    'prep_counter',
+    'req-fail-register',
+    nowMs,
+  );
+  assert.equal(
+    failureUncollected.success,
+    false,
+    'Uncollected register funds must not fund purchases',
+  );
   if (!failureUncollected.success) {
     assert.equal(failureUncollected.reason, 'INSUFFICIENT_FUNDS');
   }
@@ -390,16 +439,32 @@ test('Suite 3.1: Purchase transactions: exact 60,000 units/yen debit and balance
     accountedAtMs: nowMs,
   });
 
-  const successExact = await service.purchaseCatalogItem(uid, 'prep_counter', 'req-success-exact', nowMs);
+  const successExact = await service.purchaseCatalogItem(
+    uid,
+    'prep_counter',
+    'req-success-exact',
+    nowMs,
+  );
   assert.equal(successExact.success, true, 'Purchase must succeed with exact balance');
   if (successExact.success) {
     assert.equal(successExact.debitedUnits, 18_000_000, 'Must debit exactly 18,000,000 units');
     assert.equal(successExact.debitedYen, 300, 'Must debit exactly 300 whole yen');
     assert.equal(successExact.state.balanceUnits, 0, 'Remaining balance must be exactly 0 units');
-    assert.ok(successExact.state.inventory.includes('prep_counter'), 'prep_counter must be in inventory');
-    assert.equal(successExact.state.kitchenCapacity, 3, 'Kitchen capacity must increase from 1 to 3');
+    assert.ok(
+      successExact.state.inventory.includes('prep_counter'),
+      'prep_counter must be in inventory',
+    );
+    assert.equal(
+      successExact.state.kitchenCapacity,
+      3,
+      'Kitchen capacity must increase from 1 to 3',
+    );
     // Verify intermediate uncollected funds and production timer are strictly preserved!
-    assert.equal(successExact.state.uncollectedUnits, 600_000, 'Uncollected units must be preserved');
+    assert.equal(
+      successExact.state.uncollectedUnits,
+      600_000,
+      'Uncollected units must be preserved',
+    );
     assert.equal(successExact.state.usedProductionMs, 30_000, 'usedProductionMs must be preserved');
   }
 });
@@ -411,7 +476,11 @@ test('Suite 3.2: Prospective upgrade rate transitions across production chain: O
 
   // 0. Initial baseline
   // K=1, S=2, A=10 -> O=min(1, 2)=1, R=10 ¥/min (Bottleneck: Kitchen)
-  let rate = calculateProductionRate(current.kitchenCapacity, current.serviceCapacity, current.averageRevenuePerOrder);
+  let rate = calculateProductionRate(
+    current.kitchenCapacity,
+    current.serviceCapacity,
+    current.averageRevenuePerOrder,
+  );
   assert.equal(rate.ordersPerMinute, 1);
   assert.equal(rate.yenPerMinute, 10);
   assert.equal(rate.bottleneck, 'kitchen');
@@ -474,7 +543,11 @@ test('Suite 3.2: Prospective upgrade rate transitions across production chain: O
   assert.equal(impact6.prospectiveRate.yenPerMinute, 90);
   current = { ...current, averageRevenuePerOrder: 15 };
 
-  const finalRate = calculateProductionRate(current.kitchenCapacity, current.serviceCapacity, current.averageRevenuePerOrder);
+  const finalRate = calculateProductionRate(
+    current.kitchenCapacity,
+    current.serviceCapacity,
+    current.averageRevenuePerOrder,
+  );
   assert.equal(finalRate.ordersPerMinute, 6);
   assert.equal(finalRate.yenPerMinute, 90);
   assert.equal(finalRate.bottleneck, 'none');
@@ -494,7 +567,12 @@ test('Suite 3.3: Idempotency with duplicate request keys on purchase and collect
   });
 
   // 1. First purchase call
-  const p1 = await service.purchaseCatalogItem(uid, 'paper_lantern', 'idemp-purchase-key-1', 1_100_000);
+  const p1 = await service.purchaseCatalogItem(
+    uid,
+    'paper_lantern',
+    'idemp-purchase-key-1',
+    1_100_000,
+  );
   assert.equal(p1.success, true);
   if (p1.success) {
     assert.equal(p1.wasAlreadyProcessed, false);
@@ -503,12 +581,25 @@ test('Suite 3.3: Idempotency with duplicate request keys on purchase and collect
   }
 
   // 2. Duplicate purchase call with same idempotency key
-  const p2 = await service.purchaseCatalogItem(uid, 'paper_lantern', 'idemp-purchase-key-1', 1_200_000);
+  const p2 = await service.purchaseCatalogItem(
+    uid,
+    'paper_lantern',
+    'idemp-purchase-key-1',
+    1_200_000,
+  );
   assert.equal(p2.success, true);
   if (p2.success) {
     assert.equal(p2.wasAlreadyProcessed, true, 'Repeat key must return wasAlreadyProcessed = true');
-    assert.equal(p2.state.inventory.filter((id) => id === 'paper_lantern').length, 1, 'Must not duplicate item');
-    assert.equal(p2.state.balanceUnits, 60_000_000 - 18_000_000, 'Must not debit balance a second time');
+    assert.equal(
+      p2.state.inventory.filter((id) => id === 'paper_lantern').length,
+      1,
+      'Must not duplicate item',
+    );
+    assert.equal(
+      p2.state.balanceUnits,
+      60_000_000 - 18_000_000,
+      'Must not debit balance a second time',
+    );
   }
 
   // 3. Collection call with idempotency key
@@ -536,7 +627,13 @@ test('Suite 3.4: Decoration slot equipping (wallSlot and floorSlot), validation,
   });
 
   // 1. Equip paper_lantern in wallSlot
-  const eq1 = await service.equipDecoration(uid, 'wallSlot', 'paper_lantern', 'equip-key-1', 1_050_000);
+  const eq1 = await service.equipDecoration(
+    uid,
+    'wallSlot',
+    'paper_lantern',
+    'equip-key-1',
+    1_050_000,
+  );
   assert.equal(eq1.success, true);
   if (eq1.success) {
     assert.equal(eq1.state.equipped.wallSlot, 'paper_lantern');
@@ -545,7 +642,13 @@ test('Suite 3.4: Decoration slot equipping (wallSlot and floorSlot), validation,
   }
 
   // 2. Equip potted_plant in floorSlot
-  const eq2 = await service.equipDecoration(uid, 'floorSlot', 'potted_plant', 'equip-key-2', 1_060_000);
+  const eq2 = await service.equipDecoration(
+    uid,
+    'floorSlot',
+    'potted_plant',
+    'equip-key-2',
+    1_060_000,
+  );
   assert.equal(eq2.success, true);
   if (eq2.success) {
     assert.equal(eq2.state.equipped.wallSlot, 'paper_lantern');
@@ -553,7 +656,13 @@ test('Suite 3.4: Decoration slot equipping (wallSlot and floorSlot), validation,
   }
 
   // 3. Switch wallSlot to noren_curtain
-  const eq3 = await service.equipDecoration(uid, 'wallSlot', 'noren_curtain', 'equip-key-3', 1_070_000);
+  const eq3 = await service.equipDecoration(
+    uid,
+    'wallSlot',
+    'noren_curtain',
+    'equip-key-3',
+    1_070_000,
+  );
   assert.equal(eq3.success, true);
   if (eq3.success) {
     assert.equal(eq3.state.equipped.wallSlot, 'noren_curtain');
@@ -569,11 +678,23 @@ test('Suite 3.4: Decoration slot equipping (wallSlot and floorSlot), validation,
   }
 
   // 5. Slot mismatch rejection: attempt to put potted_plant (floor decor) in wallSlot
-  const eqFailMismatch = await service.equipDecoration(uid, 'wallSlot', 'potted_plant', 'equip-key-5', 1_090_000);
+  const eqFailMismatch = await service.equipDecoration(
+    uid,
+    'wallSlot',
+    'potted_plant',
+    'equip-key-5',
+    1_090_000,
+  );
   assert.equal(eqFailMismatch.success, false, 'Must reject floor decor in wallSlot');
 
   // 6. Unowned item rejection: attempt to equip sakura_bonsai (not in inventory)
-  const eqFailUnowned = await service.equipDecoration(uid, 'floorSlot', 'sakura_bonsai', 'equip-key-6', 1_100_000);
+  const eqFailUnowned = await service.equipDecoration(
+    uid,
+    'floorSlot',
+    'sakura_bonsai',
+    'equip-key-6',
+    1_100_000,
+  );
   assert.equal(eqFailUnowned.success, false, 'Must reject unowned decoration');
 
   // 7. Economic neutrality: verify equipping decorations does not modify production rates
@@ -625,11 +746,17 @@ test('Suite 4.1: Japanese Study Flashcards & Vocabulary Drills operate with zero
 test('Suite 4.2: Japanese Kanji Bank & Kanji Quiz generation operate with zero interference', () => {
   for (let ch = 0; ch < courseWeeks.length; ch++) {
     const week = courseWeeks[ch];
-    assert.ok(week.kanji.length > 0, `Genki chapter ${week.lessonNumber} must have kanji characters`);
+    assert.ok(
+      week.kanji.length > 0,
+      `Genki chapter ${week.lessonNumber} must have kanji characters`,
+    );
 
     // Build questions for this chapter
     const questions = buildKanjiQuizQuestions(week.kanji);
-    assert.ok(questions.length > 0, `Chapter ${week.lessonNumber} must generate kanji quiz questions`);
+    assert.ok(
+      questions.length > 0,
+      `Chapter ${week.lessonNumber} must generate kanji quiz questions`,
+    );
 
     for (const q of questions) {
       assert.ok(q.id, 'Question must have id');
@@ -669,10 +796,26 @@ test('Suite 4.4: Genki I Chapters 6–12 curriculum data integrity is strictly p
   const expectedLessonNumbers = [6, 7, 8, 9, 10, 11, 12];
   for (let i = 0; i < courseWeeks.length; i++) {
     const week = courseWeeks[i];
-    assert.equal(week.lessonNumber, expectedLessonNumbers[i], `Week index ${i} must be Lesson ${expectedLessonNumbers[i]}`);
-    assert.ok(week.vocab.length >= 20, `Chapter ${week.lessonNumber} must have at least 20 vocab words`);
-    assert.ok(week.kanji.length >= 10, `Chapter ${week.lessonNumber} must have at least 10 kanji characters`);
-    assert.ok(week.conjugations.length >= 8, `Chapter ${week.lessonNumber} must have at least 8 dojo conjugation items`);
-    assert.ok(week.quiz.length >= 5, `Chapter ${week.lessonNumber} must have at least 5 quiz questions`);
+    assert.equal(
+      week.lessonNumber,
+      expectedLessonNumbers[i],
+      `Week index ${i} must be Lesson ${expectedLessonNumbers[i]}`,
+    );
+    assert.ok(
+      week.vocab.length >= 20,
+      `Chapter ${week.lessonNumber} must have at least 20 vocab words`,
+    );
+    assert.ok(
+      week.kanji.length >= 10,
+      `Chapter ${week.lessonNumber} must have at least 10 kanji characters`,
+    );
+    assert.ok(
+      week.conjugations.length >= 8,
+      `Chapter ${week.lessonNumber} must have at least 8 dojo conjugation items`,
+    );
+    assert.ok(
+      week.quiz.length >= 5,
+      `Chapter ${week.lessonNumber} must have at least 5 quiz questions`,
+    );
   }
 });

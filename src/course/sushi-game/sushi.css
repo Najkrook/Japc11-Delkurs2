@@ -1259,7 +1259,7 @@
   }
 }
 
-/* Front-facing illustrated restaurant, ticket 11. */
+/* Isometric illustrated restaurant; the SVG scales as a single scene. */
 .sushi-container {
   --sushi-ink: #583e32;
   --sushi-paper: #fff4da;
