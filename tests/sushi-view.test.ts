@@ -1150,6 +1150,154 @@ test('Ticket 06 UI: Controller buy() executes purchase, debits funds, and update
   controller.reset();
 });
 
+// ---------------------------------------------------------------------------
+// Milestone 3: Locked Viewport, Rustic Japanese HUD & Collapsible Overlays
+// ---------------------------------------------------------------------------
+
+test('Milestone 3 UI: HUD overlay toggles, close buttons, and category filters render correctly', async () => {
+  const host = createMockHost({
+    user: { uid: 'student-m3-hud', displayName: 'Sakura' },
+  });
+
+  const html = renderTemplateToString(await renderLoadedShell(host, () => {}));
+
+  // Topbar HUD toggles
+  assert.ok(
+    html.includes('sushi-toggle-shop'),
+    'Shop toggle HUD button must be rendered in topbar',
+  );
+  assert.ok(
+    html.includes('sushi-toggle-menu'),
+    'Menu/Personalization toggle HUD button must be rendered in topbar',
+  );
+  assert.ok(
+    html.includes('aria-controls="sushi-unlocks-panel"'),
+    'Shop button must control unlocks panel',
+  );
+  assert.ok(
+    html.includes('aria-controls="sushi-scene-placeholder"'),
+    'Menu button must control scene/menu overlay',
+  );
+
+  // Both overlay panels must be present in the lit-html DOM template
+  assert.ok(html.includes('sushi-unlocks-panel'), 'Shop overlay container must be in DOM');
+  assert.ok(html.includes('sushi-scene-placeholder'), 'Menu overlay container must be in DOM');
+
+  // Close buttons inside overlays
+  assert.ok(
+    html.includes('data-testid="sushi-close-shop-btn"'),
+    'Close button for shop overlay must be present',
+  );
+  assert.ok(
+    html.includes('data-testid="sushi-close-menu-btn"'),
+    'Close button for menu overlay must be present',
+  );
+
+  // Filter tabs in shop overlay
+  assert.ok(html.includes('data-testid="sushi-filter-all"'), 'All filter tab must be present');
+  assert.ok(
+    html.includes('data-testid="sushi-filter-kitchen"'),
+    'Kitchen filter tab must be present',
+  );
+  assert.ok(
+    html.includes('data-testid="sushi-filter-service"'),
+    'Service filter tab must be present',
+  );
+  assert.ok(html.includes('data-testid="sushi-filter-cap"'), 'Cap filter tab must be present');
+  assert.ok(
+    html.includes('data-testid="sushi-filter-recipe"'),
+    'Recipe filter tab must be present',
+  );
+  assert.ok(
+    html.includes('data-testid="sushi-filter-decoration"'),
+    'Decoration filter tab must be present',
+  );
+});
+
+test('Milestone 3 UI: SushiClientController manages overlay visibility and category filtering', async () => {
+  const controller = new SushiClientController();
+  const host = createMockHost({
+    user: { uid: 'student-m3-controller', displayName: 'Takeshi' },
+  });
+
+  controller.init('student-m3-controller', host);
+  await new Promise<void>((resolve) => setImmediate(resolve));
+
+  // Default state: no overlay open, shop filter is 'all'
+  assert.equal(controller.activeOverlay, null);
+  assert.equal(controller.shopCategoryFilter, 'all');
+
+  // Toggle shop overlay open
+  controller.toggleOverlay('shop');
+  assert.equal(controller.activeOverlay, 'shop');
+  assert.ok(host.renderCalls > 0);
+
+  // Toggle same overlay closes it
+  const callsBefore = host.renderCalls;
+  controller.toggleOverlay('shop');
+  assert.equal(controller.activeOverlay, null);
+  assert.ok(host.renderCalls > callsBefore);
+
+  // Open menu overlay then switch to shop overlay
+  controller.toggleOverlay('menu');
+  assert.equal(controller.activeOverlay, 'menu');
+  controller.toggleOverlay('shop');
+  assert.equal(controller.activeOverlay, 'shop');
+
+  // Close overlay explicitly
+  controller.closeOverlay();
+  assert.equal(controller.activeOverlay, null);
+
+  // Set category filter
+  controller.setShopFilter('kitchen');
+  assert.equal(controller.shopCategoryFilter, 'kitchen');
+  controller.setShopFilter('decoration');
+  assert.equal(controller.shopCategoryFilter, 'decoration');
+
+  controller.reset();
+  assert.equal(controller.activeOverlay, null);
+  assert.equal(controller.shopCategoryFilter, 'all');
+});
+
+test('Milestone 3 UI: Viewport locking and pixel styling contracts are declared in sushi.css', async () => {
+  const cssPath = resolve(process.cwd(), 'src/course/sushi-game/sushi.css');
+  const cssContent = readFileSync(cssPath, 'utf8');
+
+  // Viewport locking
+  assert.ok(cssContent.includes('100dvh'), 'CSS must specify 100dvh for viewport locking');
+  assert.ok(
+    cssContent.includes('position: fixed'),
+    'CSS must fix the shell position to the viewport',
+  );
+  assert.ok(cssContent.includes('overflow: hidden'), 'CSS must prevent document level scrollbars');
+
+  // Authentic Typography (@fontsource/dotgothic16)
+  assert.ok(cssContent.includes('@fontsource/dotgothic16'), 'CSS must import DotGothic16');
+  assert.ok(cssContent.includes("'DotGothic16'"), 'CSS must apply DotGothic16 font-family');
+
+  // Stepped 8-bit borders and themes
+  assert.ok(cssContent.includes('.pixel-panel'), 'CSS must define .pixel-panel');
+  assert.ok(cssContent.includes('.pixel-border'), 'CSS must define .pixel-border');
+  assert.ok(cssContent.includes('.pixel-btn'), 'CSS must define .pixel-btn');
+  assert.ok(cssContent.includes("data-theme='sakura'"), 'CSS must define sakura theme selector');
+  assert.ok(
+    cssContent.includes('::-webkit-scrollbar'),
+    'CSS must provide pixelated custom scrollbar styling',
+  );
+
+  // Cash register docking and segmented track
+  assert.ok(
+    cssContent.includes('.sushi-cash-register'),
+    'CSS must define bottom-docked cash register',
+  );
+  assert.ok(cssContent.includes('.sushi-progress-track'), 'CSS must define progress bar track');
+  assert.ok(
+    cssContent.includes('repeating-linear-gradient'),
+    'CSS must define segmented progress bar pattern',
+  );
+  assert.ok(cssContent.includes('.sushi-collect-btn'), 'CSS must style 3D pixel collect button');
+});
+
 async function renderLoadedShell(...args: Parameters<typeof renderSushiShell>) {
   renderSushiShell(...args);
   await new Promise<void>((resolve) => setImmediate(resolve));

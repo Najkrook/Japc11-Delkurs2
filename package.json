@@ -18,8 +18,10 @@
     "test:backend:e2e": "npm run build --prefix functions && firebase emulators:exec --only auth,firestore,functions --project demo-japc11-delkurs2 \"playwright test --config playwright.backend.config.ts\""
   },
   "dependencies": {
+    "@fontsource/dotgothic16": "^5.3.1",
     "firebase": "^11.4.0",
-    "lit-html": "^3.2.1"
+    "lit-html": "^3.2.1",
+    "pixelarticons": "^2.4.2"
   },
   "devDependencies": {
     "@playwright/test": "1.63.0",

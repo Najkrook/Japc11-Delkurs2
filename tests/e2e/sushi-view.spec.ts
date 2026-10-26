@@ -14,9 +14,14 @@ test.describe('Ticket 02: Separat spelvy med Google-inloggning för Sushirestaur
     // Vänta tills studieappens huvudskal är fullt renderat
     await expect(page.locator('main h1')).toBeVisible();
 
-    // Verifiera att ingen sushimodul eller sushistil begärdes vid initial sidladdning
+    // Verifiera att ingen sushimodul, sushistil, typsnitt eller sprite begärdes vid initial sidladdning
     const hadSushiInitially = requestedUrls.some(
-      (url) => url.includes('sushi-view') || url.includes('sushi.css'),
+      (url) =>
+        url.includes('sushi-view') ||
+        url.includes('sushi.css') ||
+        url.includes('dotgothic16') ||
+        url.includes('pixelarticons') ||
+        url.includes('/sprites/sushi/'),
     );
     expect(hadSushiInitially).toBe(false);
 

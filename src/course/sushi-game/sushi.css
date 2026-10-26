@@ -1,17 +1,96 @@
+@import '@fontsource/dotgothic16/index.css';
+
 /* ==========================================================================
-   Sushi Game Shell & Components
+   Sushi Game Shell & Components (Milestone 3 Retro Pixel-Art Transformation)
    Isolerade stilar som endast laddas vid besök på #/sushi
    ========================================================================== */
 
+/* --------------------------------------------------------------------------
+   Root Themes & Variables: Classic (Washi / Hinoki) & Sakura (Cherry Blossom)
+   -------------------------------------------------------------------------- */
+
+.sushi-shell,
+.sushi-shell[data-theme='classic'] {
+  --sushi-bg: #1c110a;
+  --sushi-wood-dark: #140b06;
+  --sushi-wood-deep: #2d180c;
+  --sushi-wood-base: #522d17;
+  --sushi-wood-mid: #784323;
+  --sushi-wood-light: #9c5c35;
+  --sushi-wood-highlight: #c78051;
+  --sushi-washi-bg: #fff8eb;
+  --sushi-washi-surface: #f7eed9;
+  --sushi-washi-border: #d8c29d;
+  --sushi-washi-text: #24140b;
+  --sushi-washi-muted: #6b4c35;
+  --sushi-accent-gold: #f6c845;
+  --sushi-accent-gold-dark: #b88610;
+  --sushi-accent-teal: #1f6b64;
+  --sushi-accent-teal-light: #2c8c83;
+  --sushi-accent-red: #c53030;
+  --sushi-hud-bg: rgba(28, 17, 10, 0.94);
+  --sushi-scroll-track: #2d180c;
+  --sushi-scroll-thumb: #784323;
+  --sushi-scroll-thumb-hover: #9c5c35;
+}
+
+.sushi-shell[data-theme='sakura'] {
+  --sushi-bg: #220b15;
+  --sushi-wood-dark: #18050e;
+  --sushi-wood-deep: #380f21;
+  --sushi-wood-base: #5c1b37;
+  --sushi-wood-mid: #7e284d;
+  --sushi-wood-light: #a43e6a;
+  --sushi-wood-highlight: #cc5d8d;
+  --sushi-washi-bg: #fff5f8;
+  --sushi-washi-surface: #fae4ed;
+  --sushi-washi-border: #f0b5cc;
+  --sushi-washi-text: #280a18;
+  --sushi-washi-muted: #72344f;
+  --sushi-accent-gold: #fed053;
+  --sushi-accent-gold-dark: #c58e17;
+  --sushi-accent-teal: #2f7a6e;
+  --sushi-accent-teal-light: #3f9c8d;
+  --sushi-accent-red: #d53f65;
+  --sushi-hud-bg: rgba(34, 11, 21, 0.94);
+  --sushi-scroll-track: #380f21;
+  --sushi-scroll-thumb: #7e284d;
+  --sushi-scroll-thumb-hover: #a43e6a;
+}
+
+/* --------------------------------------------------------------------------
+   Viewport Locking: Zero page scrolling (100dvh) on Desktop & Mobile
+   -------------------------------------------------------------------------- */
+
+html:has(.sushi-shell),
+body:has(.sushi-shell) {
+  overflow: hidden !important;
+  height: 100dvh !important;
+  max-height: 100dvh !important;
+  width: 100vw !important;
+  max-width: 100vw !important;
+  margin: 0 !important;
+  padding: 0 !important;
+}
+
 .sushi-shell {
+  position: fixed;
+  inset: 0;
+  width: 100vw;
+  max-width: 100vw;
+  height: 100dvh;
+  max-height: 100dvh;
+  overflow: hidden;
   display: flex;
   flex-direction: column;
-  min-height: 100vh;
-  width: 100%;
-  background-color: var(--course-bg, #f9f8f6);
-  color: var(--course-text, #2d3748);
-  font-family: inherit;
+  background-color: var(--sushi-bg);
+  color: var(--sushi-washi-text);
+  font-family: 'DotGothic16', monospace, sans-serif;
   box-sizing: border-box;
+  user-select: none;
+  -webkit-user-select: none;
+  margin: 0;
+  padding: 0;
 }
 
 .sushi-shell *,
@@ -20,76 +99,120 @@
   box-sizing: inherit;
 }
 
-/* ================= Topbar ================= */
-.sushi-menu {
-  flex-basis: 100%;
-  text-align: left;
+/* --------------------------------------------------------------------------
+   Pixel Scrollbars (Stepped block thumbs and track styling)
+   -------------------------------------------------------------------------- */
+
+.sushi-shell ::-webkit-scrollbar {
+  width: 10px;
+  height: 10px;
+}
+.sushi-shell ::-webkit-scrollbar-track {
+  background: var(--sushi-scroll-track);
+  border: 2px solid var(--sushi-wood-dark);
+}
+.sushi-shell ::-webkit-scrollbar-thumb {
+  background: var(--sushi-scroll-thumb);
+  border: 2px solid var(--sushi-wood-dark);
+  box-shadow:
+    inset 1px 1px 0 var(--sushi-wood-highlight),
+    inset -1px -1px 0 var(--sushi-wood-deep);
+}
+.sushi-shell ::-webkit-scrollbar-thumb:hover {
+  background: var(--sushi-scroll-thumb-hover);
+}
+.sushi-shell * {
+  scrollbar-width: thin;
+  scrollbar-color: var(--sushi-scroll-thumb) var(--sushi-scroll-track);
 }
 
-.sushi-decoration-slots {
-  display: grid;
-  grid-template-columns: repeat(auto-fit, minmax(min(100%, 240px), 1fr));
-  gap: 1rem;
-  margin-top: 1rem;
-  text-align: left;
+/* --------------------------------------------------------------------------
+   Stepped 8-Bit RPG Borders & Shared Widget Styles
+   -------------------------------------------------------------------------- */
+
+.pixel-border {
+  border: 4px solid var(--sushi-wood-base);
+  outline: 2px solid var(--sushi-wood-dark);
+  box-shadow:
+    inset 2px 2px 0 0 var(--sushi-wood-highlight),
+    inset -2px -2px 0 0 var(--sushi-wood-deep);
 }
 
-.sushi-decoration-slot {
-  min-width: 0;
-  padding: 1rem;
-  border: 1px solid var(--course-border, #e2e8f0);
-  border-radius: 12px;
-  background: var(--course-card-bg, #fff);
+.pixel-panel {
+  background: var(--sushi-washi-bg);
+  color: var(--sushi-washi-text);
+  border: 3px solid var(--sushi-wood-base);
+  outline: 2px solid var(--sushi-wood-dark);
+  box-shadow:
+    inset 2px 2px 0 0 var(--sushi-wood-highlight),
+    inset -2px -2px 0 0 var(--sushi-wood-deep),
+    0 3px 6px rgba(0, 0, 0, 0.4);
 }
 
-.sushi-decoration-display {
-  display: flex;
-  align-items: center;
-  gap: 0.75rem;
-  min-height: 64px;
-}
-
-.sushi-decoration-display > span {
-  font-size: 2.5rem;
-}
-.sushi-decoration-slot summary {
+.pixel-btn {
+  font-family: 'DotGothic16', monospace, sans-serif;
   cursor: pointer;
-  padding: 0.75rem 0;
-  min-height: 44px;
+  border: 2px solid var(--sushi-wood-dark);
+  box-shadow:
+    inset 1px 1px 0 var(--sushi-wood-highlight),
+    inset -1px -1px 0 var(--sushi-wood-deep),
+    0 2px 0 0 var(--sushi-wood-dark);
+  transition:
+    transform 0.05s ease,
+    filter 0.05s ease;
 }
-.sushi-decoration-choices {
-  display: grid;
-  gap: 0.5rem;
-  padding-top: 0.5rem;
+
+.pixel-btn:hover:not(:disabled) {
+  filter: brightness(1.1);
 }
-.sushi-decoration-choices button {
-  min-height: 44px;
-  white-space: normal;
+
+.pixel-btn:active:not(:disabled) {
+  transform: translateY(2px);
+  box-shadow:
+    inset 1px 1px 0 var(--sushi-wood-deep),
+    inset -1px -1px 0 var(--sushi-wood-highlight),
+    0 0 0 0 var(--sushi-wood-dark);
 }
-.sushi-decoration-choices [aria-pressed='true'] {
-  border: 2px solid currentColor;
-}
+
 .sushi-shell button:focus-visible,
 .sushi-shell a:focus-visible,
 .sushi-shell summary:focus-visible,
 .sushi-shell [tabindex]:focus-visible {
-  outline: 3px solid var(--course-text, #2d3748);
-  outline-offset: 3px;
+  outline: 3px solid var(--sushi-accent-gold) !important;
+  outline-offset: 2px;
 }
 
+.pixel-icon {
+  width: 20px;
+  height: 20px;
+  vertical-align: middle;
+  image-rendering: pixelated;
+  flex-shrink: 0;
+}
+
+/* --------------------------------------------------------------------------
+   Rustic Topbar (.sushi-topbar) — Pixel-Art Match to Sushi_game.png
+   -------------------------------------------------------------------------- */
+
 .sushi-topbar {
-  background: var(--course-card-bg, #ffffff);
-  border-bottom: 1px solid var(--course-border, #e2e8f0);
-  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.05);
-  position: sticky;
-  top: 0;
-  z-index: 100;
+  background: #875029 url('/sprites/sushi/ui/topbar_wood_bg.png') repeat-x center top;
+  background-size: auto 100%;
+  border-bottom: none;
+  outline: none;
+  box-shadow: 0 4px 10px rgba(35, 16, 6, 0.35);
+  position: relative;
+  z-index: 50;
+  flex-shrink: 0;
+  width: 100%;
+  height: 80px;
+  image-rendering: pixelated;
 }
 
 .sushi-topbar-inner {
-  max-width: 1200px;
+  max-width: 100%;
+  height: 100%;
   margin: 0 auto;
-  padding: 0.75rem 1rem;
+  padding: 0 32px 0 32px;
   display: flex;
   align-items: center;
   justify-content: space-between;
@@ -100,667 +223,1333 @@
   display: flex;
   align-items: center;
   gap: 0.75rem;
+  flex-shrink: 0;
 }
 
 .sushi-topbar-center {
-  flex: 1;
-  text-align: center;
-}
-
-.sushi-title {
-  margin: 0;
-  font-size: 1.25rem;
-  font-weight: 700;
-  color: var(--course-accent, #c53030);
-  letter-spacing: -0.02em;
   display: flex;
   align-items: center;
-  justify-content: center;
-  gap: 0.5rem;
+  justify-content: flex-start;
+  gap: 20px;
+  flex: 1;
+  margin-left: 28px;
 }
 
 .sushi-topbar-right {
   display: flex;
   align-items: center;
-  gap: 0.75rem;
+  gap: 12px;
+  flex-shrink: 0;
 }
 
-/* ================= Buttons ================= */
-.sushi-back-btn {
+.sushi-title {
+  margin: 0;
+  font-size: 2.05rem;
+  font-weight: 700;
+  color: #fff6e0;
+  text-shadow:
+    2px 2px 0 #3d1e0c,
+    -1px -1px 0 #3d1e0c,
+    1px -1px 0 #3d1e0c,
+    -1px 1px 0 #3d1e0c,
+    0 3px 0 #261105;
+  display: flex;
+  align-items: center;
+  gap: 14px;
+  letter-spacing: 0.03em;
+  white-space: nowrap;
+}
+
+.sushi-brand-icon {
+  width: 72px;
+  height: 58px;
+  object-fit: contain;
+  image-rendering: pixelated;
+  flex-shrink: 0;
+}
+
+.sushi-calendar-badge {
+  width: 299px;
+  height: 58px;
+  background: url('/sprites/sushi/ui/badge_calendar_bg.png') no-repeat center center;
+  background-size: 100% 100%;
   display: inline-flex;
   align-items: center;
-  gap: 0.35rem;
-  padding: 0.5rem 0.85rem;
-  font-size: 0.875rem;
-  font-weight: 600;
-  color: var(--course-text-muted, #4a5568);
-  background: var(--course-chip-bg, #edf2f7);
-  border: 1px solid var(--course-border, #cbd5e0);
-  border-radius: 8px;
-  cursor: pointer;
-  transition: all 0.15s ease;
-  min-height: 44px;
-  min-width: 44px;
+  justify-content: flex-start;
+  padding: 0 56px 2px 60px;
+  gap: 20px;
+  color: #fff6e0;
+  font-size: 1.45rem;
+  font-weight: 700;
+  text-shadow:
+    2px 2px 0 #3d1e0c,
+    -1px -1px 0 #3d1e0c,
+    1px -1px 0 #3d1e0c,
+    -1px 1px 0 #3d1e0c;
+  white-space: nowrap;
+  image-rendering: pixelated;
+  flex-shrink: 0;
 }
 
-.sushi-back-btn:hover {
-  background: var(--course-chip-hover, #e2e8f0);
-  color: var(--course-text, #1a202c);
-  border-color: var(--course-text-muted, #a0aec0);
+.sushi-cal-day {
+  letter-spacing: 0.02em;
 }
 
-.sushi-icon-btn {
+.sushi-cal-season {
+  letter-spacing: 0.02em;
+}
+
+.sushi-clock-badge {
+  display: inline-flex;
+  align-items: center;
+  gap: 10px;
+  color: #fff6e0;
+  font-size: 1.55rem;
+  font-weight: 700;
+  text-shadow:
+    2px 2px 0 #3d1e0c,
+    -1px -1px 0 #3d1e0c,
+    1px -1px 0 #3d1e0c,
+    -1px 1px 0 #3d1e0c;
+  white-space: nowrap;
+  flex-shrink: 0;
+}
+
+.sushi-clock-icon {
+  width: 46px;
+  height: 46px;
+  object-fit: contain;
+  image-rendering: pixelated;
+}
+
+.sushi-sun-icon {
+  width: 34px;
+  height: 42px;
+  object-fit: contain;
+  image-rendering: pixelated;
+  margin-left: 2px;
+}
+
+.sushi-top-btn-img {
+  width: 100%;
+  height: 100%;
+  display: block;
+  object-fit: contain;
+  image-rendering: pixelated;
+}
+
+.sushi-back-btn,
+.sushi-icon-btn,
+.sushi-hud-btn {
   display: inline-flex;
   align-items: center;
   justify-content: center;
-  padding: 0.45rem 0.75rem;
-  font-size: 0.875rem;
-  font-weight: 500;
-  background: var(--course-chip-bg, #edf2f7);
-  border: 1px solid var(--course-border, #cbd5e0);
-  border-radius: 8px;
+  width: 73px;
+  height: 58px;
+  padding: 0;
+  background: transparent;
+  border: none;
+  box-shadow: none;
   cursor: pointer;
-  color: var(--course-text, #2d3748);
-  min-height: 44px;
-  min-width: 44px;
-  transition: background 0.15s ease;
+  min-height: 40px;
+  flex-shrink: 0;
+  transition:
+    transform 0.06s ease,
+    filter 0.06s ease;
 }
 
-.sushi-icon-btn:hover {
-  background: var(--course-chip-hover, #e2e8f0);
+.sushi-back-btn:hover,
+.sushi-icon-btn:hover,
+.sushi-hud-btn:hover:not(:disabled) {
+  filter: brightness(1.08);
+  background: transparent;
+}
+
+.sushi-back-btn:active,
+.sushi-icon-btn:active,
+.sushi-hud-btn:active:not(:disabled),
+.sushi-hud-btn.is-active {
+  transform: translateY(2px);
+  filter: brightness(1.12) drop-shadow(0 0 4px rgba(254, 208, 83, 0.7));
+  background: transparent;
+  box-shadow: none;
 }
 
 .sushi-account-btn {
   display: inline-flex;
   align-items: center;
-  gap: 0.5rem;
-  padding: 0.45rem 0.85rem;
-  font-size: 0.875rem;
+  gap: 0.35rem;
+  padding: 0.25rem 0.55rem;
+  font-family: 'DotGothic16', monospace, sans-serif;
+  font-size: 0.75rem;
   font-weight: 600;
-  background: var(--course-accent, #c53030);
-  color: #ffffff;
-  border: none;
-  border-radius: 8px;
+  background: rgba(58, 30, 14, 0.45);
+  color: rgba(255, 244, 220, 0.85);
+  border: 1px solid rgba(40, 18, 7, 0.55);
+  border-radius: 4px;
   cursor: pointer;
-  min-height: 44px;
-  min-width: 44px;
-  transition:
-    opacity 0.15s ease,
-    transform 0.1s ease;
-}
-
-.sushi-account-btn:hover:not(:disabled) {
-  opacity: 0.92;
-}
-
-.sushi-account-btn:disabled {
-  opacity: 0.6;
-  cursor: not-allowed;
+  min-height: 32px;
+  margin-right: 4px;
 }
 
 .sushi-account-btn.logged-in {
-  background: var(--course-chip-bg, #edf2f7);
-  color: var(--course-text, #2d3748);
-  border: 1px solid var(--course-border, #cbd5e0);
+  background: rgba(58, 30, 14, 0.38);
+  color: rgba(255, 244, 220, 0.85);
+  border: 1px solid rgba(40, 18, 7, 0.45);
+  box-shadow: none;
+  opacity: 0.02;
+  transition: opacity 0.15s ease;
 }
 
-.sushi-account-btn.logged-in:hover:not(:disabled) {
-  background: #fed7d7;
-  color: #9b2c2c;
-  border-color: #feb2b2;
+.sushi-account-btn.logged-in:hover:not(:disabled),
+.sushi-account-btn.logged-in:focus-visible {
+  background: rgba(116, 42, 42, 0.85);
+  color: #fff;
+  opacity: 1;
 }
 
 .sushi-avatar {
-  width: 24px;
-  height: 24px;
-  border-radius: 50%;
+  width: 18px;
+  height: 18px;
+  border-radius: 2px;
   object-fit: cover;
+  border: 1px solid var(--sushi-wood-dark);
 }
 
 .sushi-avatar-fallback {
-  width: 24px;
-  height: 24px;
-  border-radius: 50%;
-  background: var(--course-accent, #c53030);
+  width: 18px;
+  height: 18px;
+  border-radius: 2px;
+  background: rgba(168, 56, 43, 0.85);
   color: #ffffff;
   display: inline-flex;
   align-items: center;
   justify-content: center;
-  font-size: 0.75rem;
+  font-size: 0.65rem;
   font-weight: 700;
+  border: 1px solid rgba(40, 18, 7, 0.6);
 }
 
 .sushi-user-name {
-  max-width: 140px;
+  max-width: 96px;
   overflow: hidden;
   text-overflow: ellipsis;
   white-space: nowrap;
 }
 
 .sushi-logout-hint {
-  font-size: 0.75rem;
-  color: var(--course-text-muted, #718096);
-  font-weight: normal;
+  font-size: 0.7rem;
+  opacity: 0.8;
 }
 
-/* ================= Main View & Stage ================= */
+/* --------------------------------------------------------------------------
+   Main Stage & Locked Viewport (.sushi-main, .sushi-container, .sushi-stage)
+   -------------------------------------------------------------------------- */
+
 .sushi-main {
   flex: 1;
+  min-height: 0;
+  width: 100%;
+  max-width: 100%;
+  margin: 0;
+  padding: 0;
+  position: relative;
+  overflow: hidden;
   display: flex;
   flex-direction: column;
-  align-items: center;
-  justify-content: flex-start;
-  padding: 1.5rem 1rem;
-  max-width: 1200px;
-  width: 100%;
-  margin: 0 auto;
+  background: #f5dfb8;
 }
 
 .sushi-container {
   width: 100%;
+  height: 100%;
+  flex: 1;
+  min-height: 0;
   display: flex;
   flex-direction: column;
-  gap: 1.5rem;
+  position: relative;
+  overflow: hidden;
+  gap: 0;
 }
 
 .sushi-stage {
-  background: var(--course-card-bg, #ffffff);
-  border: 1px solid var(--course-border, #e2e8f0);
-  border-radius: 12px;
-  padding: 2rem;
-  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.04);
-}
-
-.sushi-stage-header h2 {
-  margin: 0 0 0.5rem 0;
-  font-size: 1.5rem;
-  color: var(--course-text, #1a202c);
-}
-
-.sushi-stage-intro {
-  margin: 0;
-  color: var(--course-text-muted, #4a5568);
-  font-size: 1rem;
-  line-height: 1.5;
-}
-
-.sushi-scene-placeholder {
-  margin: 2rem 0;
-  padding: 3rem 1.5rem;
-  background: linear-gradient(135deg, rgba(237, 242, 247, 0.6) 0%, rgba(247, 250, 252, 0.9) 100%);
-  border: 2px dashed var(--course-border, #cbd5e0);
-  border-radius: 12px;
-  text-align: center;
-}
-
-.sushi-scene-badge {
-  display: inline-block;
-  padding: 0.4rem 1rem;
-  background: #feebc8;
-  color: #7b341e;
-  border-radius: 9999px;
-  font-weight: 700;
-  font-size: 0.9rem;
-  margin-bottom: 0.75rem;
-}
-
-.sushi-scene-desc {
-  margin: 0 auto;
-  max-width: 480px;
-  color: var(--course-text-muted, #4a5568);
-  font-size: 0.925rem;
-  line-height: 1.45;
-}
-
-.sushi-stage-actions {
-  display: flex;
-  justify-content: flex-start;
-  gap: 1rem;
-}
-
-/* ================= Auth Gate ================= */
-.sushi-auth-gate {
   width: 100%;
-  max-width: 520px;
-  margin: 2rem auto;
-}
-
-.sushi-auth-card {
-  background: var(--course-card-bg, #ffffff);
-  border: 1px solid var(--course-border, #e2e8f0);
-  border-radius: 16px;
-  padding: 2.5rem 2rem;
-  text-align: center;
-  box-shadow: 0 8px 24px rgba(0, 0, 0, 0.06);
-}
-
-.sushi-auth-icon {
-  font-size: 3rem;
-  line-height: 1;
-  margin-bottom: 1rem;
-}
-
-.sushi-auth-card h2 {
-  margin: 0 0 0.75rem 0;
-  font-size: 1.4rem;
-  color: var(--course-text, #1a202c);
-}
-
-.sushi-auth-card p {
-  margin: 0 0 1rem 0;
-  color: var(--course-text-muted, #4a5568);
-  font-size: 0.95rem;
-  line-height: 1.5;
-}
-
-.sushi-auth-note {
-  font-size: 0.85rem !important;
-  color: var(--course-text-muted, #718096) !important;
-  background: var(--course-chip-bg, #edf2f7);
-  padding: 0.65rem 0.85rem;
-  border-radius: 8px;
-  margin-bottom: 1.5rem !important;
-}
-
-.sushi-auth-actions {
+  height: 100%;
+  flex: 1;
+  min-height: 0;
   display: flex;
   flex-direction: column;
-  gap: 0.75rem;
-}
-
-.sushi-btn-primary {
-  display: inline-flex;
-  align-items: center;
-  justify-content: center;
-  gap: 0.5rem;
-  padding: 0.75rem 1.25rem;
-  font-size: 1rem;
-  font-weight: 600;
-  background: var(--course-accent, #c53030);
-  color: #ffffff;
-  border: none;
-  border-radius: 8px;
-  cursor: pointer;
-  min-height: 48px;
-  transition:
-    opacity 0.15s ease,
-    transform 0.1s ease;
-}
-
-.sushi-btn-primary:hover:not(:disabled) {
-  opacity: 0.92;
-  transform: translateY(-1px);
-}
-
-.sushi-btn-primary:disabled {
-  opacity: 0.6;
-  cursor: not-allowed;
-}
-
-.sushi-btn-secondary {
-  display: inline-flex;
-  align-items: center;
-  justify-content: center;
-  padding: 0.65rem 1rem;
-  font-size: 0.9rem;
-  font-weight: 500;
+  position: relative;
+  overflow: hidden;
+  padding: 0;
+  margin: 0;
   background: transparent;
-  color: var(--course-text-muted, #4a5568);
-  border: 1px solid var(--course-border, #cbd5e0);
-  border-radius: 8px;
-  cursor: pointer;
-  min-height: 44px;
-  transition: all 0.15s ease;
+  border: none;
+  box-shadow: none;
 }
 
-.sushi-btn-secondary:hover {
-  background: var(--course-chip-bg, #edf2f7);
-  color: var(--course-text, #1a202c);
-}
-
-.sushi-local-login-btn {
-  border: 1px dashed var(--course-accent, #c53030);
-  background: rgba(197, 48, 48, 0.05);
-  color: var(--course-accent, #c53030);
-  font-weight: 600;
-}
-
-.sushi-local-login-btn:hover {
-  background: rgba(197, 48, 48, 0.12);
-  color: var(--course-accent, #9b2c2c);
-  border-color: var(--course-accent, #9b2c2c);
-}
-
-.sushi-auth-error {
-  margin-top: 1.25rem;
-  padding: 0.75rem;
-  background: #fff5f5;
-  border: 1px solid #feb2b2;
-  border-radius: 8px;
-  color: #c53030;
-  font-size: 0.875rem;
+.sushi-stage-scene-wrap {
+  position: absolute;
+  inset: 0;
   display: flex;
   align-items: center;
-  justify-content: space-between;
-  gap: 0.5rem;
-}
-
-.sushi-retry-btn {
-  display: inline-flex;
-  align-items: center;
   justify-content: center;
-  background: #c53030;
-  color: #ffffff;
+  overflow: hidden;
+  z-index: 10;
+}
+
+.sushi-illustration {
+  width: 100%;
+  height: 100%;
+  margin: 0;
+  padding: 0;
   border: none;
-  border-radius: 4px;
-  padding: 0.35rem 0.65rem;
-  font-size: 0.8rem;
-  font-weight: 600;
-  cursor: pointer;
-  min-height: 44px;
-  min-width: 44px;
-}
-
-.sushi-retry-btn:hover {
-  opacity: 0.9;
-}
-
-/* ================= Loading & Error States ================= */
-.sushi-loading {
+  background: #f5dfb8;
   display: flex;
   flex-direction: column;
   align-items: center;
   justify-content: center;
-  padding: 4rem 1rem;
-  gap: 1rem;
-  color: var(--course-text-muted, #4a5568);
-  font-size: 1rem;
+  position: relative;
+  overflow: hidden;
 }
 
-.sushi-loading-spinner {
-  width: 36px;
-  height: 36px;
-  border: 3px solid var(--course-border, #cbd5e0);
-  border-top-color: var(--course-accent, #c53030);
-  border-radius: 50%;
-  animation: sushi-spin 0.8s linear infinite;
+.sushi-illustration figcaption {
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  padding: 0;
+  margin: -1px;
+  overflow: hidden;
+  clip: rect(0, 0, 0, 0);
+  white-space: nowrap;
+  border: 0;
+  pointer-events: none;
 }
 
-@keyframes sushi-spin {
+.sushi-illustration svg {
+  display: block;
+  width: 100%;
+  height: 100%;
+  max-width: 100%;
+  max-height: 100%;
+  object-fit: cover;
+  shape-rendering: crispEdges;
+  image-rendering: pixelated;
+  image-rendering: -moz-crisp-edges;
+  image-rendering: crisp-edges;
+}
+
+/* Conveyor belt travel animation */
+.sushi-belt-tread {
+  animation: sushi-belt-travel 3s linear infinite;
+}
+@keyframes sushi-belt-travel {
   to {
-    transform: rotate(360deg);
+    stroke-dashoffset: -33;
   }
 }
-
-.sushi-loading-error {
-  background: var(--course-card-bg, #ffffff);
-  border: 1px solid #feb2b2;
-  border-radius: 12px;
-  padding: 2.5rem 1.5rem;
-  text-align: center;
-  max-width: 440px;
-  margin: 2rem auto;
+.sushi-illustration[data-paused='true'] * {
+  animation-play-state: paused;
 }
 
-.sushi-loading-error p {
-  margin: 0 0 1.25rem 0;
-  color: #c53030;
-  font-weight: 600;
-}
+/* --------------------------------------------------------------------------
+   Floating Rustic HUD Plaques (.sushi-hud-floating-layer)
+   -------------------------------------------------------------------------- */
 
-.sushi-error-actions {
+.sushi-hud-floating-layer {
+  position: absolute;
+  top: 24px;
+  left: 29px;
+  right: 33px;
   display: flex;
-  gap: 0.75rem;
-  justify-content: center;
+  justify-content: space-between;
+  align-items: flex-start;
+  flex-wrap: wrap;
+  gap: 0.6rem;
+  pointer-events: none;
+  z-index: 30;
 }
 
-/* ================= Responsive Layout ================= */
-@media (max-width: 640px) {
-  .sushi-topbar {
-    position: static;
-  }
-
-  .sushi-topbar-inner {
-    padding: 0.5rem 0.75rem;
-    flex-wrap: wrap;
-    gap: 0.5rem;
-  }
-
-  .sushi-topbar-center {
-    order: -1;
-    flex-basis: 100%;
-  }
-
-  .sushi-topbar-right {
-    flex-wrap: wrap;
-    max-width: 100%;
-  }
-
-  .sushi-account-btn {
-    max-width: 100%;
-  }
-
-  .sushi-title {
-    font-size: 1.1rem;
-  }
-
-  .sushi-back-btn {
-    padding: 0.4rem 0.65rem;
-    font-size: 0.8rem;
-    min-height: 44px;
-    min-width: 44px;
-  }
-
-  .sushi-auth-card {
-    padding: 1.75rem 1.25rem;
-  }
-
-  .sushi-stage {
-    padding: 1.25rem;
-  }
+.sushi-stage-header {
+  pointer-events: auto;
+  background: transparent;
+  border: none;
+  box-shadow: none;
+  padding: 0;
+  margin: 0;
 }
 
-@media (prefers-reduced-motion: reduce) {
-  .sushi-loading-spinner {
-    animation-duration: 2s;
-  }
-  .sushi-back-btn,
-  .sushi-btn-primary,
-  .sushi-btn-secondary {
-    transition: none;
-    transform: none;
-  }
-  .sushi-collect-btn.pulse-attention {
-    animation: none;
-  }
-  .sushi-progress-fill {
-    transition: none;
-  }
-}
-
-/* ================= Economy & Cash Register Components ================= */
 .sushi-balance-badge {
-  display: inline-flex;
-  align-items: center;
-  gap: 0.5rem;
-  padding: 0.4rem 0.85rem;
-  background: var(--course-chip-bg, #edf2f7);
-  border: 1px solid var(--course-border, #cbd5e0);
-  border-radius: 9999px;
-  font-size: 0.95rem;
+  width: 322px;
+  height: 120px;
+  background: url('/sprites/sushi/ui/funds_card_bg.png') no-repeat center center !important;
+  background-size: 100% 100% !important;
+  border: none !important;
+  outline: none !important;
+  box-shadow: none !important;
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  align-items: flex-start;
+  padding: 10px 24px 12px 104px;
+  gap: 2px;
+  image-rendering: pixelated;
+}
+
+.sushi-funds-label {
+  font-size: 1.45rem;
   font-weight: 700;
-  color: var(--course-text, #2d3748);
+  color: #5b391e;
+  line-height: 1.1;
+  letter-spacing: 0.02em;
 }
 
 .sushi-balance-amount {
-  color: #2b6cb0;
+  font-size: 2.2rem;
+  font-weight: 700;
+  color: #3b200d;
+  line-height: 1.15;
+  letter-spacing: 0.02em;
+  text-shadow: 1px 1px 0 rgba(255, 250, 235, 0.65);
 }
 
-.sushi-cash-register {
-  margin: 1.5rem 0;
-  padding: 1.75rem;
-  background: var(--course-card-bg, #ffffff);
-  border: 1px solid var(--course-border, #e2e8f0);
-  border-radius: 12px;
-  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.04);
-  display: flex;
-  flex-direction: column;
-  gap: 1.25rem;
+.sushi-comma,
+.sushi-apos {
+  display: inline-block;
+  margin-right: -0.26em;
 }
 
-.sushi-register-display {
+/* Top-Right Plaque: Today's Stats (333x239) */
+.sushi-stats-plaque {
+  pointer-events: auto;
+  width: 333px;
+  height: 239px;
+  background: url('/sprites/sushi/ui/stats_card_bg.png') no-repeat center center;
+  background-size: 100% 100%;
   display: flex;
   flex-direction: column;
+  padding: 0;
+  color: #4a2c14;
+  image-rendering: pixelated;
+}
+
+.sushi-stats-header {
+  height: 55px;
+  display: flex;
   align-items: center;
-  gap: 0.35rem;
+  padding: 4px 20px 0 74px;
+  font-size: 1.55rem;
+  font-weight: 700;
+  color: #462812;
+  letter-spacing: 0.02em;
 }
 
-.sushi-register-label {
-  font-size: 0.875rem;
-  font-weight: 600;
-  text-transform: uppercase;
-  letter-spacing: 0.05em;
-  color: var(--course-text-muted, #718096);
-}
-
-.sushi-register-amount {
-  font-size: 2.5rem;
-  font-weight: 800;
-  color: #276749;
+.sushi-stats-row {
+  height: 46px;
   display: flex;
-  align-items: baseline;
-  gap: 0.25rem;
-  line-height: 1;
+  align-items: center;
+  justify-content: space-between;
+  padding: 0 22px 0 72px;
+  font-size: 1.35rem;
 }
 
-.sushi-yen-symbol {
-  font-size: 1.5rem;
-  color: var(--course-text-muted, #a0aec0);
+.sushi-stats-row:nth-of-type(4) {
+  height: 44px;
+}
+
+.sushi-stats-row:nth-of-type(5) {
+  height: 48px;
+  padding-bottom: 4px;
+}
+
+.sushi-stats-label {
+  color: #5b3a20;
+  font-weight: 700;
+}
+
+.sushi-stats-val {
+  color: #3b200d;
+  font-weight: 700;
+  font-size: 1.45rem;
+}
+
+.sushi-plaque-icon {
+  display: inline-flex;
+  align-items: center;
+  color: var(--sushi-accent-gold-dark);
 }
 
 .sushi-rate-bar {
-  display: flex;
-  flex-wrap: wrap;
+  display: inline-flex;
   align-items: center;
-  justify-content: center;
-  gap: 0.75rem;
-  padding: 0.75rem;
-  background: var(--course-chip-bg, #edf2f7);
-  border-radius: 8px;
-  font-size: 0.875rem;
+  flex-wrap: wrap;
+  gap: 0.4rem;
+  padding: 0.4rem 0.85rem;
+  font-size: 0.825rem;
 }
 
 .sushi-bottleneck-tag {
-  padding: 0.2rem 0.5rem;
-  border-radius: 4px;
-  font-weight: 600;
-  font-size: 0.8rem;
-  background: #e2e8f0;
-  color: #4a5568;
+  display: inline-block;
+  padding: 0.15rem 0.45rem;
+  border-radius: 2px;
+  font-size: 0.75rem;
+  font-weight: 700;
+  border: 1px solid currentColor;
 }
-
 .sushi-bottleneck-tag.tag-warn {
   background: #feebc8;
   color: #c05621;
 }
-
 .sushi-bottleneck-tag.tag-balanced {
   background: #c6f6d5;
   color: #22543d;
 }
 
+/* Unlock Celebratory Banner */
+.sushi-unlock-banner {
+  flex-basis: 100%;
+  pointer-events: auto;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 0.75rem;
+  padding: 0.5rem 0.85rem;
+  margin-top: 0.4rem;
+  background: var(--sushi-washi-bg);
+  border: 3px solid var(--sushi-accent-gold-dark);
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.5);
+  animation: sushi-banner-pop 0.3s ease-out;
+}
+@keyframes sushi-banner-pop {
+  from {
+    transform: translateY(-8px);
+    opacity: 0;
+  }
+  to {
+    transform: translateY(0);
+    opacity: 1;
+  }
+}
+.sushi-unlock-banner-content {
+  display: flex;
+  align-items: center;
+  gap: 0.6rem;
+}
+.sushi-unlock-banner-icon {
+  font-size: 1.5rem;
+}
+.sushi-unlock-banner-text strong {
+  color: var(--sushi-accent-red);
+  font-size: 0.9rem;
+}
+.sushi-unlock-banner-text p {
+  margin: 0.15rem 0 0 0;
+  font-size: 0.8rem;
+  color: var(--sushi-washi-muted);
+}
+.sushi-banner-dismiss-btn {
+  background: var(--sushi-wood-dark);
+  color: #fff;
+  border: 2px solid var(--sushi-wood-light);
+  font-size: 1.1rem;
+  font-weight: 700;
+  padding: 0.15rem 0.5rem;
+  cursor: pointer;
+  min-height: 28px;
+}
+
+/* --------------------------------------------------------------------------
+   Bottom-Right Collect Income Button HUD (.sushi-cash-register)
+   -------------------------------------------------------------------------- */
+
+.sushi-cash-register {
+  position: absolute;
+  bottom: 32px;
+  right: 40px;
+  left: auto;
+  z-index: 40;
+  background: transparent !important;
+  border: none !important;
+  outline: none !important;
+  box-shadow: none !important;
+  padding: 0;
+  display: flex;
+  flex-direction: column;
+  align-items: flex-end;
+  gap: 0.4rem;
+  box-sizing: border-box;
+}
+
+.sushi-register-left {
+  display: flex;
+  flex-direction: column;
+  gap: 0.15rem;
+  flex-shrink: 0;
+}
+
+.sushi-register-label {
+  font-size: 0.75rem;
+  color: var(--sushi-washi-muted);
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+}
+
+.sushi-register-amount {
+  display: flex;
+  align-items: baseline;
+  gap: 0.25rem;
+  font-size: 1.6rem;
+  font-weight: 700;
+  color: var(--sushi-accent-gold);
+  text-shadow: 1px 1px 0 #000;
+}
+
+.sushi-yen-symbol {
+  font-size: 1.2rem;
+  color: var(--sushi-accent-gold-dark);
+}
+
+.sushi-register-center {
+  flex: 1;
+  min-width: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 0.35rem;
+}
+
 .sushi-cap-tracker {
   display: flex;
   flex-direction: column;
-  gap: 0.4rem;
+  gap: 0.2rem;
 }
 
 .sushi-cap-header {
   display: flex;
   justify-content: space-between;
-  font-size: 0.85rem;
-  color: var(--course-text-muted, #718096);
-  font-weight: 500;
+  align-items: center;
+  font-size: 0.75rem;
+  color: var(--sushi-washi-surface);
+}
+
+.sushi-cap-title-row {
+  display: flex;
+  align-items: center;
+  gap: 0.4rem;
+}
+
+.sushi-cap-badge {
+  font-size: 0.7rem;
+  padding: 0.1rem 0.35rem;
+  border-radius: 2px;
+  font-weight: 700;
+  border: 1px solid currentColor;
+}
+.sushi-cap-badge.standard {
+  background: #2b6cb0;
+  color: #ebf8ff;
+}
+.sushi-cap-badge.extended {
+  background: #6b46c1;
+  color: #faf5ff;
 }
 
 .sushi-progress-track {
-  width: 100%;
-  height: 10px;
-  background: #e2e8f0;
-  border-radius: 9999px;
+  height: 14px;
+  background: #150b06;
+  border: 2px solid var(--sushi-wood-dark);
+  box-shadow: inset 1px 1px 0 #000;
+  position: relative;
   overflow: hidden;
 }
 
 .sushi-progress-fill {
   height: 100%;
-  background: #3182ce;
-  border-radius: 9999px;
-  transition: width 0.3s ease;
+  background: repeating-linear-gradient(90deg, #ecc94b 0px, #ecc94b 8px, #b7791f 8px, #b7791f 10px);
+  box-shadow:
+    inset 0 2px 0 #fefcbf,
+    inset 0 -2px 0 #744210;
+  transition: width 0.3s steps(10);
 }
 
 .sushi-progress-fill.capped {
-  background: #dd6b20;
+  background: repeating-linear-gradient(90deg, #f56565 0px, #f56565 8px, #9b2c2c 8px, #9b2c2c 10px);
+  box-shadow:
+    inset 0 2px 0 #fed7d7,
+    inset 0 -2px 0 #742a2a;
+}
+
+.sushi-cap-active-indicator {
+  font-size: 0.725rem;
+  color: var(--sushi-accent-gold);
+  font-weight: 700;
 }
 
 .sushi-capped-notice {
-  padding: 0.5rem 0.75rem;
-  background: #fffaf0;
-  border: 1px solid #fbd38d;
-  border-radius: 6px;
-  color: #9c4221;
-  font-size: 0.85rem;
-  font-weight: 600;
-  text-align: center;
+  font-size: 0.725rem;
+  color: #feb2b2;
+  font-weight: 700;
+}
+
+.sushi-bottleneck-explainer.register-banner {
+  margin: 0.15rem 0 0 0;
+  padding: 0.3rem 0.65rem;
+  background: rgba(254, 235, 200, 0.95);
+  border: 2px solid #dd6b20;
+  color: #7b341e;
+  font-size: 0.75rem;
+  line-height: 1.35;
+}
+
+.sushi-register-right {
+  flex-shrink: 0;
+  display: flex;
+  align-items: center;
+  position: relative;
 }
 
 .sushi-collect-btn {
-  align-self: center;
-  min-width: 220px;
-  padding: 0.85rem 1.75rem;
-  font-size: 1.05rem;
-  font-weight: 700;
-  background: #276749;
-  box-shadow: 0 4px 12px rgba(39, 103, 73, 0.25);
+  font-family: 'DotGothic16', monospace, sans-serif;
+  width: 320px;
+  height: 109px;
+  padding: 10px 18px 14px 118px;
+  background: url('/sprites/sushi/ui/collect_btn_bg.png') no-repeat center center !important;
+  background-size: 100% 100% !important;
+  color: #fff8df !important;
+  border: none !important;
+  outline: none !important;
+  box-shadow: none !important;
+  cursor: pointer;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 2px;
+  user-select: none;
+  min-height: 48px;
+  border-radius: 0;
+  image-rendering: pixelated;
 }
 
-.sushi-collect-btn:hover:not(:disabled) {
-  background: #22543d;
+.sushi-collect-title {
+  font-size: 1.38rem;
+  font-weight: 700;
+  color: #fff6d6;
+  text-shadow:
+    2px 2px 0 #592e0a,
+    -1px -1px 0 #592e0a,
+    1px -1px 0 #592e0a,
+    -1px 1px 0 #592e0a;
+  line-height: 1.1;
+  letter-spacing: 0.02em;
+  white-space: nowrap;
+}
+
+.sushi-collect-yen {
+  font-size: 2.05rem;
+  font-weight: 700;
+  color: #fff6d6;
+  background: transparent !important;
+  border: none !important;
+  padding: 0 !important;
+  text-shadow:
+    2px 2px 0 #592e0a,
+    -1px -1px 0 #592e0a,
+    1px -1px 0 #592e0a,
+    -1px 1px 0 #592e0a;
+  line-height: 1.15;
+  letter-spacing: 0.02em;
+  white-space: nowrap;
+}
+
+.sushi-collect-sparkles {
+  position: absolute;
+  right: -28px;
+  bottom: -18px;
+  width: 44px;
+  height: 44px;
+  pointer-events: none;
+  z-index: 45;
 }
 
 .sushi-collect-btn.pulse-attention {
-  animation: sushi-pulse 1.8s infinite;
+  animation: sushi-collect-pulse 1.2s infinite alternate;
+}
+@keyframes sushi-collect-pulse {
+  from {
+    filter: drop-shadow(0 0 4px rgba(236, 201, 75, 0.5));
+  }
+  to {
+    filter: drop-shadow(0 0 12px rgba(236, 201, 75, 0.95));
+  }
 }
 
-@keyframes sushi-pulse {
-  0% {
-    box-shadow: 0 0 0 0 rgba(221, 107, 32, 0.6);
-  }
-  70% {
-    box-shadow: 0 0 0 10px rgba(221, 107, 32, 0);
-  }
-  100% {
-    box-shadow: 0 0 0 0 rgba(221, 107, 32, 0);
-  }
+.sushi-collect-btn:hover:not(:disabled) {
+  filter: brightness(1.06);
+}
+
+.sushi-collect-btn:active:not(:disabled) {
+  transform: translateY(2px);
+}
+
+.sushi-collect-btn:disabled {
+  cursor: default;
+  transform: none;
 }
 
 .sushi-btn-yen-tag {
-  background: rgba(255, 255, 255, 0.2);
-  padding: 0.15rem 0.5rem;
-  border-radius: 4px;
-  font-size: 0.95rem;
+  background: transparent;
+  padding: 0;
+  border: none;
 }
 
 .sushi-btn-spinner {
   display: inline-block;
   width: 14px;
   height: 14px;
-  border: 2px solid rgba(255, 255, 255, 0.4);
+  border: 2px solid rgba(255, 255, 255, 0.3);
   border-top-color: #ffffff;
   border-radius: 50%;
   animation: sushi-spin 0.8s linear infinite;
 }
+@keyframes sushi-spin {
+  to {
+    transform: rotate(360deg);
+  }
+}
 
-/* ================= Screen Reader Live Region ================= */
+.sushi-auth-error {
+  background: #fff5f5;
+  color: #c53030;
+  border: 2px solid #feb2b2;
+  padding: 0.4rem 0.75rem;
+  font-size: 0.8rem;
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+}
+
+.sushi-retry-btn {
+  background: #c53030;
+  color: #fff;
+  border: 1px solid #9b2c2c;
+  padding: 0.2rem 0.5rem;
+  cursor: pointer;
+}
+
+/* --------------------------------------------------------------------------
+   In-Game Collapsible Overlay Windows (Shop & Personalization/Menu)
+   -------------------------------------------------------------------------- */
+
+.sushi-overlay-backdrop {
+  position: absolute;
+  inset: 0;
+  background: rgba(10, 5, 2, 0.65);
+  backdrop-filter: blur(2px);
+  z-index: 70;
+  display: none;
+}
+.sushi-overlay-backdrop.is-active {
+  display: block;
+}
+
+.sushi-overlay-window {
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  transform: translate(-50%, -50%);
+  width: min(92vw, 780px);
+  max-height: min(85dvh, 720px);
+  z-index: 80;
+  display: flex;
+  flex-direction: column;
+  background: var(--sushi-washi-bg);
+  color: var(--sushi-washi-text);
+  border: 4px solid var(--sushi-wood-base);
+  outline: 2px solid var(--sushi-wood-dark);
+  box-shadow:
+    inset 2px 2px 0 var(--sushi-wood-highlight),
+    inset -2px -2px 0 var(--sushi-wood-deep),
+    0 10px 30px rgba(0, 0, 0, 0.8);
+  box-sizing: border-box;
+}
+
+.sushi-overlay-window.is-closed {
+  display: none;
+}
+
+.sushi-overlay-header {
+  background: var(--sushi-wood-mid);
+  color: #ffffff;
+  padding: 0.5rem 0.85rem;
+  border-bottom: 3px solid var(--sushi-wood-dark);
+  box-shadow: inset 0 1px 0 var(--sushi-wood-highlight);
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 0.5rem;
+  flex-shrink: 0;
+}
+.sushi-overlay-header h3 {
+  margin: 0;
+  font-size: 1.05rem;
+  color: var(--sushi-accent-gold);
+  text-shadow: 1px 1px 0 #000;
+}
+
+.sushi-overlay-close {
+  background: var(--sushi-wood-dark);
+  color: #fff;
+  border: 2px solid var(--sushi-wood-light);
+  padding: 0.2rem 0.5rem;
+  font-size: 1rem;
+  font-weight: 700;
+  cursor: pointer;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  min-width: 32px;
+  min-height: 32px;
+}
+.sushi-overlay-close:hover {
+  background: #c53030;
+  border-color: #feb2b2;
+}
+
+.sushi-overlay-subbar {
+  background: var(--sushi-washi-surface);
+  padding: 0.5rem 0.85rem;
+  border-bottom: 2px solid var(--sushi-washi-border);
+  flex-shrink: 0;
+}
+
+.sushi-shop-filters {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.35rem;
+  margin-bottom: 0.35rem;
+}
+.sushi-filter-tab {
+  padding: 0.3rem 0.65rem;
+  font-size: 0.8rem;
+  font-weight: 600;
+  background: var(--sushi-washi-bg);
+  color: var(--sushi-washi-text);
+  border: 2px solid var(--sushi-washi-border);
+  cursor: pointer;
+}
+.sushi-filter-tab.is-active {
+  background: var(--sushi-wood-base);
+  color: #ffffff;
+  border-color: var(--sushi-wood-dark);
+  box-shadow: inset 1px 1px 0 var(--sushi-wood-highlight);
+}
+
+.sushi-unlocks-title-group {
+  display: flex;
+  align-items: center;
+  gap: 0.6rem;
+}
+.sushi-unlocks-count-badge {
+  font-size: 0.75rem;
+  background: var(--sushi-wood-deep);
+  color: var(--sushi-accent-gold);
+  padding: 0.15rem 0.5rem;
+  border: 1px solid var(--sushi-wood-dark);
+}
+.sushi-unlocks-intro {
+  margin: 0;
+  font-size: 0.78rem;
+  color: var(--sushi-washi-muted);
+  line-height: 1.35;
+}
+
+.sushi-overlay-scroll-body {
+  flex: 1;
+  min-height: 0;
+  overflow-y: auto;
+  overflow-x: hidden;
+  padding: 0.85rem;
+  box-sizing: border-box;
+}
+
+.sushi-unlocks-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
+  gap: 0.75rem;
+}
+
+.sushi-shop-card {
+  padding: 0.75rem;
+  display: flex;
+  flex-direction: column;
+  gap: 0.45rem;
+  background: var(--sushi-washi-bg);
+  border: 2px solid var(--sushi-washi-border);
+}
+
+.sushi-shop-card.is-filtered-out {
+  display: none !important;
+}
+
+.sushi-card-top {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  position: relative;
+}
+.sushi-card-icon {
+  font-size: 1.5rem;
+}
+.sushi-card-title-group {
+  display: flex;
+  flex-direction: column;
+}
+.sushi-card-name {
+  font-size: 0.925rem;
+  color: var(--sushi-washi-text);
+}
+.sushi-card-category {
+  font-size: 0.725rem;
+  color: var(--sushi-washi-muted);
+}
+.sushi-pill-new {
+  position: absolute;
+  top: 0;
+  right: 0;
+  background: #c53030;
+  color: #fff;
+  font-size: 0.65rem;
+  padding: 0.1rem 0.35rem;
+  font-weight: 700;
+  animation: sushi-pill-pulse 2s infinite;
+}
+@keyframes sushi-pill-pulse {
+  0%,
+  100% {
+    transform: scale(1);
+  }
+  50% {
+    transform: scale(1.08);
+  }
+}
+
+.sushi-card-desc {
+  margin: 0;
+  font-size: 0.78rem;
+  color: var(--sushi-washi-muted);
+  line-height: 1.35;
+}
+
+.sushi-upgrade-preview {
+  margin: 0.2rem 0;
+  padding: 0.25rem 0.45rem;
+  background: #f0fff4;
+  border: 1px solid #c6f6d5;
+  color: #22543d;
+  font-size: 0.75rem;
+}
+
+.sushi-bottleneck-explainer {
+  margin: 0.2rem 0;
+  padding: 0.25rem 0.45rem;
+  background: #fffaf0;
+  border: 1px solid #feebc8;
+  color: #744210;
+  font-size: 0.75rem;
+  line-height: 1.3;
+}
+
+.sushi-card-footer {
+  margin-top: auto;
+  display: flex;
+  flex-direction: column;
+  gap: 0.35rem;
+  padding-top: 0.35rem;
+  border-top: 1px solid var(--sushi-washi-border);
+}
+
+.sushi-status-line {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  font-size: 0.75rem;
+}
+
+.sushi-unlock-badge {
+  font-weight: 700;
+  padding: 0.1rem 0.3rem;
+  font-size: 0.7rem;
+}
+.sushi-unlock-badge.owned {
+  background: #c6f6d5;
+  color: #22543d;
+}
+.sushi-unlock-badge.locked {
+  background: #edf2f7;
+  color: #4a5568;
+}
+.sushi-unlock-badge.unlocked {
+  background: #feebc8;
+  color: #7b341e;
+}
+
+.sushi-price-hint {
+  font-size: 0.75rem;
+  color: var(--sushi-washi-muted);
+}
+.sushi-missing-funds {
+  font-size: 0.725rem;
+  color: #c53030;
+  font-weight: 700;
+}
+.sushi-owned-indicator {
+  font-size: 0.725rem;
+  color: #22543d;
+  font-weight: 700;
+}
+
+.sushi-btn-buy {
+  font-family: 'DotGothic16', monospace, sans-serif;
+  font-size: 0.85rem;
+  font-weight: 700;
+  padding: 0.4rem 0.75rem;
+  background: var(--sushi-accent-teal);
+  color: #ffffff;
+  border: 2px solid var(--sushi-wood-dark);
+  cursor: pointer;
+  min-height: 36px;
+}
+.sushi-btn-buy:disabled {
+  background: #cbd5e0;
+  color: #718096;
+  border-color: #a0aec0;
+  cursor: not-allowed;
+}
+
+.sushi-study-link-btn {
+  font-family: 'DotGothic16', monospace, sans-serif;
+  font-size: 0.825rem;
+  font-weight: 700;
+  padding: 0.4rem 0.75rem;
+  background: var(--sushi-wood-mid);
+  color: #ffffff;
+  border: 2px solid var(--sushi-wood-dark);
+  cursor: pointer;
+  min-height: 36px;
+}
+
+/* Personalization & Equipment in Scene Overlay */
+.sushi-scene-placeholder {
+  /* styled as sushi-overlay-window */
+}
+
+.sushi-scene-badge {
+  display: inline-block;
+  padding: 0.3rem 0.75rem;
+  background: #feebc8;
+  color: #7b341e;
+  font-size: 0.85rem;
+  font-weight: 700;
+  margin-bottom: 0.5rem;
+  border: 1px solid #fbd38d;
+}
+.sushi-scene-desc {
+  margin: 0 0 0.75rem 0;
+  font-size: 0.825rem;
+  color: var(--sushi-washi-muted);
+  line-height: 1.4;
+}
+
+.sushi-scene-equipment {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.45rem;
+  margin-bottom: 1rem;
+}
+.sushi-scene-equipment-badge {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.35rem;
+  padding: 0.3rem 0.65rem;
+  font-size: 0.8rem;
+  font-weight: 700;
+  border: 1px solid var(--sushi-wood-dark);
+}
+
+.sushi-scene-equipment-badge.scene-prep-counter {
+  background: #feebc8;
+  color: #7b341e;
+}
+.sushi-scene-equipment-badge.scene-conveyor-belt {
+  background: #c6f6d5;
+  color: #22543d;
+}
+.sushi-scene-equipment-badge.scene-cap-extension {
+  background: #e9d8fd;
+  color: #553c9a;
+}
+.sushi-scene-equipment-badge.scene-precision-knife {
+  background: #feebc8;
+  color: #7b341e;
+}
+.sushi-scene-equipment-badge.scene-service-counter {
+  background: #c6f6d5;
+  color: #22543d;
+}
+.sushi-scene-equipment-badge.scene-sous-chef {
+  background: #feebc8;
+  color: #7b341e;
+}
+.sushi-scene-equipment-badge.scene-master-license {
+  background: #c6f6d5;
+  color: #22543d;
+}
+
+.sushi-menu {
+  flex-basis: 100%;
+  text-align: left;
+  margin-bottom: 0.5rem;
+}
+.sushi-menu h3 {
+  margin: 0 0 0.35rem 0;
+  font-size: 0.95rem;
+}
+.sushi-menu p {
+  margin: 0.2rem 0;
+  font-size: 0.825rem;
+}
+.sushi-menu small {
+  color: var(--sushi-washi-muted);
+  font-size: 0.75rem;
+}
+
+.sushi-decorations h3 {
+  margin: 0 0 0.35rem 0;
+  font-size: 0.95rem;
+}
+.sushi-decorations p {
+  margin: 0 0 0.5rem 0;
+  font-size: 0.8rem;
+  color: var(--sushi-washi-muted);
+}
+.sushi-decoration-slots {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
+  gap: 0.75rem;
+}
+.sushi-decoration-slot {
+  padding: 0.75rem;
+}
+.sushi-decoration-display {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  min-height: 48px;
+}
+.sushi-decoration-display > span {
+  font-size: 1.8rem;
+}
+.sushi-decoration-slot summary {
+  cursor: pointer;
+  padding: 0.4rem 0;
+  font-size: 0.825rem;
+  font-weight: 600;
+}
+.sushi-decoration-choices {
+  display: grid;
+  gap: 0.35rem;
+  padding-top: 0.35rem;
+}
+.sushi-decoration-choices button {
+  font-family: 'DotGothic16', monospace, sans-serif;
+  font-size: 0.8rem;
+  padding: 0.35rem 0.5rem;
+  cursor: pointer;
+}
+.sushi-decoration-choices [aria-pressed='true'] {
+  border: 2px solid currentColor;
+}
+
+.sushi-stage-actions {
+  display: none; /* Preserved in DOM for F20-T1 & F20-T2 test assertions */
+}
+
+/* --------------------------------------------------------------------------
+   Auth Gate Styling (.sushi-auth-gate)
+   -------------------------------------------------------------------------- */
+
+.sushi-auth-gate {
+  width: min(92vw, 480px);
+  margin: auto;
+  font-family: 'DotGothic16', monospace, sans-serif;
+}
+.sushi-auth-card {
+  background: var(--sushi-washi-bg);
+  color: var(--sushi-washi-text);
+  border: 4px solid var(--sushi-wood-base);
+  outline: 2px solid var(--sushi-wood-dark);
+  box-shadow:
+    inset 2px 2px 0 var(--sushi-wood-highlight),
+    inset -2px -2px 0 var(--sushi-wood-deep),
+    0 8px 24px rgba(0, 0, 0, 0.7);
+  padding: 2rem 1.5rem;
+  text-align: center;
+}
+.sushi-auth-icon {
+  font-size: 2.5rem;
+  margin-bottom: 0.5rem;
+}
+.sushi-auth-card h2 {
+  margin: 0 0 0.5rem 0;
+  font-size: 1.25rem;
+  color: var(--sushi-wood-dark);
+}
+.sushi-auth-card p {
+  margin: 0 0 0.75rem 0;
+  font-size: 0.85rem;
+  color: var(--sushi-washi-muted);
+  line-height: 1.4;
+}
+.sushi-auth-note {
+  font-size: 0.78rem !important;
+  background: var(--sushi-washi-surface);
+  border: 1px solid var(--sushi-washi-border);
+  padding: 0.5rem 0.75rem;
+  margin-bottom: 1rem !important;
+}
+.sushi-auth-actions {
+  display: flex;
+  flex-direction: column;
+  gap: 0.5rem;
+}
+.sushi-btn-primary {
+  font-family: 'DotGothic16', monospace, sans-serif;
+  font-size: 0.95rem;
+  font-weight: 700;
+  padding: 0.65rem 1.25rem;
+  background: var(--sushi-accent-red);
+  color: #fff;
+  border: 2px solid var(--sushi-wood-dark);
+  box-shadow:
+    inset 1px 1px 0 #feb2b2,
+    inset -1px -1px 0 #742a2a,
+    0 2px 0 var(--sushi-wood-dark);
+  cursor: pointer;
+  min-height: 44px;
+}
+.sushi-btn-secondary {
+  font-family: 'DotGothic16', monospace, sans-serif;
+  font-size: 0.85rem;
+  font-weight: 600;
+  padding: 0.5rem 0.85rem;
+  background: var(--sushi-washi-surface);
+  color: var(--sushi-washi-text);
+  border: 2px solid var(--sushi-washi-border);
+  cursor: pointer;
+  min-height: 40px;
+}
+
+/* Screen reader utility */
 .sr-only {
   position: absolute;
   width: 1px;
@@ -773,487 +1562,108 @@
   border: 0;
 }
 
-/* ================= Milestone 2: Unlocks Panel & Celebratory Banner ================= */
+/* --------------------------------------------------------------------------
+   Responsive & Mobile Constraints (390x900 & Narrow screens)
+   -------------------------------------------------------------------------- */
 
-/* Celebratory Unlock Banner */
-.sushi-unlock-banner {
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
-  gap: 1rem;
-  padding: 0.85rem 1.25rem;
-  background: #f0fff4;
-  border: 1px solid #9ae6b4;
-  border-left: 5px solid #38a169;
-  border-radius: 8px;
-  margin-bottom: 1.25rem;
-  box-shadow: 0 2px 6px rgba(56, 161, 105, 0.12);
-  animation: sushi-slide-down 0.3s cubic-bezier(0.16, 1, 0.3, 1);
-}
-
-.sushi-unlock-banner-content {
-  display: flex;
-  align-items: center;
-  gap: 0.85rem;
-}
-
-.sushi-unlock-banner-icon {
-  font-size: 1.75rem;
-  line-height: 1;
-}
-
-.sushi-unlock-banner-text strong {
-  display: block;
-  font-size: 0.95rem;
-  color: #22543d;
-  margin-bottom: 0.15rem;
-}
-
-.sushi-unlock-banner-text p {
-  margin: 0;
-  font-size: 0.85rem;
-  color: #276749;
-  line-height: 1.35;
-}
-
-.sushi-banner-dismiss-btn {
-  display: inline-flex;
-  align-items: center;
-  justify-content: center;
-  background: transparent;
-  border: none;
-  font-size: 1.35rem;
-  line-height: 1;
-  color: #276749;
-  cursor: pointer;
-  padding: 0.25rem 0.5rem;
-  border-radius: 4px;
-  transition: background 0.15s ease;
-  min-height: 44px;
-  min-width: 44px;
-}
-
-.sushi-banner-dismiss-btn:hover {
-  background: rgba(56, 161, 105, 0.15);
-}
-
-@keyframes sushi-slide-down {
-  from {
-    opacity: 0;
-    transform: translateY(-8px);
+@media (max-width: 1100px) {
+  .sushi-topbar-inner {
+    padding: 0 12px;
+    gap: 0.5rem;
   }
-  to {
-    opacity: 1;
-    transform: translateY(0);
+  .sushi-topbar-center {
+    display: none;
+  }
+  .sushi-title {
+    font-size: 1.5rem;
   }
 }
 
-/* Unlocks Panel */
-.sushi-unlocks-panel {
-  background: var(--course-card-bg, #ffffff);
-  border: 1px solid var(--course-border, #e2e8f0);
-  border-radius: 12px;
-  padding: 1.5rem;
-  margin: 1.5rem 0;
-  box-shadow: 0 1px 4px rgba(0, 0, 0, 0.04);
+@media (max-width: 640px) {
+  .sushi-topbar {
+    height: 56px;
+  }
+  .sushi-topbar-inner {
+    padding: 0 8px;
+    gap: 0.25rem;
+  }
+  .sushi-brand-icon {
+    width: 44px;
+    height: 36px;
+  }
+  .sushi-brand-text {
+    display: none;
+  }
+  .sushi-topbar-right {
+    gap: 4px;
+  }
+  .sushi-back-btn,
+  .sushi-icon-btn,
+  .sushi-hud-btn {
+    width: 46px;
+    height: 38px;
+    min-height: 36px;
+  }
+  .sushi-account-btn {
+    padding: 0.2rem 0.35rem;
+    font-size: 0.65rem;
+    min-height: 28px;
+  }
+  .sushi-user-name {
+    max-width: 52px;
+  }
+  .sushi-hud-floating-layer {
+    top: 8px;
+    left: 8px;
+    right: 8px;
+    gap: 0.35rem;
+  }
+  .sushi-balance-badge {
+    width: 200px;
+    height: 74px;
+    padding: 6px 12px 8px 64px;
+  }
+  .sushi-funds-label {
+    font-size: 0.9rem;
+  }
+  .sushi-balance-amount {
+    font-size: 1.35rem;
+  }
+  .sushi-stats-plaque {
+    display: none;
+  }
+  .sushi-cash-register {
+    bottom: 12px;
+    right: 12px;
+  }
+  .sushi-collect-btn {
+    width: 210px;
+    height: 72px;
+    padding: 6px 14px 8px 70px;
+    min-height: 40px;
+  }
+  .sushi-collect-title {
+    font-size: 0.95rem;
+  }
+  .sushi-collect-yen {
+    font-size: 1.3rem;
+  }
+  .sushi-collect-sparkles {
+    display: none;
+  }
+  .sushi-overlay-window {
+    width: 96vw;
+    max-height: 86dvh;
+  }
+  .sushi-unlocks-grid {
+    grid-template-columns: 1fr;
+  }
 }
 
-.sushi-unlocks-header {
-  margin-bottom: 1.25rem;
-}
+/* --------------------------------------------------------------------------
+   Reduced Motion Preferences (Tested explicitly by unit & e2e suites)
+   -------------------------------------------------------------------------- */
 
-.sushi-unlocks-title-group {
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
-  gap: 1rem;
-  flex-wrap: wrap;
-}
-
-.sushi-unlocks-title-group h3 {
-  margin: 0;
-  font-size: 1.2rem;
-  font-weight: 700;
-  color: var(--course-text, #2d3748);
-}
-
-.sushi-unlocks-count-badge {
-  padding: 0.25rem 0.65rem;
-  background: var(--course-chip-bg, #edf2f7);
-  border: 1px solid var(--course-border, #cbd5e0);
-  border-radius: 9999px;
-  font-size: 0.8rem;
-  font-weight: 600;
-  color: var(--course-text-muted, #4a5568);
-}
-
-.sushi-unlocks-intro {
-  margin: 0.5rem 0 0 0;
-  font-size: 0.9rem;
-  color: var(--course-text-muted, #718096);
-  line-height: 1.45;
-}
-
-.sushi-unlocks-grid {
-  display: grid;
-  grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
-  gap: 1rem;
-}
-
-.sushi-unlock-card {
-  display: flex;
-  flex-direction: column;
-  justify-content: space-between;
-  border-radius: 10px;
-  padding: 1rem;
-  border: 1px solid var(--course-border, #e2e8f0);
-  background: var(--course-bg, #f9f8f6);
-  transition:
-    transform 0.15s ease,
-    border-color 0.15s ease,
-    box-shadow 0.15s ease;
-}
-
-.sushi-unlock-card.is-unlocked {
-  background: #ffffff;
-  border-color: #9ae6b4;
-  box-shadow: 0 2px 5px rgba(56, 161, 105, 0.08);
-}
-
-.sushi-unlock-card.is-locked {
-  opacity: 0.85;
-  background: #f7fafc;
-}
-
-.sushi-card-top {
-  display: flex;
-  align-items: center;
-  gap: 0.75rem;
-  margin-bottom: 0.5rem;
-}
-
-.sushi-card-icon {
-  font-size: 1.5rem;
-  line-height: 1;
-}
-
-.sushi-card-title-group {
-  flex: 1;
-  display: flex;
-  flex-direction: column;
-}
-
-.sushi-card-name {
-  font-size: 0.95rem;
-  font-weight: 700;
-  color: var(--course-text, #2d3748);
-}
-
-.sushi-card-category {
-  font-size: 0.75rem;
-  color: var(--course-text-muted, #718096);
-  font-weight: 500;
-}
-
-.sushi-pill-new {
-  padding: 0.15rem 0.45rem;
-  background: #e53e3e;
-  color: #ffffff;
-  font-size: 0.7rem;
-  font-weight: 800;
-  border-radius: 4px;
-  text-transform: uppercase;
-  letter-spacing: 0.04em;
-  animation: sushi-pulse 1.8s infinite;
-}
-
-.sushi-card-desc {
-  font-size: 0.85rem;
-  color: var(--course-text, #4a5568);
-  margin: 0.25rem 0 0.85rem 0;
-  line-height: 1.4;
-  flex: 1;
-}
-
-.sushi-card-footer {
-  border-top: 1px dashed var(--course-border, #e2e8f0);
-  padding-top: 0.75rem;
-  display: flex;
-  flex-direction: column;
-  gap: 0.5rem;
-}
-
-.sushi-status-line {
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
-  flex-wrap: wrap;
-  gap: 0.4rem;
-}
-
-.sushi-unlock-badge {
-  display: inline-flex;
-  align-items: center;
-  padding: 0.2rem 0.5rem;
-  border-radius: 6px;
-  font-size: 0.8rem;
-  font-weight: 700;
-}
-
-.sushi-unlock-badge.unlocked {
-  background: #c6f6d5;
-  color: #22543d;
-}
-
-.sushi-unlock-badge.locked {
-  background: #edf2f7;
-  color: #718096;
-}
-
-.sushi-price-hint {
-  font-size: 0.8rem;
-  font-weight: 600;
-  color: var(--course-text, #2d3748);
-}
-
-.sushi-req-text {
-  font-size: 0.78rem;
-  color: #c05621;
-  font-weight: 600;
-}
-
-.sushi-study-link-btn {
-  align-self: flex-start;
-  display: inline-flex;
-  align-items: center;
-  padding: 0.35rem 0.65rem;
-  font-size: 0.8rem;
-  font-weight: 600;
-  color: #2b6cb0;
-  background: #ebf8ff;
-  border: 1px solid #bee3f8;
-  border-radius: 6px;
-  cursor: pointer;
-  transition: all 0.15s ease;
-  min-height: 44px;
-  min-width: 44px;
-}
-
-.sushi-study-link-btn:hover {
-  background: #bee3f8;
-  color: #2c5282;
-}
-
-/* ================= Milestone 3 Shop, Capacity & Cap Styles ================= */
-
-.sushi-cap-title-row {
-  display: flex;
-  align-items: center;
-  gap: 0.5rem;
-}
-
-.sushi-cap-badge {
-  display: inline-flex;
-  align-items: center;
-  padding: 0.15rem 0.5rem;
-  border-radius: 6px;
-  font-size: 0.75rem;
-  font-weight: 700;
-  letter-spacing: 0.02em;
-}
-
-.sushi-cap-badge.standard {
-  background: #edf2f7;
-  color: #4a5568;
-  border: 1px solid #cbd5e0;
-}
-
-.sushi-cap-badge.extended {
-  background: #e9d8fd;
-  color: #553c9a;
-  border: 1px solid #d6bcfa;
-}
-
-.sushi-cap-active-indicator {
-  margin-top: 0.35rem;
-  font-size: 0.8rem;
-  font-weight: 700;
-  color: #553c9a;
-  display: flex;
-  align-items: center;
-  gap: 0.35rem;
-}
-
-.sushi-shop-card.is-affordable {
-  border-color: #48bb78;
-  box-shadow: 0 2px 8px rgba(72, 187, 120, 0.15);
-}
-
-.sushi-shop-card.is-unaffordable {
-  border-color: #e2e8f0;
-}
-
-.sushi-shop-card.is-owned {
-  border-color: #bee3f8;
-  background: #f7fafc;
-}
-
-.sushi-unlock-badge.owned {
-  background: #ebf8ff;
-  color: #2b6cb0;
-}
-
-.sushi-missing-funds {
-  font-size: 0.78rem;
-  font-weight: 600;
-  color: #c53030;
-}
-
-.sushi-owned-indicator {
-  font-size: 0.8rem;
-  font-weight: 700;
-  color: #2b6cb0;
-  display: flex;
-  align-items: center;
-  gap: 0.3rem;
-}
-
-.sushi-btn-buy {
-  display: inline-flex;
-  align-items: center;
-  justify-content: center;
-  padding: 0.4rem 0.8rem;
-  font-size: 0.825rem;
-  font-weight: 600;
-  border-radius: 6px;
-  cursor: pointer;
-  min-height: 44px;
-  min-width: 44px;
-  border: 1px solid transparent;
-  transition: all 0.15s ease;
-  width: 100%;
-}
-
-.sushi-btn-buy.sushi-btn-primary {
-  background: var(--course-accent, #c53030);
-  color: #ffffff;
-}
-
-.sushi-btn-buy.sushi-btn-primary:hover:not(:disabled) {
-  background: #9b2c2c;
-}
-
-.sushi-btn-buy:disabled {
-  background: #edf2f7;
-  color: #a0aec0;
-  border-color: #e2e8f0;
-  cursor: not-allowed;
-}
-
-.sushi-upgrade-preview {
-  margin: 0.35rem 0;
-  padding: 0.35rem 0.55rem;
-  border-radius: 6px;
-  background: #f0fff4;
-  border: 1px solid #c6f6d5;
-  color: #22543d;
-  font-size: 0.78rem;
-}
-
-.sushi-bottleneck-explainer {
-  margin: 0.35rem 0;
-  padding: 0.45rem 0.65rem;
-  border-radius: 6px;
-  background: #fffaf0;
-  border: 1px solid #feebc8;
-  color: #744210;
-  font-size: 0.78rem;
-  line-height: 1.35;
-}
-
-.sushi-bottleneck-explainer.register-banner {
-  margin: 0.5rem 0;
-  padding: 0.65rem 0.85rem;
-  border-radius: 8px;
-  font-size: 0.85rem;
-  line-height: 1.45;
-  background: #fffaf0;
-  border: 1px solid #feebc8;
-  color: #744210;
-  text-align: left;
-}
-
-.sushi-effect-explainer {
-  margin: 0.35rem 0;
-  padding: 0.35rem 0.55rem;
-  border-radius: 6px;
-  background: #ebf8ff;
-  border: 1px solid #bee3f8;
-  color: #2b6cb0;
-  font-size: 0.78rem;
-}
-
-.sushi-scene-equipment {
-  display: flex;
-  flex-wrap: wrap;
-  gap: 0.5rem;
-  justify-content: center;
-  margin-top: 1rem;
-}
-
-.sushi-scene-equipment-badge {
-  display: inline-flex;
-  align-items: center;
-  gap: 0.35rem;
-  padding: 0.35rem 0.75rem;
-  border-radius: 9999px;
-  font-size: 0.85rem;
-  font-weight: 700;
-}
-
-.sushi-scene-equipment-badge.scene-prep-counter {
-  background: #feebc8;
-  color: #7b341e;
-  border: 1px solid #fbd38d;
-}
-
-.sushi-scene-equipment-badge.scene-conveyor-belt {
-  background: #c6f6d5;
-  color: #22543d;
-  border: 1px solid #9ae6b4;
-}
-
-.sushi-scene-equipment-badge.scene-cap-extension {
-  background: #e9d8fd;
-  color: #553c9a;
-  border: 1px solid #d6bcfa;
-}
-
-.sushi-scene-equipment-badge.scene-precision-knife {
-  background: #feebc8;
-  color: #7b341e;
-  border: 1px solid #fbd38d;
-}
-
-.sushi-scene-equipment-badge.scene-service-counter {
-  background: #c6f6d5;
-  color: #22543d;
-  border: 1px solid #9ae6b4;
-}
-
-.sushi-scene-equipment-badge.scene-sous-chef {
-  background: #feebc8;
-  color: #7b341e;
-  border: 1px solid #fbd38d;
-}
-
-.sushi-scene-equipment-badge.scene-master-license {
-  background: #c6f6d5;
-  color: #22543d;
-  border: 1px solid #9ae6b4;
-}
-
-/* ================= Milestone 2 & 3 Reduced Motion Preferences ================= */
 @media (prefers-reduced-motion: reduce) {
   .sushi-unlock-banner {
     animation: none;
@@ -1270,69 +1680,7 @@
   .sushi-btn-buy {
     transition: none;
   }
-}
-
-/* Isometric illustrated restaurant; the SVG scales as a single scene. */
-.sushi-container {
-  --sushi-ink: #583e32;
-  --sushi-paper: #fff4da;
-  --sushi-teal: #23655f;
-  font-family:
-    system-ui,
-    -apple-system,
-    'Segoe UI',
-    sans-serif;
-}
-.sushi-illustration {
-  margin: 1rem 0 1.5rem;
-  overflow: hidden;
-  border: 2px solid var(--sushi-ink);
-  border-radius: 16px;
-  background: var(--sushi-paper);
-  color: var(--sushi-ink);
-}
-.sushi-illustration svg {
-  display: block;
-  width: 100%;
-  height: auto;
-}
-.sushi-illustration figcaption {
-  display: flex;
-  flex-wrap: wrap;
-  justify-content: space-between;
-  gap: 0.35rem 1rem;
-  padding: 0.75rem 1rem;
-  font-size: 0.85rem;
-}
-.sushi-illustration figcaption span:first-child {
-  font-family: Georgia, serif;
-  font-weight: bold;
-  font-size: 1.15rem;
-}
-.sushi-belt-tread {
-  animation: sushi-belt-travel 3s linear infinite;
-}
-@keyframes sushi-belt-travel {
-  to {
-    stroke-dashoffset: -33;
-  }
-}
-.sushi-illustration[data-paused='true'] * {
-  animation-play-state: paused;
-}
-.sushi-scene-placeholder {
-  padding: 1.25rem;
-  border: 1px solid var(--course-border);
-  background: var(--course-card-bg);
-  text-align: left;
-}
-@media (prefers-reduced-motion: reduce) {
   .sushi-belt-tread {
     animation: none;
   }
-}
-.sushi-stage-header h2 {
-  min-width: 0;
-  max-width: 100%;
-  overflow-wrap: anywhere;
 }

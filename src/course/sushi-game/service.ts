@@ -112,9 +112,26 @@ export async function getOrInitRestaurant(
   initialGrants?: string[],
 ): Promise<SushiRestaurantState> {
   const active = getActiveService();
-  return active
-    ? active.getOrInitRestaurant(uid, nowMs, initialGrants)
-    : remote(uid, { operation: 'load' });
+  if (active) {
+    const state = await active.getOrInitRestaurant(uid, nowMs, initialGrants);
+    if (
+      active === localDevService &&
+      uid === 'local-dev-user' &&
+      state.balanceUnits === 0 &&
+      state.uncollectedUnits === 0 &&
+      state.inventory.length === 0
+    ) {
+      const seeded: SushiRestaurantState = {
+        ...state,
+        balanceUnits: 18_740 * 60_000,
+        uncollectedUnits: 6_280 * 60_000,
+      };
+      await active.getRepository().set(seeded);
+      return seeded;
+    }
+    return state;
+  }
+  return remote(uid, { operation: 'load' });
 }
 export async function syncMedalGrants(
   uid: string,
