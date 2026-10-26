@@ -18,6 +18,7 @@ import {
   purchaseCatalogItem,
   equipDecoration,
 } from './service.ts';
+import { isLocalhost } from './config.ts';
 
 if (typeof window !== 'undefined') {
   try {
@@ -48,6 +49,12 @@ async function waitForStudySync(host: CourseHostContext | null, uid: string): Pr
         timer = setTimeout(() => reject(new Error('Study sync timed out')), 15_000);
       }),
     ]);
+  } catch (err) {
+    if (isLocalhost()) {
+      // I lokal miljö utan molnemulator fortsätter vi med lokala kursframsteg
+      return;
+    }
+    throw err;
   } finally {
     clearTimeout(timer);
   }
@@ -512,6 +519,23 @@ function renderSushiAuthGate(host: CourseHostContext, onBackToStudies: () => voi
     }
   };
 
+  const handleLocalLogin = () => {
+    const localUser = {
+      uid: 'local-dev-user',
+      displayName: 'Lokal student',
+      email: 'student@localhost',
+    };
+    try {
+      sessionStorage.setItem('japc11-mock-user', JSON.stringify(localUser));
+    } catch {}
+    if (
+      typeof window !== 'undefined' &&
+      (window as unknown as { __setMockUser?: (u: unknown) => void }).__setMockUser
+    ) {
+      (window as unknown as { __setMockUser: (u: unknown) => void }).__setMockUser(localUser);
+    }
+  };
+
   return html`
     <div
       class="sushi-auth-gate"
@@ -540,6 +564,22 @@ function renderSushiAuthGate(host: CourseHostContext, onBackToStudies: () => voi
           >
             ${host.authBusy ? 'Loggar in...' : 'Logga in med Google'}
           </button>
+
+          ${
+            isLocalhost()
+              ? html`
+                  <button
+                    type="button"
+                    class="sushi-btn-secondary sushi-local-login-btn"
+                    data-testid="sushi-local-login-btn"
+                    @click=${handleLocalLogin}
+                    title="Öppna restaurangen direkt med ett lokalt testkonto på localhost"
+                  >
+                    🍣 Öppna lokalt (testkonto)
+                  </button>
+                `
+              : ''
+          }
 
           <button
             type="button"

@@ -2,11 +2,13 @@
 import { doc, runTransaction, type Firestore } from 'firebase/firestore';
 import {
   SushiService,
+  InMemorySushiRepository,
   type SushiRestaurantRepository,
   type CollectRevenueResult,
 } from './domain-service.ts';
 import type { SushiRestaurantState, DecorationSlot, EquipDecorationResult } from './types.ts';
 import type { PurchaseItemResult } from './catalog.ts';
+import { isLocalhost } from './config.ts';
 export * from './domain-service.ts';
 
 /**
@@ -54,6 +56,24 @@ export class FirestoreSushiRepository implements SushiRestaurantRepository {
 
 // Explicit injection for unit tests; never selected from browser storage or environment.
 let injected: SushiService | undefined;
+let localDevService: SushiService | undefined;
+
+function getActiveService(): SushiService | null {
+  if (injected) return injected;
+  if (typeof window !== 'undefined' && isLocalhost(window)) {
+    // If running with explicit Firebase emulators configured, prefer the emulated backend.
+    const metaEnv = (import.meta as unknown as { env?: Record<string, string> }).env;
+    const isEmulated = metaEnv?.MODE === 'test' && metaEnv?.VITE_FIREBASE_EMULATORS === 'true';
+    if (!isEmulated) {
+      if (!localDevService) {
+        localDevService = new SushiService(new InMemorySushiRepository(window.localStorage));
+      }
+      return localDevService;
+    }
+  }
+  return null;
+}
+
 export const sushiService = {
   setRepository(repo: SushiRestaurantRepository) {
     injected = new SushiService(repo);
@@ -91,8 +111,9 @@ export async function getOrInitRestaurant(
   nowMs = Date.now(),
   initialGrants?: string[],
 ): Promise<SushiRestaurantState> {
-  return injected
-    ? injected.getOrInitRestaurant(uid, nowMs, initialGrants)
+  const active = getActiveService();
+  return active
+    ? active.getOrInitRestaurant(uid, nowMs, initialGrants)
     : remote(uid, { operation: 'load' });
 }
 export async function syncMedalGrants(
@@ -100,8 +121,9 @@ export async function syncMedalGrants(
   earnedGrants: string[],
   nowMs = Date.now(),
 ): Promise<SushiRestaurantState> {
-  return injected
-    ? injected.syncMedalGrants(uid, earnedGrants, nowMs)
+  const active = getActiveService();
+  return active
+    ? active.syncMedalGrants(uid, earnedGrants, nowMs)
     : remote(uid, { operation: 'load' });
 }
 export async function collectRevenue(
@@ -109,8 +131,9 @@ export async function collectRevenue(
   idempotencyKey: string,
   nowMs = Date.now(),
 ): Promise<CollectRevenueResult> {
-  return injected
-    ? injected.collectRevenue(uid, idempotencyKey, nowMs)
+  const active = getActiveService();
+  return active
+    ? active.collectRevenue(uid, idempotencyKey, nowMs)
     : remote(uid, { operation: 'collect', idempotencyKey });
 }
 export async function purchaseCatalogItem(
@@ -119,8 +142,9 @@ export async function purchaseCatalogItem(
   idempotencyKey?: string,
   nowMs = Date.now(),
 ): Promise<PurchaseItemResult> {
-  return injected
-    ? injected.purchaseCatalogItem(uid, itemId, idempotencyKey, nowMs)
+  const active = getActiveService();
+  return active
+    ? active.purchaseCatalogItem(uid, itemId, idempotencyKey, nowMs)
     : remote(uid, { operation: 'purchase', itemId, idempotencyKey });
 }
 export const purchaseUpgrade = purchaseCatalogItem;
@@ -131,7 +155,8 @@ export async function equipDecoration(
   itemId: string | null,
   idempotencyKey: string,
 ): Promise<EquipDecorationResult> {
-  return injected
-    ? injected.equipDecoration(uid, slot, itemId, idempotencyKey)
+  const active = getActiveService();
+  return active
+    ? active.equipDecoration(uid, slot, itemId, idempotencyKey)
     : remote(uid, { operation: 'equip', slot, itemId, idempotencyKey });
 }

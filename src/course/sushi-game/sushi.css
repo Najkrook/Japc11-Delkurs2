@@ -418,6 +418,19 @@
   color: var(--course-text, #1a202c);
 }
 
+.sushi-local-login-btn {
+  border: 1px dashed var(--course-accent, #c53030);
+  background: rgba(197, 48, 48, 0.05);
+  color: var(--course-accent, #c53030);
+  font-weight: 600;
+}
+
+.sushi-local-login-btn:hover {
+  background: rgba(197, 48, 48, 0.12);
+  color: var(--course-accent, #9b2c2c);
+  border-color: var(--course-accent, #9b2c2c);
+}
+
 .sushi-auth-error {
   margin-top: 1.25rem;
   padding: 0.75rem;

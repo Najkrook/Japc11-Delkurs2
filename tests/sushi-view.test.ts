@@ -3,7 +3,7 @@ import assert from 'node:assert/strict';
 import { readFileSync } from 'node:fs';
 import { resolve } from 'node:path';
 import { renderSushiShell, SushiClientController } from '../src/course/sushi-game/sushi-view.ts';
-import { isSushiEntryAvailable } from '../src/course/sushi-game/config.ts';
+import { isSushiEntryAvailable, isLocalhost } from '../src/course/sushi-game/config.ts';
 import {
   courseProgress,
   loadSushiGameModule,
@@ -579,6 +579,38 @@ test('F23-T3: isSushiEntryAvailable sessionStorage boundary values', async () =>
     sessionStorage: { getItem: () => 'false' },
   } as unknown as Window;
   assert.equal(isSushiEntryAvailable(winFalse), false, 'Window override false takes precedence');
+});
+
+test('F23-T4: isSushiEntryAvailable och isLocalhost identifierar lokala miljöer', async () => {
+  assert.equal(isLocalhost(undefined), false);
+  assert.equal(isLocalhost({ location: { hostname: 'example.com' } } as unknown as Window), false);
+  assert.equal(isLocalhost({ location: { hostname: 'localhost' } } as unknown as Window), true);
+  assert.equal(isLocalhost({ location: { hostname: '127.0.0.1' } } as unknown as Window), true);
+  assert.equal(isLocalhost({ location: { hostname: '[::1]' } } as unknown as Window), true);
+  assert.equal(isLocalhost({ location: { hostname: 'sub.localhost' } } as unknown as Window), true);
+
+  const winLocal = {
+    location: { hostname: 'localhost', search: '' },
+    sessionStorage: { getItem: () => null },
+  } as unknown as Window;
+  assert.equal(isSushiEntryAvailable(winLocal), true, 'Localhost ska ge tillgång');
+
+  const winIp = {
+    location: { hostname: '127.0.0.1', search: '' },
+    sessionStorage: { getItem: () => null },
+  } as unknown as Window;
+  assert.equal(isSushiEntryAvailable(winIp), true, '127.0.0.1 ska ge tillgång');
+
+  const winLocalDisabled = {
+    __SUSHI_ENTRY_ENABLED: false,
+    location: { hostname: 'localhost', search: '' },
+    sessionStorage: { getItem: () => null },
+  } as unknown as Window;
+  assert.equal(
+    isSushiEntryAvailable(winLocalDisabled),
+    false,
+    'Explicit false har företräde även på localhost',
+  );
 });
 
 // ---------------------------------------------------------------------------

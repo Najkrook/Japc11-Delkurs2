@@ -212,4 +212,36 @@ test.describe('Ticket 02: Separat spelvy med Google-inloggning för Sushirestaur
     await expect(page).toHaveURL(/#\/extra/);
     await expect(page.locator('main h1')).toContainText('Extra studier · Tae Kim Anime Immersion');
   });
+
+  test('7. På localhost kan användaren öppna restaurangen direkt med testkonto och logga ut', async ({
+    page,
+  }) => {
+    await page.goto('/#/sushi');
+
+    // Auth gate visas med den lokala inloggningsknappen på localhost
+    const authGate = page.locator('[data-testid="sushi-auth-gate"]');
+    await expect(authGate).toBeVisible();
+    const localLoginBtn = page.locator('[data-testid="sushi-local-login-btn"]');
+    await expect(localLoginBtn).toBeVisible();
+
+    // Klicka på "Öppna lokalt (testkonto)"
+    await localLoginBtn.click();
+
+    // Restaurangen ska öppnas och visa "Lokal student"
+    await expect(authGate).not.toBeVisible();
+    const stage = page.locator('[data-testid="sushi-stage"]');
+    await expect(stage).toBeVisible();
+    await expect(stage).toContainText('Välkommen, Lokal student!');
+    await expect(page.locator('[data-testid="sushi-user-name"]')).toContainText('Lokal student');
+
+    // Kassa och spelscen laddas
+    await expect(page.locator('[data-testid="sushi-cash-register"]')).toBeVisible();
+
+    // Logga ut via kontoknappen i toppmenyn
+    await page.locator('.sushi-account-btn.logged-in').click();
+
+    // Spärrsidan ska återkomma
+    await expect(page.locator('[data-testid="sushi-auth-gate"]')).toBeVisible();
+    await expect(page.locator('[data-testid="sushi-stage"]')).not.toBeVisible();
+  });
 });

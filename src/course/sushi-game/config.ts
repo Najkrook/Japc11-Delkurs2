@@ -4,10 +4,28 @@
  * Enligt Ticket 02 och releaseuppgiften (Ticket 12) hålls produktionsingången till
  * spelet otillgänglig tills backend och åtkomstregler har publicerats.
  *
- * I utvecklingsmiljö (DEV), testmiljö (MODE === 'test') eller när preview
- * uttryckligen aktiveras (via window.__SUSHI_ENTRY_ENABLED, sessionStorage eller URL-parameter)
- * exponeras ingången från studieappen.
+ * I utvecklingsmiljö (DEV), testmiljö (MODE === 'test'), på localhost
+ * eller när preview uttryckligen aktiveras (via window.__SUSHI_ENTRY_ENABLED,
+ * sessionStorage eller URL-parameter) exponeras ingången från studieappen.
  */
+
+/**
+ * Kontrollerar om angivet fönster/värd körs i lokal miljö (localhost / 127.0.0.1 / [::1]).
+ */
+export function isLocalhost(windowObj?: Window): boolean {
+  try {
+    const win = windowObj ?? (typeof window !== 'undefined' ? window : undefined);
+    const hostname = win?.location?.hostname;
+    return (
+      hostname === 'localhost' ||
+      hostname === '127.0.0.1' ||
+      hostname === '[::1]' ||
+      Boolean(hostname?.endsWith('.localhost'))
+    );
+  } catch {
+    return false;
+  }
+}
 
 export function isSushiEntryAvailable(windowObj?: Window): boolean {
   const win = windowObj ?? (typeof window !== 'undefined' ? window : undefined);
@@ -39,13 +57,18 @@ export function isSushiEntryAvailable(windowObj?: Window): boolean {
     // Ignore storage-fel
   }
 
-  // 4. Utvecklings- och testläge i Vite
+  // 4. Lokal miljö (localhost / 127.0.0.1)
+  if (isLocalhost(win)) {
+    return true;
+  }
+
+  // 5. Utvecklings- och testläge i Vite
   const metaEnv = (import.meta as unknown as { env?: { DEV?: boolean; MODE?: string } }).env;
   if (metaEnv?.DEV || metaEnv?.MODE === 'test') {
     return true;
   }
 
-  // 5. Testläge i Node (t.ex. node --test)
+  // 6. Testläge i Node (t.ex. node --test)
   if (
     typeof process !== 'undefined' &&
     (process.env.NODE_ENV === 'test' ||
@@ -55,6 +78,6 @@ export function isSushiEntryAvailable(windowObj?: Window): boolean {
     return true;
   }
 
-  // 6. I skarp produktion hålls ingången dold tills release (Ticket 12)
+  // 7. I skarp produktion hålls ingången dold tills release (Ticket 12)
   return false;
 }
