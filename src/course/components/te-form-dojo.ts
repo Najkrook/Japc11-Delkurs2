@@ -62,7 +62,7 @@ export function renderTeFormDojo(
       <p>
         ${
           state.weekFilter === 'mistakes'
-            ? 'Alla verb du tränat i Dojon har suttit! Eventuella felaktiga svar sparas automatiskt här så att du kan nöta dem inför tentan.'
+            ? 'Alla verb du tränat i Dojon har suttit! Eventuella felaktiga svar sparas automatiskt här så att du kan repetera dem inför tentan.'
             : ''
         }
       </p>

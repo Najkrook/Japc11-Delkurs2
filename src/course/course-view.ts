@@ -937,7 +937,7 @@ function renderWeekBentoHub(
                   </strong>
                   <p>
                     Glosor och verb du nyligen markerat som svåra eller haft fel på under
-                    övningarna. Nöt dem för att säkra momenten inför tentan!
+                    övningarna. Repetera dem för att säkra momenten inför tentan!
                   </p>
                 </div>
               </div>
@@ -969,7 +969,7 @@ function renderWeekBentoHub(
                             selectCourseSubView('dojo', host);
                           }}
                         >
-                          Nöt svaga verb (${summary.mistakeDojoCount}) →
+                          Repetera svaga verb (${summary.mistakeDojoCount}) →
                         </button>
                       `
                     : ''
@@ -1048,7 +1048,7 @@ function renderWeekBentoHub(
                       selectCourseSubView('vocab', host);
                     }}
                   >
-                    ⚠️ Nöt ${summary.mistakeVocabCount} svaga ord
+                    ⚠️ Repetera ${summary.mistakeVocabCount} svaga ord
                   </button>
                 `
               : ''

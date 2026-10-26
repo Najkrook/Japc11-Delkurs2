@@ -980,7 +980,7 @@ function renderFinishedScreen(host: CourseHostContext): CourseTemplate {
                 ? html`
                     <div class="finished-stat warning">
                       <strong>${weakCount}</strong>
-                      <span>Kvar att nöta</span>
+                      <span>Kvar att repetera</span>
                     </div>
                   `
                 : ''
