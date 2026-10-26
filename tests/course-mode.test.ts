@@ -785,7 +785,7 @@ test('Samtliga verb i Vecka 1–7 har definierade te-, nai- och ta-former', () =
       );
     }
   }
-  assert.equal(totalVerbs, 76, 'All 76 verbs across Lessons 6–12 have full conjugations');
+  assert.equal(totalVerbs, 79, 'All 79 verbs across Lessons 6–12 have full conjugations');
 });
 
 test('Ticket 07: Arenans böjningsfrågor testar rätt fokusform per vecka (te för W1-2, nai för W3, ta för W4)', () => {
