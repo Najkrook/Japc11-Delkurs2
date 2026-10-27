@@ -92,8 +92,8 @@ test('goal shows chapter progress, purchase state and completion without inventi
     balanceUnits: 4_000 * 60_000,
   });
   goal = await render(null);
-  assert.match(goal, /Transportband/);
-  assert.match(goal, /Ger \+10 ¥\/min direkt \(20 → 30\)/);
+  assert.match(goal, /Nästa renovering/);
+  assert.match(goal, /Nivå 2\/3/);
   assert.doesNotMatch(goal, /Laxnigiri/);
 
   leaveSushiView();

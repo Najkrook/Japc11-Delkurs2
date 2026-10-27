@@ -24,6 +24,7 @@ export interface SushiCatalogItem {
   readonly categoryLabel: string;
   readonly icon: string;
   readonly requiredLesson: number;
+  readonly requiredRestaurantTier: 1 | 2 | 3;
   readonly requiredTier: MedalTier;
   readonly requiredTierLabel: string;
   readonly requiredPercent: number;
@@ -65,6 +66,7 @@ export type PurchaseFailureReason =
   | 'RESTAURANT_NOT_FOUND'
   | 'ITEM_NOT_FOUND'
   | 'ITEM_LOCKED'
+  | 'RESTAURANT_TIER_REQUIRED'
   | 'ALREADY_OWNED'
   | 'INSUFFICIENT_FUNDS';
 
@@ -106,6 +108,7 @@ export const SUSHI_CATALOG: readonly SushiCatalogItem[] = [
     categoryLabel: 'Kök',
     icon: '🔪',
     requiredLesson: 6,
+    requiredRestaurantTier: 1,
     requiredTier: 'bronze',
     requiredTierLabel: 'Brons',
     requiredPercent: 60,
@@ -122,6 +125,7 @@ export const SUSHI_CATALOG: readonly SushiCatalogItem[] = [
     categoryLabel: 'Recept',
     icon: '🍣',
     requiredLesson: 6,
+    requiredRestaurantTier: 1,
     requiredTier: 'silver',
     requiredTierLabel: 'Silver',
     requiredPercent: 80,
@@ -138,6 +142,7 @@ export const SUSHI_CATALOG: readonly SushiCatalogItem[] = [
     categoryLabel: 'Dekoration',
     icon: '🏮',
     requiredLesson: 6,
+    requiredRestaurantTier: 1,
     requiredTier: 'gold',
     requiredTierLabel: 'Guld',
     requiredPercent: 100,
@@ -156,6 +161,7 @@ export const SUSHI_CATALOG: readonly SushiCatalogItem[] = [
     categoryLabel: 'Produktionstid',
     icon: '⏰',
     requiredLesson: 7,
+    requiredRestaurantTier: 1,
     requiredTier: 'bronze',
     requiredTierLabel: 'Brons',
     requiredPercent: 60,
@@ -172,6 +178,7 @@ export const SUSHI_CATALOG: readonly SushiCatalogItem[] = [
     categoryLabel: 'Recept',
     icon: '🥒',
     requiredLesson: 7,
+    requiredRestaurantTier: 1,
     requiredTier: 'silver',
     requiredTierLabel: 'Silver',
     requiredPercent: 80,
@@ -188,6 +195,7 @@ export const SUSHI_CATALOG: readonly SushiCatalogItem[] = [
     categoryLabel: 'Dekoration',
     icon: '🪴',
     requiredLesson: 7,
+    requiredRestaurantTier: 1,
     requiredTier: 'gold',
     requiredTierLabel: 'Guld',
     requiredPercent: 100,
@@ -206,6 +214,7 @@ export const SUSHI_CATALOG: readonly SushiCatalogItem[] = [
     categoryLabel: 'Kök',
     icon: '🗡️',
     requiredLesson: 8,
+    requiredRestaurantTier: 1,
     requiredTier: 'bronze',
     requiredTierLabel: 'Brons',
     requiredPercent: 60,
@@ -223,6 +232,7 @@ export const SUSHI_CATALOG: readonly SushiCatalogItem[] = [
     categoryLabel: 'Recept',
     icon: '🐟',
     requiredLesson: 8,
+    requiredRestaurantTier: 1,
     requiredTier: 'silver',
     requiredTierLabel: 'Silver',
     requiredPercent: 80,
@@ -239,6 +249,7 @@ export const SUSHI_CATALOG: readonly SushiCatalogItem[] = [
     categoryLabel: 'Dekoration',
     icon: '🎏',
     requiredLesson: 8,
+    requiredRestaurantTier: 1,
     requiredTier: 'gold',
     requiredTierLabel: 'Guld',
     requiredPercent: 100,
@@ -257,6 +268,7 @@ export const SUSHI_CATALOG: readonly SushiCatalogItem[] = [
     categoryLabel: 'Service',
     icon: '🔄',
     requiredLesson: 9,
+    requiredRestaurantTier: 2,
     requiredTier: 'bronze',
     requiredTierLabel: 'Brons',
     requiredPercent: 60,
@@ -273,6 +285,7 @@ export const SUSHI_CATALOG: readonly SushiCatalogItem[] = [
     categoryLabel: 'Recept',
     icon: '🦐',
     requiredLesson: 9,
+    requiredRestaurantTier: 2,
     requiredTier: 'silver',
     requiredTierLabel: 'Silver',
     requiredPercent: 80,
@@ -290,6 +303,7 @@ export const SUSHI_CATALOG: readonly SushiCatalogItem[] = [
     categoryLabel: 'Dekoration',
     icon: '🌊',
     requiredLesson: 9,
+    requiredRestaurantTier: 2,
     requiredTier: 'gold',
     requiredTierLabel: 'Guld',
     requiredPercent: 100,
@@ -308,6 +322,7 @@ export const SUSHI_CATALOG: readonly SushiCatalogItem[] = [
     categoryLabel: 'Service',
     icon: '🍱',
     requiredLesson: 10,
+    requiredRestaurantTier: 2,
     requiredTier: 'bronze',
     requiredTierLabel: 'Brons',
     requiredPercent: 60,
@@ -325,6 +340,7 @@ export const SUSHI_CATALOG: readonly SushiCatalogItem[] = [
     categoryLabel: 'Recept',
     icon: '🍳',
     requiredLesson: 10,
+    requiredRestaurantTier: 2,
     requiredTier: 'silver',
     requiredTierLabel: 'Silver',
     requiredPercent: 80,
@@ -341,6 +357,7 @@ export const SUSHI_CATALOG: readonly SushiCatalogItem[] = [
     categoryLabel: 'Dekoration',
     icon: '🪔',
     requiredLesson: 10,
+    requiredRestaurantTier: 2,
     requiredTier: 'gold',
     requiredTierLabel: 'Guld',
     requiredPercent: 100,
@@ -359,6 +376,7 @@ export const SUSHI_CATALOG: readonly SushiCatalogItem[] = [
     categoryLabel: 'Kök',
     icon: '👨‍🍳',
     requiredLesson: 11,
+    requiredRestaurantTier: 3,
     requiredTier: 'bronze',
     requiredTierLabel: 'Brons',
     requiredPercent: 60,
@@ -375,6 +393,7 @@ export const SUSHI_CATALOG: readonly SushiCatalogItem[] = [
     categoryLabel: 'Recept',
     icon: '🍱',
     requiredLesson: 11,
+    requiredRestaurantTier: 3,
     requiredTier: 'silver',
     requiredTierLabel: 'Silver',
     requiredPercent: 80,
@@ -391,6 +410,7 @@ export const SUSHI_CATALOG: readonly SushiCatalogItem[] = [
     categoryLabel: 'Dekoration',
     icon: '🌸',
     requiredLesson: 11,
+    requiredRestaurantTier: 3,
     requiredTier: 'gold',
     requiredTierLabel: 'Guld',
     requiredPercent: 100,
@@ -409,6 +429,7 @@ export const SUSHI_CATALOG: readonly SushiCatalogItem[] = [
     categoryLabel: 'Intäkt',
     icon: '📜',
     requiredLesson: 12,
+    requiredRestaurantTier: 3,
     requiredTier: 'bronze',
     requiredTierLabel: 'Brons',
     requiredPercent: 60,
@@ -425,6 +446,7 @@ export const SUSHI_CATALOG: readonly SushiCatalogItem[] = [
     categoryLabel: 'Recept',
     icon: '🍣',
     requiredLesson: 12,
+    requiredRestaurantTier: 3,
     requiredTier: 'silver',
     requiredTierLabel: 'Silver',
     requiredPercent: 80,
@@ -441,6 +463,7 @@ export const SUSHI_CATALOG: readonly SushiCatalogItem[] = [
     categoryLabel: 'Dekoration',
     icon: '🐱',
     requiredLesson: 12,
+    requiredRestaurantTier: 3,
     requiredTier: 'gold',
     requiredTierLabel: 'Guld',
     requiredPercent: 100,

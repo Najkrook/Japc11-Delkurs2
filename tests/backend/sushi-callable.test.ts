@@ -1,3 +1,4 @@
+import type { RenovationResult } from '../../src/course/sushi-game/renovations.ts';
 import test from 'node:test';
 import assert from 'node:assert/strict';
 import { createRequire } from 'node:module';
@@ -193,6 +194,61 @@ test('authenticated callable persists authoritative economy, medals and concurre
       updatedAt: 2,
     });
     await ref.update({ balanceUnits: 600_000_000 });
+    // Renovations are server-priced, authenticated, sequential and idempotent.
+    await assert.rejects(
+      owner.call({
+        operation: 'renovate',
+        targetTier: 2,
+        idempotencyKey: 'spoof-renovation',
+        priceUnits: 1,
+      }),
+      /determined by the server/,
+    );
+    await assert.rejects(
+      owner.call({ operation: 'renovate', targetTier: 4, idempotencyKey: 'bad-tier' }),
+      /target tier/,
+    );
+    await assert.rejects(
+      owner.call({
+        operation: 'renovate',
+        targetTier: 2,
+        idempotencyKey: 'wrong-user',
+        expectedUid: 'victim',
+      }),
+      /account changed/,
+    );
+    const blocked = await owner.call<PurchaseItemResult>({
+      operation: 'purchase',
+      itemId: 'wave_print',
+      idempotencyKey: 'tier-locked',
+    });
+    assert.equal(blocked.success, false);
+    if (!blocked.success) assert.equal(blocked.reason, 'RESTAURANT_TIER_REQUIRED');
+    const skip = await owner.call<RenovationResult>({
+      operation: 'renovate',
+      targetTier: 3,
+      idempotencyKey: 'skip',
+    });
+    assert.equal(skip.success, false);
+    const renovations = await Promise.all(
+      Array.from({ length: 4 }, () =>
+        owner.call<RenovationResult>({
+          operation: 'renovate',
+          targetTier: 2,
+          idempotencyKey: 'renovation-retry',
+        }),
+      ),
+    );
+    assert.ok(renovations.every((r) => r.success));
+    assert.equal(renovations.filter((r) => r.success && !r.wasAlreadyProcessed).length, 1);
+    assert.equal((await ref.get()).data().balanceUnits, 600_000_000 - 3600 * 60000);
+    assert.equal((await ref.get()).data().restaurantTier, 2);
+    const isolatedRenovation = await outsider.call<RenovationResult>({
+      operation: 'renovate',
+      targetTier: 2,
+      idempotencyKey: 'isolated',
+    });
+    assert.equal(isolatedRenovation.success, false);
     const equip = (slot: string, itemId: string | null, key: string) =>
       owner.call<import('../../src/course/sushi-game/types.ts').EquipDecorationResult>({
         operation: 'equip',
@@ -301,9 +357,45 @@ test('authenticated callable persists authoritative economy, medals and concurre
     assert.equal(duplicateProject.success, false);
     if (!duplicateProject.success) assert.equal(duplicateProject.reason, 'ALREADY_COMPLETED');
 
+    const masterLocked = await owner.call<RenovationResult>({
+      operation: 'renovate',
+      targetTier: 3,
+      idempotencyKey: 'master-locked',
+    });
+    assert.equal(masterLocked.success, false);
+    if (!masterLocked.success) assert.equal(masterLocked.reason, 'MEDAL_REQUIRED');
+    const week11 = courseWeeks.find((w) => w.lessonNumber === 11)!;
+    for (const word of week11.vocab) progress.masteredVocabIds[word.id] = true;
+    for (const kanji of week11.kanji) progress.masteredKanjiIds[kanji.id] = true;
+    for (const verb of week11.conjugations) progress.masteredDojoIds[verb.id] = true;
+    await setDoc(doc(db, 'users', uid, 'progress', 'course'), {
+      payload: JSON.stringify(progress),
+      updatedAt: 3,
+    });
+    await ref.update({ balanceUnits: 10800 * 60000 });
+    const master = await owner.call<RenovationResult>({
+      operation: 'renovate',
+      targetTier: 3,
+      idempotencyKey: 'master',
+    });
+    assert.ok(master.success);
+    assert.equal(master.state?.restaurantTier, 3);
+    assert.equal(master.state?.balanceUnits, 0);
+    assert.equal(master.state?.kitchenCapacity, projected.kitchenCapacity);
+    assert.equal(master.state?.serviceCapacity, projected.serviceCapacity);
+    assert.equal(master.state?.averageRevenuePerOrder, projected.averageRevenuePerOrder);
+    const conflict = await owner.call<RenovationResult>({
+      operation: 'renovate',
+      targetTier: 2,
+      idempotencyKey: 'master',
+    });
+    assert.equal(conflict.success, false);
+    if (!conflict.success) assert.equal(conflict.reason, 'REQUEST_CONFLICT');
+
     // Persisted pre-audit restaurants settle old production before adopting new rates/caps.
     await ref.set({
       ...projected,
+      schemaVersion: 1,
       balanceVersion: 1,
       kitchenCapacity: 4,
       serviceCapacity: 2,
@@ -319,6 +411,8 @@ test('authenticated callable persists authoritative economy, medals and concurre
     });
     const migrated = await owner.call<SushiRestaurantState>({ operation: 'load' });
     assert.equal(migrated.balanceVersion, 2);
+    assert.equal(migrated.schemaVersion, 2);
+    assert.equal(migrated.restaurantTier, 1);
     assert.equal(migrated.capMs, DEFAULT_CAP_MS);
     assert.equal(migrated.averageRevenuePerOrder, 11);
     assert.equal(migrated.usedProductionMs, 8 * 3_600_000);

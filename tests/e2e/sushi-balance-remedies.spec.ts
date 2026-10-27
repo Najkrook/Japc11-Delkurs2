@@ -24,6 +24,7 @@ async function openRestaurant(
   let state = createDefaultRestaurantState(id, NOW, {
     balanceUnits: 10_000_000 * 60_000,
     permanentGrants: grants,
+    restaurantTier: 3, // These fixtures isolate economy effects from renovation gates.
   });
   for (const itemId of items) {
     await repo.set(state);

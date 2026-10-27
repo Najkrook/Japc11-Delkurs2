@@ -567,6 +567,7 @@ test('M3-CHALLENGE-05: End-to-End Purchase Transaction Stress & Boundary Invaria
   // Initialize restaurant with ample funds (100,000 Yen = 6,000,000,000 units)
   const initState = await service.getOrInitRestaurant(uid, nowMs);
   assert.ok(initState && initState.id === uid);
+  initState.restaurantTier = 3;
   initState.balanceUnits = 100_000 * YEN_UNIT_MULTIPLIER;
   await repo.set(initState);
 

@@ -298,7 +298,8 @@ export function createDefaultRestaurantState(
   overrides: Partial<SushiRestaurantState> = {},
 ): SushiRestaurantState {
   return {
-    schemaVersion: 1,
+    schemaVersion: 2,
+    restaurantTier: 1,
     balanceVersion: CURRENT_BALANCE_VERSION,
     id: uid,
     ownerUid: uid,

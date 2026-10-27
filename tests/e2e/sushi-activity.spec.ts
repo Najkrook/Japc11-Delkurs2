@@ -98,6 +98,7 @@ test('upgrades add owned dishes and sous-chef; reduced motion settles to static 
   page,
 }, testInfo) => {
   await seed(page, {
+    restaurantTier: 3,
     kitchenCapacity: 6,
     serviceCapacity: 6,
     permanentGrants: ['prep_counter', 'conveyor_belt', 'salmon_nigiri', 'sous_chef'],

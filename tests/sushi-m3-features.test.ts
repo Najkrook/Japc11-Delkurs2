@@ -245,7 +245,7 @@ test('Milestone 3 Restaurant Scene: State-driven pixel artwork for catalog purch
 
   // The scene is state-driven vector geometry, without baked-in furniture.
   assert.ok(
-    html1.includes('/sprites/sushi/starter-room.png'),
+    html1.includes('/sprites/sushi/tiers/tier-1.png'),
     'Scene loads the empty starter room',
   );
   assert.ok(

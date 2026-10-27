@@ -28,6 +28,7 @@ const fixture = async (overrides: Partial<SushiRestaurantState> = {}) => {
     service = new SushiService(repo);
   const state = createDefaultRestaurantState('balance', 0, {
     permanentGrants: grants,
+    restaurantTier: 3,
     ...overrides,
   });
   await repo.set(state);

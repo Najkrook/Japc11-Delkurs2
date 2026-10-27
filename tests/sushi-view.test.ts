@@ -987,6 +987,7 @@ test('Ticket 06 & 07 UI: Shop cards render all four purchase states (Låst, För
     state: {
       ...current!,
       inventory: ['prep_counter'],
+      restaurantTier: 2,
       balanceUnits: 1000 * 60_000,
     },
     result: null,

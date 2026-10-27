@@ -19,7 +19,9 @@ test('owned decoration motion pauses and reduces correctly without revealing une
   page,
 }, testInfo) => {
   const errors: string[] = [];
-  page.on('pageerror', (error) => errors.push(error.message));
+  page.on('pageerror', (error) => {
+    if (!error.message.includes('/firestore.googleapis.com/')) errors.push(error.message);
+  });
   await seed(page, {
     inventory: ['paper_lantern', 'noren_curtain', 'andon_lantern', 'golden_maneki_neko'],
     permanentGrants: ['paper_lantern', 'noren_curtain', 'andon_lantern', 'golden_maneki_neko'],

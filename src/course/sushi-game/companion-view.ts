@@ -1,3 +1,4 @@
+import { nextRenovation, currentRestaurantTier } from './renovations.ts';
 import { html } from 'lit-html';
 import { courseWeeks } from '../data/index.ts';
 import { getWeekProgressSummary } from '../course-state.ts';
@@ -29,6 +30,9 @@ export function renderCompanionGoal(
   },
 ) {
   const goal = getSushiGoals(state)[mode];
+  const renovation = nextRenovation(state);
+  const needsRenovation =
+    renovation && goal?.unlocked && goal.item.requiredRestaurantTier > currentRestaurantTier(state);
   const week = goal && courseWeeks.find((item) => item.id === goal.item.targetWeekId);
   const summary = week && progress ? getWeekProgressSummary(progress, week) : null;
   const complete = isRestaurantComplete(state);
@@ -58,53 +62,68 @@ export function renderCompanionGoal(
       </button>
     </div>
     ${
-      goal
-        ? html`
-            <button
-              type="button"
-              class="sushi-goal-action"
-              data-testid="sushi-goal-action"
-              @click=${() => (goal.requiresStudy ? actions.study(goal.item.requiredLesson, goal.item.targetWeekId) : actions.openShop(goal.item.id))}
+      needsRenovation
+        ? html`<button
+            type="button"
+            class="sushi-goal-action"
+            data-testid="sushi-goal-action"
+            @click=${() => actions.openShop('renovation')}
+          >
+            <span
+              ><strong>Nästa renovering · ${renovation.name}</strong
+              ><small
+                >¥ ${yen(renovation.priceYen)} · Nivå ${renovation.targetTier}/3 · Kapitel
+                ${renovation.chapter} brons (60 %) · Öppna butik</small
+              ></span
             >
-              <span
-                class="sushi-atlas-sprite sushi-goal-sprite"
-                aria-hidden="true"
-                style=${spriteStyle(SUSHI_SPRITES[goal.item.id])}
-              ></span>
-              <span
-                ><strong>${goal.item.name}</strong
-                ><small
-                  >${goal.unlocked ? `¥ ${yen(goal.item.priceYen)} · Öppna butik` : `Kapitel ${goal.item.requiredLesson} · ${goal.item.requiredTierLabel} (${goal.item.requiredPercent} %)${summary ? ` · ${summary.overallPercent} % klart` : ''}`}</small
-                ></span
-              >
-            </button>
-            <details class="sushi-goal-reason">
-              <summary>Varför detta mål?</summary>
-              <p data-testid="sushi-goal-reason">${goal.reasonSv}</p>
-            </details>
-          `
-        : complete
+          </button>`
+        : goal
           ? html`
-              <strong class="sushi-goal-finished">Restaurangen är komplett!</strong>
-              <p>Alla 21 kursbelöningar är dina.</p>
               <button
                 type="button"
-                class="sushi-goal-link"
-                data-testid="sushi-replay-finale"
-                @click=${actions.replayFinale}
+                class="sushi-goal-action"
+                data-testid="sushi-goal-action"
+                @click=${() => (goal.requiresStudy ? actions.study(goal.item.requiredLesson, goal.item.targetWeekId) : actions.openShop(goal.item.id))}
               >
-                Fira din kursresa ✨
+                <span
+                  class="sushi-atlas-sprite sushi-goal-sprite"
+                  aria-hidden="true"
+                  style=${spriteStyle(SUSHI_SPRITES[goal.item.id])}
+                ></span>
+                <span
+                  ><strong>${goal.item.name}</strong
+                  ><small
+                    >${goal.unlocked ? `¥ ${yen(goal.item.priceYen)} · Öppna butik` : `Kapitel ${goal.item.requiredLesson} · ${goal.item.requiredTierLabel} (${goal.item.requiredPercent} %)${summary ? ` · ${summary.overallPercent} % klart` : ''}`}</small
+                  ></span
+                >
               </button>
-              ${mode === 'personalize' ? html`<button type="button" class="sushi-goal-link" @click=${actions.openJournal}>Se frivilliga projekt →</button>` : ''}
+              <details class="sushi-goal-reason">
+                <summary>Varför detta mål?</summary>
+                <p data-testid="sushi-goal-reason">${goal.reasonSv}</p>
+              </details>
             `
-          : html`
-              <strong class="sushi-goal-finished"
-                >${mode === 'grow' ? 'Köket är färdigbyggt!' : 'Menyn och inredningen är samlade!'}</strong
-              >
-              <button type="button" class="sushi-goal-link" @click=${actions.openJournal}>
-                Se kapitelminnen och frivilliga projekt →
-              </button>
-            `
+          : complete
+            ? html`
+                <strong class="sushi-goal-finished">Restaurangen är komplett!</strong>
+                <p>Alla 21 kursbelöningar är dina.</p>
+                <button
+                  type="button"
+                  class="sushi-goal-link"
+                  data-testid="sushi-replay-finale"
+                  @click=${actions.replayFinale}
+                >
+                  Fira din kursresa ✨
+                </button>
+                ${mode === 'personalize' ? html`<button type="button" class="sushi-goal-link" @click=${actions.openJournal}>Se frivilliga projekt →</button>` : ''}
+              `
+            : html`
+                <strong class="sushi-goal-finished"
+                  >${mode === 'grow' ? 'Köket är färdigbyggt!' : 'Menyn och inredningen är samlade!'}</strong
+                >
+                <button type="button" class="sushi-goal-link" @click=${actions.openJournal}>
+                  Se kapitelminnen och frivilliga projekt →
+                </button>
+              `
     }
     <span class="sushi-goal-progress">${owned} / 21 belöningar köpta</span>
     <button

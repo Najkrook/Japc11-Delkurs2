@@ -1,3 +1,7 @@
+import { nextRenovation, currentRestaurantTier, RESTAURANT_TIER_NAMES } from './renovations.ts';
+import { tierAssets } from './tier-scenes.ts';
+import type { RestaurantTier } from './types.ts';
+import { renderRenovationCard } from './renovation-view.ts';
 import { html, svg, type TemplateResult } from 'lit-html';
 import {
   renderRestaurantScene,
@@ -32,6 +36,7 @@ import {
   collectRevenue,
   syncMedalGrants,
   purchaseCatalogItem,
+  renovateRestaurant,
   equipDecoration,
   purchaseRestaurantProject,
 } from './service.ts';
@@ -238,7 +243,140 @@ export class SushiClientController {
   public clientReceivedAtMs: number = Date.now();
   public activeOverlay: 'shop' | 'menu' | null = null;
   public shopCategoryFilter: string = 'all';
-  public previewDecorationId: string | null = null;
+  public preview:
+    { kind: 'decoration'; itemId: string } | { kind: 'renovation'; tier: RestaurantTier } | null =
+    null;
+  public get previewDecorationId(): string | null {
+    return this.preview?.kind === 'decoration' ? this.preview.itemId : null;
+  }
+  public set previewDecorationId(value: string | null) {
+    this.preview = value ? { kind: 'decoration', itemId: value } : null;
+  }
+  public get previewTier(): RestaurantTier | null {
+    return this.preview?.kind === 'renovation' ? this.preview.tier : null;
+  }
+  public sceneTier: RestaurantTier | null = null;
+  public sceneAssetError = '';
+  public sceneTransition = 0;
+  private roomLoads = new Map<number, Promise<void>>();
+  private renovationKeys = new Map<number, string>();
+
+  private decodeTier(tier: RestaurantTier): Promise<void> {
+    let pending = this.roomLoads.get(tier);
+    if (!pending) {
+      pending =
+        typeof Image === 'undefined'
+          ? Promise.resolve()
+          : Promise.all(
+              tierAssets(tier).map((src) => {
+                const image = new Image();
+                image.src = src;
+                return image.decode();
+              }),
+            ).then(() => {});
+      this.roomLoads.set(tier, pending);
+      // Keep failures cached too: income ticks must not retry network requests.
+      void pending.catch(() => {});
+    }
+    return pending;
+  }
+  public preloadRenovation(): void {
+    const next = this.state && nextRenovation(this.state);
+    if (next && this.state?.permanentGrants.includes(next.bronzeGrant))
+      void this.decodeTier(next.targetTier).catch(() => {});
+  }
+  public async showPurchasedRoom(retry = false): Promise<void> {
+    if (!this.state) return;
+    const tier = currentRestaurantTier(this.state),
+      generation = this.generation;
+    if (retry) this.roomLoads.delete(tier);
+    try {
+      await this.decodeTier(tier);
+      if (generation !== this.generation) return;
+      if (this.sceneTier !== tier) {
+        this.sceneTier = tier;
+        this.sceneTransition++;
+      }
+      this.sceneAssetError = '';
+    } catch {
+      if (generation === this.generation)
+        this.sceneAssetError =
+          'Renoveringen är köpt, men bilden kunde inte laddas. Försök ladda bilden igen.';
+    }
+    if (generation === this.generation) this.host?.render();
+  }
+  public previewRenovation(): void {
+    const next = this.state && nextRenovation(this.state);
+    if (!next || this.isBuying || this.isEquipping || this.isCollecting) return;
+    this.preview = { kind: 'renovation', tier: next.targetTier };
+    this.activeOverlay = null;
+    this.greetingIndex = -1;
+    this.sceneArrival = null;
+    this.host?.render();
+    if (typeof document !== 'undefined')
+      queueMicrotask(() =>
+        document.querySelector<HTMLElement>('[data-testid="sushi-renovation-preview"]')?.focus(),
+      );
+  }
+  public closeRenovationPreview(): void {
+    this.preview = null;
+    this.activeOverlay = 'shop';
+    this.host?.render();
+    if (typeof document !== 'undefined')
+      queueMicrotask(() =>
+        document.querySelector<HTMLElement>('[data-testid="preview-renovation"]')?.focus(),
+      );
+  }
+  public async renovate(): Promise<void> {
+    if (
+      !this.uid ||
+      !this.state ||
+      this.isBuying ||
+      this.isCollecting ||
+      this.isEquipping ||
+      this.syncing
+    )
+      return;
+    const renovation = nextRenovation(this.state);
+    if (!renovation) return;
+    const uid = this.uid,
+      generation = this.generation;
+    const key =
+      this.renovationKeys.get(renovation.targetTier) ??
+      `renovate_${Date.now()}_${Math.random().toString(36).slice(2, 9)}`;
+    this.renovationKeys.set(renovation.targetTier, key);
+    this.sceneTier ??= currentRestaurantTier(this.state);
+    this.isBuying = 'renovation';
+    this.buyError = null;
+    this.host?.render();
+    try {
+      const result = await renovateRestaurant(uid, renovation.targetTier, key);
+      if (this.uid !== uid || this.generation !== generation) return;
+      this.renovationKeys.delete(renovation.targetTier);
+      if (result.state) {
+        this.state = result.state;
+        this.clientReceivedAtMs = Date.now();
+      }
+      if (result.success) {
+        this.preview = null;
+        this.activeOverlay = null;
+        this.announcement = `Renoveringen är klar! Restaurangnivå ${result.state.restaurantTier}: ${renovation.name}.`;
+        this.celebrate(this.announcement);
+        await this.showPurchasedRoom();
+      } else {
+        this.buyError = result.message;
+        this.announcement = result.message;
+      }
+    } catch {
+      if (this.uid !== uid || this.generation !== generation) return;
+      this.buyError = 'Kunde inte bekräfta renoveringen. Försök igen; du debiteras bara en gång.';
+    } finally {
+      if (this.uid === uid && this.generation === generation) {
+        this.isBuying = null;
+        this.host?.render();
+      }
+    }
+  }
   private tickerId: ReturnType<typeof setInterval> | number | null = null;
   private visibilityCleanup: (() => void) | null = null;
   private idempotencyKey: string | null = null;
@@ -282,7 +420,11 @@ export class SushiClientController {
     if (itemId && typeof document !== 'undefined')
       queueMicrotask(() =>
         document
-          .querySelector<HTMLElement>(`[data-testid="unlock-card-${itemId}"]`)
+          .querySelector<HTMLElement>(
+            itemId === 'renovation'
+              ? '[data-testid="sushi-renovation-card"]'
+              : `[data-testid="unlock-card-${itemId}"]`,
+          )
           ?.scrollIntoView({ block: 'nearest' }),
       );
   }
@@ -396,6 +538,7 @@ export class SushiClientController {
         }
         if (e.key === 'Escape') {
           if (this.activeOverlay !== null) this.closeOverlay();
+          else if (this.previewTier !== null) this.closeRenovationPreview();
           else if (this.previewDecorationId !== null) this.closeDecorationPreview();
           else if (this.greetingIndex >= 0) this.dismissGreeting();
         }
@@ -480,6 +623,11 @@ export class SushiClientController {
   }
 
   public reset(): void {
+    this.sceneTier = null;
+    this.sceneAssetError = '';
+    this.sceneTransition = 0;
+    this.roomLoads.clear();
+    this.renovationKeys.clear();
     if (this.rewardTimer) clearTimeout(this.rewardTimer);
     this.rewardTimer = null;
     this.rewardMessage = '';
@@ -1063,6 +1211,9 @@ function renderSushiAuthenticatedStage(
     activeController.guestMode === 'study' && activeController.greetingIndex >= 0
       ? guestDeck[activeController.greetingIndex % guestDeck.length]
       : undefined;
+  activeController.preloadRenovation();
+  const tier = currentRestaurantTier(state);
+  const previewRenovation = activeController.previewTier !== null;
   const previewDecoration = getCatalogItem(activeController.previewDecorationId ?? '');
   const previewOwned = previewDecoration ? state.inventory.includes(previewDecoration.id) : false;
   const previewEquipped = previewDecoration?.slotType
@@ -1078,7 +1229,7 @@ function renderSushiAuthenticatedStage(
   return html`
     <div class="sushi-container" data-testid="sushi-container">
       <section
-        class="sushi-stage ${previewDecoration ? 'is-previewing' : ''}"
+        class="sushi-stage ${previewDecoration || previewRenovation ? 'is-previewing' : ''}"
         data-testid="sushi-stage"
         aria-label="Personlig sushirestaurang"
       >
@@ -1086,6 +1237,9 @@ function renderSushiAuthenticatedStage(
         <div class="sushi-hud-floating-layer">
           <div class="sushi-stage-header" data-testid="sushi-stage-header">
             <h2 class="sr-only">Välkommen, ${displayName}!</h2>
+            <p class="sushi-tier-badge" data-testid="sushi-current-tier">
+              Restaurangnivå ${tier}/3 · ${RESTAURANT_TIER_NAMES[tier]}
+            </p>
             <div class="sushi-balance-badge pixel-panel" data-testid="sushi-spendable-balance">
               <span class="sr-only sushi-plaque-icon"
                 >${renderPixelIcon('coins')} Disponibelt saldo: ¥ ${spendableYen}</span
@@ -1149,6 +1303,9 @@ function renderSushiAuthenticatedStage(
         <div class="sushi-stage-scene-wrap">
           ${renderRestaurantScene(state, {
             onGreet: () => activeController.greet(),
+            tier: activeController.previewTier ?? activeController.sceneTier ?? tier,
+            previewing: previewRenovation,
+            transition: activeController.sceneTransition,
             productionStopped: isCapped,
             paused: activeController.activeOverlay !== null || activeController.showFinale,
             previewDecorationId: previewDecoration?.id,
@@ -1225,6 +1382,27 @@ function renderSushiAuthenticatedStage(
               `
             : ''
         }
+        ${
+          previewRenovation
+            ? html`<section
+                class="sushi-decoration-preview pixel-panel"
+                tabindex="-1"
+                aria-label="Förhandsvisa renovering"
+                data-testid="sushi-renovation-preview"
+              >
+                <button
+                  type="button"
+                  class="pixel-btn"
+                  @click=${() => activeController.closeRenovationPreview()}
+                >
+                  ← Tillbaka till butik
+                </button>
+                <strong>Förhandsvisning · Inget ändras förrän du köper</strong>
+                ${renderRenovationCard(state, { buy: () => void activeController.renovate(), preview: () => {}, study: handleNavigateToChapter }, activeController.isBuying !== null, true)}
+              </section>`
+            : ''
+        }
+        ${activeController.sceneAssetError ? html`<p class="sushi-room-error" role="alert">${activeController.sceneAssetError}<button type="button" @click=${() => void activeController.showPurchasedRoom(true)}>Ladda bilden igen</button></p>` : ''}
         ${renderCompanionGoal(
           { ...state, uncollectedUnits: calc.currentUncollectedUnits },
           activeController.goalMode,
@@ -1579,6 +1757,8 @@ function renderSushiAuthenticatedStage(
           </div>
 
           <div class="sushi-overlay-scroll-body">
+            ${renderRenovationCard(state, { buy: () => void activeController.renovate(), preview: () => activeController.previewRenovation(), study: handleNavigateToChapter }, activeController.isBuying !== null || activeController.isCollecting || activeController.isEquipping)}
+            ${activeController.buyError ? html`<p role="alert">${activeController.buyError}</p>` : ''}
             <div class="sushi-unlocks-grid" data-testid="sushi-unlocks-grid">
               ${SUSHI_CATALOG.map((item) => {
                 const isOwned = Boolean(state?.inventory && state.inventory.includes(item.id));
@@ -1597,7 +1777,7 @@ function renderSushiAuthenticatedStage(
                 if (isOwned) {
                   purchaseState = 'owned';
                   cardStateClass = 'is-owned';
-                } else if (!isUnlocked) {
+                } else if (!isUnlocked || tier < item.requiredRestaurantTier) {
                   purchaseState = 'locked';
                   cardStateClass = 'is-locked';
                 } else if (!canAffordItem) {
@@ -1648,7 +1828,21 @@ function renderSushiAuthenticatedStage(
                     </div>
 
                     <p class="sushi-card-desc">${item.effectDescription}</p>
-
+                    ${
+                      !isOwned && tier < item.requiredRestaurantTier
+                        ? html`<p data-testid=${`tier-requirement-${item.id}`}>
+                              Kräver restaurangnivå ${item.requiredRestaurantTier} · Pris ¥
+                              ${item.priceYen}
+                            </p>
+                            <button
+                              type="button"
+                              class="pixel-btn"
+                              @click=${() => document.querySelector('[data-testid="sushi-renovation-card"]')?.scrollIntoView({ block: 'nearest' })}
+                            >
+                              Se nästa renovering ↑
+                            </button>`
+                        : ''
+                    }
                     ${
                       preview && item.kitchenCapacityDelta
                         ? html`<p class="sushi-card-desc" data-testid="capacity-preview-${item.id}">
@@ -1751,62 +1945,71 @@ function renderSushiAuthenticatedStage(
                                   Öppna Kapitel ${item.requiredLesson} →
                                 </button>
                               `
-                            : !canAffordItem
-                              ? html`
-                                  <div class="sushi-status-line">
-                                    <span
-                                      class="sushi-unlock-badge unlocked"
-                                      data-testid="unlock-badge-${item.id}"
+                            : tier < item.requiredRestaurantTier
+                              ? html`<button
+                                  type="button"
+                                  class="sushi-btn-buy pixel-btn"
+                                  data-testid="buy-btn-${item.id}"
+                                  disabled
+                                >
+                                  Renovera först · nivå ${item.requiredRestaurantTier}
+                                </button>`
+                              : !canAffordItem
+                                ? html`
+                                    <div class="sushi-status-line">
+                                      <span
+                                        class="sushi-unlock-badge unlocked"
+                                        data-testid="unlock-badge-${item.id}"
+                                      >
+                                        🔓 Upplåst köpmöjlighet
+                                      </span>
+                                      <span class="sushi-price-hint"
+                                        >Pris i butik: ¥ ${item.priceYen}</span
+                                      >
+                                    </div>
+                                    <div class="sushi-status-line">
+                                      <span
+                                        class="sushi-missing-funds"
+                                        data-testid="missing-funds-${item.id}"
+                                      >
+                                        Saknar ¥ ${diffYen}
+                                      </span>
+                                    </div>
+                                    <button
+                                      type="button"
+                                      class="sushi-btn-buy pixel-btn"
+                                      disabled
+                                      data-testid="buy-btn-${item.id}"
                                     >
-                                      🔓 Upplåst köpmöjlighet
-                                    </span>
-                                    <span class="sushi-price-hint"
-                                      >Pris i butik: ¥ ${item.priceYen}</span
+                                      För lite yen (saknar ¥ ${diffYen})
+                                    </button>
+                                  `
+                                : html`
+                                    <div class="sushi-status-line">
+                                      <span
+                                        class="sushi-unlock-badge unlocked"
+                                        data-testid="unlock-badge-${item.id}"
+                                      >
+                                        🔓 Upplåst köpmöjlighet
+                                      </span>
+                                      <span class="sushi-price-hint"
+                                        >Pris i butik: ¥ ${item.priceYen}</span
+                                      >
+                                    </div>
+                                    <button
+                                      type="button"
+                                      class="sushi-btn-buy sushi-btn-primary pixel-btn"
+                                      data-testid="buy-btn-${item.id}"
+                                      ?disabled=${activeController.isBuying === item.id}
+                                      @click=${() => void activeController.buy(item.id)}
                                     >
-                                  </div>
-                                  <div class="sushi-status-line">
-                                    <span
-                                      class="sushi-missing-funds"
-                                      data-testid="missing-funds-${item.id}"
-                                    >
-                                      Saknar ¥ ${diffYen}
-                                    </span>
-                                  </div>
-                                  <button
-                                    type="button"
-                                    class="sushi-btn-buy pixel-btn"
-                                    disabled
-                                    data-testid="buy-btn-${item.id}"
-                                  >
-                                    För lite yen (saknar ¥ ${diffYen})
-                                  </button>
-                                `
-                              : html`
-                                  <div class="sushi-status-line">
-                                    <span
-                                      class="sushi-unlock-badge unlocked"
-                                      data-testid="unlock-badge-${item.id}"
-                                    >
-                                      🔓 Upplåst köpmöjlighet
-                                    </span>
-                                    <span class="sushi-price-hint"
-                                      >Pris i butik: ¥ ${item.priceYen}</span
-                                    >
-                                  </div>
-                                  <button
-                                    type="button"
-                                    class="sushi-btn-buy sushi-btn-primary pixel-btn"
-                                    data-testid="buy-btn-${item.id}"
-                                    ?disabled=${activeController.isBuying === item.id}
-                                    @click=${() => void activeController.buy(item.id)}
-                                  >
-                                    ${
-                                      activeController.isBuying === item.id
-                                        ? 'Köper...'
-                                        : `Köp för ¥ ${item.priceYen}`
-                                    }
-                                  </button>
-                                `
+                                      ${
+                                        activeController.isBuying === item.id
+                                          ? 'Köper...'
+                                          : `Köp för ¥ ${item.priceYen}`
+                                      }
+                                    </button>
+                                  `
                       }
                     </div>
                   </div>

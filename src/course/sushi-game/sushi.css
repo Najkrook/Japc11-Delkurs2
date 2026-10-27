@@ -1711,6 +1711,7 @@
   border-radius: 0;
 }
 .sushi-pixel-world {
+  animation: var(--room-enter, none) 400ms ease-out both;
   position: relative;
   width: 100%;
   aspect-ratio: 3 / 2;
@@ -1775,12 +1776,6 @@
   animation-delay: var(--guest-delay);
 }
 .sushi-chef-working {
-  position: absolute;
-  left: 44.92%;
-  top: 35.16%;
-  width: 11.07%;
-  aspect-ratio: 1;
-  background: url('/sprites/sushi/activity/chef-preparing.png') 0 0 / 400% 100% no-repeat;
   image-rendering: pixelated;
   pointer-events: none;
   animation: sushi-chef-prepare var(--activity-cycle) steps(1, end) infinite;
@@ -1803,23 +1798,23 @@
 }
 @keyframes sushi-chef-prepare {
   0% {
-    background-position-x: 0%;
+    transform: translateX(0);
   }
   8% {
-    background-position-x: 33.333333%;
+    transform: translateX(-256px);
   }
   18% {
-    background-position-x: 66.666667%;
+    transform: translateX(-512px);
   }
   28% {
-    background-position-x: 33.333333%;
+    transform: translateX(-256px);
   }
   40% {
-    background-position-x: 100%;
+    transform: translateX(-768px);
   }
   70%,
   100% {
-    background-position-x: 0%;
+    transform: translateX(0);
   }
 }
 @keyframes sushi-sous-chef-prepare {
@@ -3174,5 +3169,141 @@
 @media (max-width: 640px) {
   .sushi-account-btn .sushi-user-name {
     display: none;
+  }
+}
+
+.sushi-tier-badge {
+  margin: 0;
+  padding: 6px 10px;
+  background: #fff5dd;
+  color: #593e2b;
+  border: 2px solid #976b40;
+  border-radius: 8px;
+  font: 600 14px/1.4 system-ui;
+  max-width: 260px;
+}
+.sushi-renovation-card {
+  display: flex;
+  align-items: center;
+  gap: 16px;
+  padding: 16px;
+  margin: 0 0 20px;
+  background: #fff3d9;
+  color: #503825;
+  border: 2px solid #b98a4f;
+  border-radius: 12px;
+  font: 15px/1.5 system-ui;
+}
+.sushi-renovation-card img {
+  width: 180px;
+  height: auto;
+  border-radius: 8px;
+}
+.sushi-renovation-card h3 {
+  margin: 4px 0;
+}
+.sushi-renovation-card p {
+  margin: 7px 0;
+}
+.sushi-renovation-actions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+}
+.sushi-renovation-actions button {
+  min-height: 44px;
+}
+.sushi-renovation-complete {
+  padding: 16px;
+  font-weight: 600;
+}
+.sushi-room-error {
+  position: relative;
+  z-index: 3;
+  background: #fff3d9;
+  color: #593e2b;
+  padding: 12px;
+}
+@keyframes sushi-room-enter-a {
+  from {
+    opacity: 0.4;
+  }
+  to {
+    opacity: 1;
+  }
+}
+@keyframes sushi-room-enter-b {
+  from {
+    opacity: 0.4;
+  }
+  to {
+    opacity: 1;
+  }
+}
+@media (max-width: 600px) {
+  .sushi-tier-badge {
+    font-size: 12px;
+    max-width: 150px;
+    padding: 4px 6px;
+  }
+  .sushi-stage-header {
+    flex-wrap: wrap;
+  }
+  .sushi-renovation-card {
+    display: block;
+    padding: 12px;
+  }
+  .sushi-renovation-card img {
+    width: 100%;
+    max-height: 150px;
+    object-fit: contain;
+  }
+  .sushi-decoration-preview:has([data-testid='sushi-renovation-card']) {
+    max-height: 48%;
+    overflow-y: auto;
+  }
+}
+@media (prefers-reduced-motion: reduce) {
+  .sushi-pixel-world {
+    animation: none;
+  }
+}
+
+.sushi-room-error {
+  position: absolute;
+  top: 14px;
+  left: 50%;
+  transform: translateX(-50%);
+  z-index: 35;
+  width: min(600px, calc(100% - 28px));
+  box-sizing: border-box;
+  border: 2px solid #8c5636;
+}
+.sushi-room-error button {
+  display: block;
+  min-height: 44px;
+  margin-top: 8px;
+}
+.sushi-decoration-preview:has([data-testid='sushi-renovation-card']) {
+  display: block;
+  padding: 12px;
+}
+.sushi-decoration-preview .sushi-renovation-card {
+  margin: 8px 0 0;
+  padding: 10px;
+  border: 0;
+}
+.sushi-reward-toast {
+  pointer-events: none;
+}
+
+@media (max-width: 640px) {
+  .sushi-stage-scene-wrap {
+    inset: 165px 0 165px;
+    overflow: visible;
+  }
+  .sushi-illustration {
+    width: 100%;
+    flex-shrink: 1;
   }
 }

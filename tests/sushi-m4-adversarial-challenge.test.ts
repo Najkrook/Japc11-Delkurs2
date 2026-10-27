@@ -268,6 +268,7 @@ test('Adversarial 2.1: Boundary balance values and spendable wallet vs uncollect
   // Test 1: Balance is exactly (priceUnits - 1) -> 17,999,999 units
   await repo.set({
     ...init,
+    restaurantTier: 3,
     balanceUnits: priceUnits - 1,
     uncollectedUnits: 0,
     inventory: [],
@@ -289,6 +290,7 @@ test('Adversarial 2.1: Boundary balance values and spendable wallet vs uncollect
   // Test 2: Balance is exactly priceUnits -> 18,000,000 units
   await repo.set({
     ...init,
+    restaurantTier: 3,
     balanceUnits: priceUnits,
     uncollectedUnits: 0,
     inventory: [],
@@ -303,6 +305,7 @@ test('Adversarial 2.1: Boundary balance values and spendable wallet vs uncollect
   // Test 3: Balance is exactly (priceUnits + 1) -> 18,000,001 units
   await repo.set({
     ...init,
+    restaurantTier: 3,
     balanceUnits: priceUnits + 1,
     uncollectedUnits: 0,
     inventory: [],
@@ -323,6 +326,7 @@ test('Adversarial 2.1: Boundary balance values and spendable wallet vs uncollect
   // Student has 0 spendable balance, but 500,000,000 units (~8,333 ¥) in the uncollected cash register
   await repo.set({
     ...init,
+    restaurantTier: 3,
     balanceUnits: 0,
     uncollectedUnits: 500_000_000,
     inventory: [],
@@ -352,6 +356,7 @@ test('Adversarial 2.1: Boundary balance values and spendable wallet vs uncollect
   // Test 5: Locked item rejection (even with infinite funds)
   await repo.set({
     ...init,
+    restaurantTier: 3,
     balanceUnits: 10_000_000_000, // 166,666 yen
     permanentGrants: [], // no unlocks
     inventory: [],
@@ -447,6 +452,7 @@ test('Adversarial 2.3: Full catalog inventory duplication immunity & decoration 
   const init = await service.getOrInitRestaurant(uid, nowMs, allGrantIds);
   await repo.set({
     ...init,
+    restaurantTier: 3,
     balanceUnits: 60_000_000_000, // 1,000,000 yen
     inventory: [],
   });

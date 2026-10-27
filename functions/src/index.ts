@@ -21,23 +21,25 @@ export const sushi = onCall({ region: 'europe-west1', maxInstances: 10 }, async 
   if (!data || typeof data !== 'object' || Array.isArray(data)) {
     throw new HttpsError('invalid-argument', 'Expected an operation.');
   }
-  const { operation, itemId, projectId, idempotencyKey } = data;
+  const { operation, itemId, projectId, targetTier, idempotencyKey } = data;
   if (data.expectedUid !== uid) {
     throw new HttpsError('permission-denied', 'The account changed. Reload your restaurant.');
   }
-  if (!['load', 'collect', 'purchase', 'equip', 'project'].includes(operation)) {
+  if (!['load', 'collect', 'purchase', 'equip', 'project', 'renovate'].includes(operation)) {
     throw new HttpsError('invalid-argument', 'Unknown restaurant operation.');
   }
   const allowed =
     operation === 'load'
       ? ['operation', 'expectedUid']
-      : operation === 'collect'
-        ? ['operation', 'expectedUid', 'idempotencyKey']
-        : operation === 'project'
-          ? ['operation', 'expectedUid', 'idempotencyKey', 'projectId']
-          : operation === 'equip'
-            ? ['operation', 'expectedUid', 'idempotencyKey', 'itemId', 'slot']
-            : ['operation', 'expectedUid', 'idempotencyKey', 'itemId'];
+      : operation === 'renovate'
+        ? ['operation', 'expectedUid', 'idempotencyKey', 'targetTier']
+        : operation === 'collect'
+          ? ['operation', 'expectedUid', 'idempotencyKey']
+          : operation === 'project'
+            ? ['operation', 'expectedUid', 'idempotencyKey', 'projectId']
+            : operation === 'equip'
+              ? ['operation', 'expectedUid', 'idempotencyKey', 'itemId', 'slot']
+              : ['operation', 'expectedUid', 'idempotencyKey', 'itemId'];
   if (Object.keys(data).some((key) => !allowed.includes(key))) {
     throw new HttpsError('invalid-argument', 'Restaurant state is determined by the server.');
   }
@@ -59,6 +61,8 @@ export const sushi = onCall({ region: 'europe-west1', maxInstances: 10 }, async 
   ) {
     throw new HttpsError('invalid-argument', 'A restaurant project ID is required.');
   }
+  if (operation === 'renovate' && targetTier !== 2 && targetTier !== 3)
+    throw new HttpsError('invalid-argument', 'A target tier of 2 or 3 is required.');
   const restaurantRef = db.doc(`users/${uid}/sushi/restaurant`);
   if (
     operation === 'equip' &&
@@ -98,6 +102,8 @@ export const sushi = onCall({ region: 'europe-west1', maxInstances: 10 }, async 
     const now = Date.now();
     if (operation === 'load') return service.getOrInitRestaurant(uid, now, grants);
     if (!current) throw new HttpsError('failed-precondition', 'Load your restaurant first.');
+    if (operation === 'renovate')
+      return service.renovateRestaurant(uid, targetTier, `renovate:${idempotencyKey}`, now);
     if (operation === 'equip')
       return service.equipDecoration(uid, data.slot, itemId, `equip:${idempotencyKey}`, now);
     // Separate operation/item namespaces prevent a reused key from authorizing another action.

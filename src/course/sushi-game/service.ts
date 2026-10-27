@@ -1,3 +1,4 @@
+import type { RenovationResult } from './renovations.ts';
 // Browser boundary: production always uses authenticated callable functions.
 import { doc, runTransaction, type Firestore } from 'firebase/firestore';
 import {
@@ -189,4 +190,16 @@ export async function equipDecoration(
   return active
     ? active.equipDecoration(uid, slot, itemId, idempotencyKey)
     : remote(uid, { operation: 'equip', slot, itemId, idempotencyKey });
+}
+
+export async function renovateRestaurant(
+  uid: string,
+  targetTier: number,
+  idempotencyKey: string,
+  nowMs = Date.now(),
+): Promise<RenovationResult> {
+  const active = getActiveService();
+  return active
+    ? active.renovateRestaurant(uid, targetTier, idempotencyKey, nowMs)
+    : remote(uid, { operation: 'renovate', targetTier, idempotencyKey });
 }

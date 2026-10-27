@@ -57,8 +57,11 @@ export interface SushiEconomyState {
 /**
  * Full persistent restaurant state in Firestore (/users/{userId}/sushi/restaurant).
  */
+export type RestaurantTier = 1 | 2 | 3;
+
 export interface SushiRestaurantState extends SushiEconomyState {
-  schemaVersion: number; // 1
+  schemaVersion: number;
+  restaurantTier: RestaurantTier;
   /** Missing on restaurants created before the balance audit remedies. */
   balanceVersion?: number;
   /** Preserves a previously purchased license's revenue until new bonuses catch up. */

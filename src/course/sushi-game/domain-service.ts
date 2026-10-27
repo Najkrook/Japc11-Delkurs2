@@ -1,3 +1,8 @@
+import {
+  migrateRestaurantTier,
+  RESTAURANT_RENOVATIONS,
+  type RenovationResult,
+} from './renovations.ts';
 /**
  * Restaurant Service & Repository Layer
  * JAPC11 Delkurs 2 Prototype
@@ -305,6 +310,70 @@ export class SushiService {
     });
   }
 
+  public async renovateRestaurant(
+    uid: string,
+    targetTier: number,
+    idempotencyKey: string,
+    nowMs = Date.now(),
+  ): Promise<RenovationResult> {
+    if (!uid || !idempotencyKey) throw new Error('User and request ID are required');
+    return this.balanceTransaction<RenovationResult>(uid, nowMs, async (current) => {
+      const fail = (reason: import('./renovations.ts').RenovationFailure, message: string) => ({
+        state: current,
+        result: {
+          success: false as const,
+          reason,
+          message,
+          ...(current ? { state: current } : {}),
+        },
+      });
+      if (!current) return fail('RESTAURANT_NOT_FOUND', 'Öppna restaurangen först.');
+      const renovation = RESTAURANT_RENOVATIONS.find((r) => r.targetTier === targetTier);
+      if (!renovation) return fail('INVALID_TARGET', 'Den restaurangnivån finns inte.');
+      const summary = `renovate:${targetTier}`;
+      if (Object.hasOwn(current.processedRequests, idempotencyKey)) {
+        if (current.processedRequests[idempotencyKey].resultSummary !== summary)
+          return fail('REQUEST_CONFLICT', 'Anropet hör till ett annat köp.');
+        return {
+          state: current,
+          result: { success: true as const, state: current, wasAlreadyProcessed: true },
+        };
+      }
+      if (current.restaurantTier + 1 !== targetTier)
+        return fail(
+          'PREVIOUS_TIER_REQUIRED',
+          'Köp renoveringarna i ordning. Du kan bara köpa nästa nivå.',
+        );
+      if (!current.permanentGrants.includes(renovation.bronzeGrant))
+        return fail('MEDAL_REQUIRED', `Nå brons (60 %) i kapitel ${renovation.chapter} först.`);
+      const accrued = {
+        ...current,
+        ...calculateAccrual(current, nowMs).updatedState,
+        updatedAtMs: Math.max(current.updatedAtMs, nowMs),
+      };
+      if (accrued.balanceUnits < renovation.priceUnits)
+        return {
+          state: accrued,
+          result: {
+            success: false as const,
+            reason: 'INSUFFICIENT_FUNDS',
+            message: `Du behöver ¥ ${renovation.priceYen} i disponibelt saldo.`,
+            state: accrued,
+          },
+        };
+      const state: SushiRestaurantState = {
+        ...accrued,
+        restaurantTier: renovation.targetTier,
+        balanceUnits: accrued.balanceUnits - renovation.priceUnits,
+        processedRequests: recordProcessedRequest(accrued.processedRequests, idempotencyKey, {
+          processedAtMs: nowMs,
+          resultSummary: summary,
+        }),
+      };
+      return { state, result: { success: true as const, state, wasAlreadyProcessed: false } };
+    });
+  }
+
   private repo: SushiRestaurantRepository;
 
   constructor(repo: SushiRestaurantRepository) {
@@ -319,7 +388,9 @@ export class SushiService {
     ) => Promise<{ state: SushiRestaurantState | null; result: T }>,
   ): Promise<T> {
     return this.repo.transaction(uid, async (stored) => {
-      const current = stored ? migrateRestaurantBalance(stored, nowMs) : null;
+      const current = stored
+        ? migrateRestaurantTier(migrateRestaurantBalance(stored, nowMs))
+        : null;
       const changed = await update(current);
       // Even a rejected operation must persist a one-time migration, if needed.
       return current !== stored && changed.state === null
@@ -702,6 +773,21 @@ export class SushiService {
             success: false,
             reason: 'ITEM_LOCKED',
             message: `"${item.name}" är låst. Uppnå ${item.requiredTierLabel}medalj i Kapitel ${item.requiredLesson} för att låsa upp köpmöjligheten.`,
+            state: current,
+            restaurant: current,
+            item,
+            purchasedItem: item,
+          },
+        };
+      }
+
+      if (current.restaurantTier < item.requiredRestaurantTier) {
+        return {
+          state: current,
+          result: {
+            success: false,
+            reason: 'RESTAURANT_TIER_REQUIRED',
+            message: `Renovera till restaurangnivå ${item.requiredRestaurantTier} innan du köper detta föremål.`,
             state: current,
             restaurant: current,
             item,

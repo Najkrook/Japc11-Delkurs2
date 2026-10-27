@@ -4,9 +4,11 @@ Generated with built-in ImageGen on 2026-10-27.
 
 Asset: `tier-1.png` (1536 × 1024, opaque cream background).
 
-First of seven intended restaurant tiers, corresponding to the seven chapters. This asset establishes the modest starting point: two mismatched stools, a straight worn counter, basic appliances, bare walls, and room for improvement. Characters, serving plates, and interface elements are excluded so they can remain separate animated layers. Saved as a new illustration; the existing scene has not been replaced or repositioned.
+Tier 1 of the implemented three-tier progression, covering chapters 6–8. Tiers 2 and 3 cover chapters 9–10 and 11–12. This asset establishes the modest starting point: two mismatched stools, a straight worn counter, basic appliances, bare walls, and room for improvement. Characters, serving plates, and interface elements are excluded so they can remain separate animated layers. Integrated with the tier-specific scene manifest and exact-pixel counter foreground.
 
 Style reference: `../starter-room.png`.
+
+The original prompt below is retained verbatim as generation provenance; the seven-tier concept was later condensed to three tiers. See `assets.json` for the delivered rooms and sprites.
 
 ## Generation prompt
 

@@ -44,7 +44,7 @@ test('real income, visible telemetry and collection remain usable', async ({ pag
   ).toHaveCount(0);
   await expect(page.getByTestId('starter-room')).toHaveAttribute(
     'href',
-    '/sprites/sushi/starter-room.png',
+    '/sprites/sushi/tiers/tier-1.png',
   );
   await expect(page.locator('image[href$="sakura_sushi_scene.png"]')).toHaveCount(0);
   const main = page.locator('.sushi-main');
@@ -130,7 +130,7 @@ test('buying and removing decoration changes the rendered scene', async ({ page 
   await page.getByTestId('sushi-close-menu-btn').click();
   await expect(page.getByTestId('starter-room')).toHaveAttribute(
     'href',
-    '/sprites/sushi/starter-room.png',
+    '/sprites/sushi/tiers/tier-1.png',
   );
   await expect(page.locator('image[href$="sakura_sushi_scene.png"]')).toHaveCount(0);
 });

@@ -140,7 +140,7 @@ test('CHALLENGE 1: Layered pixel-art scene and 21 catalog items exist in SUSHI_C
   const svgHtml = renderTemplateToString(renderRestaurantScene(emptyState));
 
   assert.ok(
-    svgHtml.includes('/sprites/sushi/starter-room.png'),
+    svgHtml.includes('/sprites/sushi/tiers/tier-1.png'),
     'Scene loads the empty starter room',
   );
   assert.ok(!svgHtml.includes('sakura_sushi_scene.png'), 'The pre-furnished mockup is not used');

@@ -15,7 +15,7 @@ async function setup() {
     'wave_print',
     'potted_plant',
   ]);
-  await repo.set({ ...state, balanceUnits: 600_000_000 });
+  await repo.set({ ...state, restaurantTier: 2, balanceUnits: 600_000_000 });
   return { repo, service };
 }
 
