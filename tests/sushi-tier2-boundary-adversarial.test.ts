@@ -1,19 +1,18 @@
+import {
+  createLegacyEconomyState,
+  LEGACY_CAP_MS,
+  LEGACY_EXTENDED_CAP_MS,
+} from './helpers/legacy-sushi-economy.ts';
 import test from 'node:test';
 import assert from 'node:assert/strict';
 import {
   calculateAccrual,
   collectEarnings,
   applyProspectiveUpgrade,
-  createInitialEconomyState,
   yenToUnits,
   unitsToWholeYen,
 } from '../src/course/sushi-game/economy.ts';
-import {
-  DEFAULT_CAP_MS,
-  EXTENDED_CAP_MS,
-  MS_PER_HOUR,
-  MS_PER_MINUTE,
-} from '../src/course/sushi-game/types.ts';
+import { MS_PER_HOUR, MS_PER_MINUTE } from '../src/course/sushi-game/types.ts';
 import { mergePermanentGrants, evaluateMedalGrants } from '../src/course/sushi-game/medals.ts';
 import { SushiService, InMemorySushiRepository } from '../src/course/sushi-game/service.ts';
 import { getCatalogItem } from '../src/course/sushi-game/catalog.ts';
@@ -26,49 +25,49 @@ import { createFreshCourseProgress } from '../src/course/course-state.ts';
 
 test('Tier 2 [F04]: Exact cap boundary conditions: T, T - 1ms, T + 1ms', () => {
   const t0 = 100_000_000;
-  const state = createInitialEconomyState(t0); // 8h cap (28,800,000 ms), rate = 10 yen/min
+  const state = createLegacyEconomyState(t0); // 8h cap (28,800,000 ms), rate = 10 yen/min
 
   // 1. Exactly 1 ms before cap: 28,799,999 ms
-  const tJustBefore = t0 + DEFAULT_CAP_MS - 1;
+  const tJustBefore = t0 + LEGACY_CAP_MS - 1;
   const accBefore = calculateAccrual(state, tJustBefore);
-  assert.equal(accBefore.elapsedMs, DEFAULT_CAP_MS - 1);
-  assert.equal(accBefore.producedMs, DEFAULT_CAP_MS - 1);
+  assert.equal(accBefore.elapsedMs, LEGACY_CAP_MS - 1);
+  assert.equal(accBefore.producedMs, LEGACY_CAP_MS - 1);
   assert.equal(accBefore.excessMs, 0);
   assert.equal(accBefore.isCapped, false);
   assert.equal(accBefore.remainingCapMs, 1);
 
   // 2. Exactly on the cap boundary: 28,800,000 ms
-  const tExactCap = t0 + DEFAULT_CAP_MS;
+  const tExactCap = t0 + LEGACY_CAP_MS;
   const accExact = calculateAccrual(state, tExactCap);
-  assert.equal(accExact.elapsedMs, DEFAULT_CAP_MS);
-  assert.equal(accExact.producedMs, DEFAULT_CAP_MS);
+  assert.equal(accExact.elapsedMs, LEGACY_CAP_MS);
+  assert.equal(accExact.producedMs, LEGACY_CAP_MS);
   assert.equal(accExact.excessMs, 0);
   assert.equal(accExact.isCapped, true);
   assert.equal(accExact.remainingCapMs, 0);
-  assert.equal(accExact.earnedUnits, DEFAULT_CAP_MS * 10); // 288,000,000 units = 4,800 yen
+  assert.equal(accExact.earnedUnits, LEGACY_CAP_MS * 10); // 288,000,000 units = 4,800 yen
   assert.equal(unitsToWholeYen(accExact.earnedUnits), 4800);
 
   // 3. Exactly 1 ms past the cap boundary: 28,800,001 ms
-  const tJustAfter = t0 + DEFAULT_CAP_MS + 1;
+  const tJustAfter = t0 + LEGACY_CAP_MS + 1;
   const accAfter = calculateAccrual(state, tJustAfter);
-  assert.equal(accAfter.elapsedMs, DEFAULT_CAP_MS + 1);
-  assert.equal(accAfter.producedMs, DEFAULT_CAP_MS); // Clamped to 8 hours
+  assert.equal(accAfter.elapsedMs, LEGACY_CAP_MS + 1);
+  assert.equal(accAfter.producedMs, LEGACY_CAP_MS); // Clamped to 8 hours
   assert.equal(accAfter.excessMs, 1); // 1 ms discarded
   assert.equal(accAfter.isCapped, true);
   assert.equal(accAfter.remainingCapMs, 0);
-  assert.equal(accAfter.earnedUnits, DEFAULT_CAP_MS * 10);
+  assert.equal(accAfter.earnedUnits, LEGACY_CAP_MS * 10);
 });
 
 test('Tier 2 [F04]: Extreme offline absence (1 year / 31,536,000,000 ms) clamps safely without overflow', () => {
   const t0 = 0;
-  const state = createInitialEconomyState(t0);
+  const state = createLegacyEconomyState(t0);
 
   const ONE_YEAR_MS = 365 * 24 * 3600 * 1000; // 31,536,000,000 ms
   const accrual = calculateAccrual(state, ONE_YEAR_MS);
 
   assert.equal(accrual.elapsedMs, ONE_YEAR_MS);
-  assert.equal(accrual.producedMs, DEFAULT_CAP_MS);
-  assert.equal(accrual.excessMs, ONE_YEAR_MS - DEFAULT_CAP_MS);
+  assert.equal(accrual.producedMs, LEGACY_CAP_MS);
+  assert.equal(accrual.excessMs, ONE_YEAR_MS - LEGACY_CAP_MS);
   assert.equal(accrual.isCapped, true);
   assert.equal(accrual.remainingCapMs, 0);
   assert.equal(unitsToWholeYen(accrual.earnedUnits), 4800);
@@ -78,7 +77,7 @@ test('Tier 2 [F04]: Extreme offline absence (1 year / 31,536,000,000 ms) clamps 
 
 test('Tier 2 [F15]: Temporal anomalies: Zero elapsed ms and backward clock skew', () => {
   const t0 = 50_000_000;
-  const state = createInitialEconomyState(t0);
+  const state = createLegacyEconomyState(t0);
 
   // 1. Zero elapsed ms (nowMs === accountedAtMs)
   const zeroElapsed = calculateAccrual(state, t0);
@@ -103,7 +102,7 @@ test('Tier 2 [F15]: Temporal anomalies: Zero elapsed ms and backward clock skew'
 
 test('Tier 2 [F07]: Cap upgrade purchased while register is capped at 8h discards stopped time', () => {
   const t0 = 0;
-  const initial = createInitialEconomyState(t0);
+  const initial = createLegacyEconomyState(t0);
 
   // Capped at 8h, but user returns at 11h (3 hours spent stopped)
   const t11h = 11 * MS_PER_HOUR;
@@ -119,7 +118,7 @@ test('Tier 2 [F07]: Cap upgrade purchased while register is capped at 8h discard
 
   // Apply prospective cap extension upgrade (newCapMs = 12h = 43,200,000 ms)
   const capUpgradeResult = applyProspectiveUpgrade(stateWithFunds, t11h, {
-    newCapMs: EXTENDED_CAP_MS,
+    newCapMs: LEGACY_EXTENDED_CAP_MS,
     priceYen: 1800,
   });
 
@@ -127,10 +126,10 @@ test('Tier 2 [F07]: Cap upgrade purchased while register is capped at 8h discard
   if (!capUpgradeResult.success) return;
 
   const upgradedState = capUpgradeResult.updatedState;
-  assert.equal(upgradedState.capMs, EXTENDED_CAP_MS);
+  assert.equal(upgradedState.capMs, LEGACY_EXTENDED_CAP_MS);
   // Stopped 3 hours must NOT be retrospectively paid: uncollectedUnits stays 4,800 yen
   assert.equal(unitsToWholeYen(upgradedState.uncollectedUnits), 4800);
-  assert.equal(upgradedState.usedProductionMs, DEFAULT_CAP_MS); // 8h consumed
+  assert.equal(upgradedState.usedProductionMs, LEGACY_CAP_MS); // 8h consumed
 
   // Additional 4 hours offline (t15h) accrues future production up to 12h limit
   const t15h = t11h + 4 * MS_PER_HOUR;
@@ -223,7 +222,7 @@ test('Tier 2 [F11]: Boundary Affordance: Exact balance succeeds, off-by-one unit
   const t0 = 1000;
 
   // prep_counter costs 300 yen (18,000,000 units)
-  const prepPriceUnits = 300 * 60_000;
+  const prepPriceUnits = 50 * 60_000;
 
   // Case A: Exact balance - 1 unit (17,999,999 units)
   await service.getOrInitRestaurant(uid, t0, ['prep_counter']);

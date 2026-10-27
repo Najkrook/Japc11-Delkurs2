@@ -1,10 +1,7 @@
 {
   "generator": "Built-in ImageGen",
   "tier": 1,
-  "references": [
-    "../tier-1.png",
-    "../../tycoon-atlas.png"
-  ],
+  "references": ["../tier-1.png", "../../tycoon-atlas.png"],
   "status": "Standalone base sprites; not integrated into the scene",
   "sprites": [
     {

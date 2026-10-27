@@ -8,7 +8,8 @@ import {
 import { sushiService, InMemorySushiRepository } from '../src/course/sushi-game/service.ts';
 import { SUSHI_CATALOG } from '../src/course/sushi-game/catalog.ts';
 import { SUSHI_UNLOCK_CATALOG } from '../src/course/sushi-game/medals.ts';
-import { unitsToWholeYen } from '../src/course/sushi-game/economy.ts';
+import { createDefaultRestaurantState, unitsToWholeYen } from '../src/course/sushi-game/economy.ts';
+import { DEFAULT_CAP_MS, EXTENDED_CAP_MS } from '../src/course/sushi-game/types.ts';
 import type { CourseHostContext } from '../src/course/types.ts';
 import type { SushiRestaurantState } from '../src/course/sushi-game/types.ts';
 
@@ -65,6 +66,7 @@ async function renderLoadedShell(...args: Parameters<typeof renderSushiShell>) {
 
 function createMockState(overrides: Partial<SushiRestaurantState> = {}): SushiRestaurantState {
   return {
+    ...createDefaultRestaurantState(overrides.id ?? 'adversarial-user', 1000),
     id: 'adversarial-user',
     kitchenCapacity: 1,
     serviceCapacity: 2,
@@ -73,7 +75,7 @@ function createMockState(overrides: Partial<SushiRestaurantState> = {}): SushiRe
     balanceUnits: 60_000_000, // 1000 yen
     uncollectedUnits: 0,
     usedProductionMs: 0,
-    capMs: 28_800_000,
+    capMs: DEFAULT_CAP_MS,
     periodStartMs: 1000,
     lastCalculatedMs: 1000,
     permanentGrants: [],
@@ -330,15 +332,15 @@ test('Adversarial Swedish Announcement: Partial collection (sub-cap idle accumul
   }
 });
 
-test('Adversarial Swedish Announcement: Full collection at 8h standard cap', async () => {
+test('Adversarial Swedish Announcement: Full collection at 24h standard cap', async () => {
   const repo = new InMemorySushiRepository();
   sushiService.setRepository(repo);
 
-  const uid = 'full-cap-8h-collector';
-  // 10 hours idle time at 20 yen/min, capped at 8 hours (28,800,000 ms)
-  // Max yield: 8 * 60 * 20 = 9600 yen
+  const uid = 'full-cap-24h-collector';
+  // 30 hours idle time at 20 yen/min, capped at 24 hours.
+  // Max yield: 24 * 60 * 20 = 28800 yen
   const now = Date.now();
-  const pastMs = now - 10 * 3600 * 1000;
+  const pastMs = now - 30 * 3600 * 1000;
   await repo.set(
     createMockState({
       id: uid,
@@ -348,7 +350,7 @@ test('Adversarial Swedish Announcement: Full collection at 8h standard cap', asy
       balanceUnits: 30_000_000, // 500 yen initial
       uncollectedUnits: 0,
       usedProductionMs: 0,
-      capMs: 28_800_000, // 8h
+      capMs: DEFAULT_CAP_MS,
       periodStartMs: pastMs,
       accountedAtMs: pastMs,
       lastCalculatedMs: pastMs,
@@ -356,43 +358,43 @@ test('Adversarial Swedish Announcement: Full collection at 8h standard cap', asy
   );
 
   const controller = new SushiClientController();
-  const host = createMockHost({ user: { uid, displayName: '8h Capped Collector' } });
+  const host = createMockHost({ user: { uid, displayName: '24h Capped Collector' } });
 
   try {
     controller.init(uid, host);
     await new Promise<void>((resolve) => setImmediate(resolve));
 
     const calc = controller.recalculate();
-    assert.equal(calc.displayedUncollectedYen, 9600, 'Capped at 9600 yen');
+    assert.equal(calc.displayedUncollectedYen, 28800, 'Capped at 28800 yen');
     assert.equal(calc.isCapped, true, 'Register must report isCapped === true');
 
     await controller.collect();
 
-    // 500 initial + 9600 collected = 10100 yen
+    // 500 initial + 28800 collected = 29300 yen
     assert.equal(
       controller.announcement,
-      'Hämtade 9600 yen. Nytt saldo: 10100 yen.',
-      'Announcement must state: Hämtade 9600 yen. Nytt saldo: 10100 yen.',
+      'Hämtade 28800 yen. Nytt saldo: 29300 yen.',
+      'Announcement must state the exact full-cap collection and wallet total.',
     );
     assert.equal(
       unitsToWholeYen(controller.state!.balanceUnits),
-      10100,
-      'New spendable balance is exactly 10100 yen',
+      29300,
+      'New spendable balance is exactly 29300 yen',
     );
   } finally {
     controller.reset();
   }
 });
 
-test('Adversarial Swedish Announcement: Full collection at 12h extended cap', async () => {
+test('Adversarial Swedish Announcement: Full collection at 48h extended cap', async () => {
   const repo = new InMemorySushiRepository();
   sushiService.setRepository(repo);
 
-  const uid = 'full-cap-12h-collector';
-  // 15 hours idle time at 20 yen/min, capped at 12 hours (43,200,000 ms)
-  // Max yield: 12 * 60 * 20 = 14400 yen
+  const uid = 'full-cap-48h-collector';
+  // 60 hours idle time at 20 yen/min, capped at 48 hours.
+  // Max yield: 48 * 60 * 20 = 57600 yen
   const now = Date.now();
-  const pastMs = now - 15 * 3600 * 1000;
+  const pastMs = now - 60 * 3600 * 1000;
   await repo.set(
     createMockState({
       id: uid,
@@ -402,7 +404,7 @@ test('Adversarial Swedish Announcement: Full collection at 12h extended cap', as
       balanceUnits: 60_000_000, // 1000 yen initial
       uncollectedUnits: 0,
       usedProductionMs: 0,
-      capMs: 43_200_000, // 12h
+      capMs: EXTENDED_CAP_MS,
       periodStartMs: pastMs,
       accountedAtMs: pastMs,
       lastCalculatedMs: pastMs,
@@ -410,28 +412,28 @@ test('Adversarial Swedish Announcement: Full collection at 12h extended cap', as
   );
 
   const controller = new SushiClientController();
-  const host = createMockHost({ user: { uid, displayName: '12h Capped Collector' } });
+  const host = createMockHost({ user: { uid, displayName: '48h Capped Collector' } });
 
   try {
     controller.init(uid, host);
     await new Promise<void>((resolve) => setImmediate(resolve));
 
     const calc = controller.recalculate();
-    assert.equal(calc.displayedUncollectedYen, 14400, 'Capped at 14400 yen');
+    assert.equal(calc.displayedUncollectedYen, 57600, 'Capped at 57600 yen');
     assert.equal(calc.isCapped, true, 'Register must report isCapped === true');
 
     await controller.collect();
 
-    // 1000 initial + 14400 collected = 15400 yen
+    // 1000 initial + 57600 collected = 58600 yen
     assert.equal(
       controller.announcement,
-      'Hämtade 14400 yen. Nytt saldo: 15400 yen.',
-      'Announcement must state: Hämtade 14400 yen. Nytt saldo: 15400 yen.',
+      'Hämtade 57600 yen. Nytt saldo: 58600 yen.',
+      'Announcement must state the exact extended-cap collection and wallet total.',
     );
     assert.equal(
       unitsToWholeYen(controller.state!.balanceUnits),
-      15400,
-      'New spendable balance is exactly 15400 yen',
+      58600,
+      'New spendable balance is exactly 58600 yen',
     );
   } finally {
     controller.reset();
@@ -501,8 +503,8 @@ test('Adversarial Swedish Announcement: Medal unlock collection - Zero, Partial,
 test('Adversarial Non-Vacuity: Verifies test assertions are discriminative and fail on perturbations', () => {
   // Test that catalog total checks would fail if prices were off
   const catalogTotal = SUSHI_CATALOG.reduce((a, b) => a + b.priceYen, 0);
-  assert.equal(catalogTotal, 48_000);
-  assert.notEqual(catalogTotal, 47_999, 'Catalog price perturbation would fail assertion');
+  assert.equal(catalogTotal, 47_750);
+  assert.notEqual(catalogTotal, 47_749, 'Catalog price perturbation would fail assertion');
 
   // Test that equipment badge strings are exact and distinguish between old wrong copy and new copy
   const wrongBadges = [
@@ -515,7 +517,7 @@ test('Adversarial Non-Vacuity: Verifies test assertions are discriminative and f
     'Precisionskniv (+1 kök)',
     'Utökad serveringsdisk (+2 service)',
     'Souschef (+2 kök)',
-    'Mästarcertifiering (+5 ¥/order)',
+    'Mästarcertifiering (+3 ¥/order)',
   ];
 
   for (let i = 0; i < correctBadges.length; i++) {

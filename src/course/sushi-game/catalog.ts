@@ -36,7 +36,7 @@ export interface SushiCatalogItem {
   readonly kitchenCapacityDelta?: number; // e.g. +2 for prep_counter
   readonly serviceCapacityDelta?: number; // e.g. +2 for conveyor_belt
   readonly averageRevenueDelta?: number; // For future recipe variants
-  readonly newCapMs?: number; // e.g. 43,200,000 ms (12h) for cap_extension_12h
+  readonly newCapMs?: number; // 48h for cap_extension_12h; persisted item ID is retained.
   readonly slotType?: 'wallSlot' | 'floorSlot'; // For M4 decorations
   readonly recipeId?: string; // For M4 recipes
 }
@@ -109,8 +109,8 @@ export const SUSHI_CATALOG: readonly SushiCatalogItem[] = [
     requiredTier: 'bronze',
     requiredTierLabel: 'Brons',
     requiredPercent: 60,
-    priceYen: 300,
-    priceUnits: 300 * YEN_UNIT_MULTIPLIER, // 18,000,000
+    priceYen: 50,
+    priceUnits: 50 * YEN_UNIT_MULTIPLIER,
     kitchenCapacityDelta: 2,
     effectDescription: 'Ökar kökskapaciteten med 2 ordrar per minut.',
     targetWeekId: 'week-1',
@@ -162,7 +162,7 @@ export const SUSHI_CATALOG: readonly SushiCatalogItem[] = [
     priceYen: 1800,
     priceUnits: 1800 * YEN_UNIT_MULTIPLIER, // 108,000,000
     newCapMs: EXTENDED_CAP_MS, // 43,200,000 ms (12 hours)
-    effectDescription: 'Höjer intjäningstaket från 8 till 12 sammanhängande timmar.',
+    effectDescription: 'Förlänger sparade intäkter från 24 till 48 timmar mellan besöken.',
     targetWeekId: 'week-2',
   },
   {
@@ -212,7 +212,8 @@ export const SUSHI_CATALOG: readonly SushiCatalogItem[] = [
     priceYen: 2400,
     priceUnits: 2400 * YEN_UNIT_MULTIPLIER, // 144,000,000
     kitchenCapacityDelta: 1,
-    effectDescription: 'Ökar kökskapaciteten med 1 order per minut.',
+    averageRevenueDelta: 1,
+    effectDescription: 'Ökar kökskapaciteten med 1 order/min och intäkten med 1 ¥ per order.',
     targetWeekId: 'week-3',
   },
   {
@@ -313,7 +314,8 @@ export const SUSHI_CATALOG: readonly SushiCatalogItem[] = [
     priceYen: 5400,
     priceUnits: 5400 * YEN_UNIT_MULTIPLIER, // 324,000,000
     serviceCapacityDelta: 2,
-    effectDescription: 'Ökar servicekapaciteten med 2 ordrar per minut.',
+    averageRevenueDelta: 1,
+    effectDescription: 'Ökar servicen med 2 ordrar/min och intäkten med 1 ¥ per order.',
     targetWeekId: 'week-5',
   },
   {
@@ -412,8 +414,8 @@ export const SUSHI_CATALOG: readonly SushiCatalogItem[] = [
     requiredPercent: 60,
     priceYen: 10800,
     priceUnits: 10800 * YEN_UNIT_MULTIPLIER, // 648,000,000
-    averageRevenueDelta: 5,
-    effectDescription: 'Höjer genomsnittlig intäkt med 5 ¥ per order.',
+    averageRevenueDelta: 3,
+    effectDescription: 'Höjer genomsnittlig intäkt med 3 ¥ per order.',
     targetWeekId: 'week-7',
   },
   {
@@ -498,13 +500,13 @@ export function previewUpgradeImpact(
 
   let educationalExplanation = '';
   if (isBottleneckLimiting) {
-    if ((deltas.serviceCapacityDelta ?? 0) > 0 && currentRate.bottleneck === 'kitchen') {
+    if ((deltas.serviceCapacityDelta ?? 0) > 0 && newKitchen < newService) {
       educationalExplanation = `Detta köp ökar servicekapaciteten till ${newService} ordrar/min, men köket producerar bara ${newKitchen} ${
         newKitchen === 1 ? 'order' : 'ordrar'
       }/min. Eftersom intäkten styrs av min(kök, service), förblir intäktstakten ${
         currentRate.yenPerMinute
       } ¥/min tills du uppgraderar köket.`;
-    } else if ((deltas.kitchenCapacityDelta ?? 0) > 0 && currentRate.bottleneck === 'service') {
+    } else if ((deltas.kitchenCapacityDelta ?? 0) > 0 && newService < newKitchen) {
       educationalExplanation = `Detta köp ökar kökskapaciteten till ${newKitchen} ordrar/min, men servicen kan bara hantera ${newService} ${
         newService === 1 ? 'order' : 'ordrar'
       }/min. Intäktstakten förblir ${currentRate.yenPerMinute} ¥/min tills du uppgraderar servicen.`;
@@ -544,12 +546,33 @@ export function previewCatalogPurchase(
   const item = getCatalogItem(itemId);
   if (!item) return undefined;
 
-  const impact = previewUpgradeImpact(state, {
+  const restaurant = state as Partial<SushiRestaurantState>;
+  let averageRevenueDelta = item.averageRevenueDelta;
+  if (restaurant.legacyRevenueFloor !== undefined && restaurant.inventory) {
+    const nextOwned = new Set([...restaurant.inventory, itemId]);
+    const canonicalRevenue =
+      10 +
+      SUSHI_CATALOG.reduce(
+        (total, entry) => total + (nextOwned.has(entry.id) ? (entry.averageRevenueDelta ?? 0) : 0),
+        0,
+      );
+    averageRevenueDelta =
+      Math.max(canonicalRevenue, restaurant.legacyRevenueFloor) - state.averageRevenuePerOrder;
+  }
+
+  let impact = previewUpgradeImpact(state, {
     kitchenCapacityDelta: item.kitchenCapacityDelta,
     serviceCapacityDelta: item.serviceCapacityDelta,
-    averageRevenueDelta: item.averageRevenueDelta,
+    averageRevenueDelta,
     newCapMs: item.newCapMs,
   });
+  if ((item.averageRevenueDelta ?? 0) > 0 && averageRevenueDelta === 0) {
+    impact = {
+      ...impact,
+      educationalExplanation:
+        `${impact.educationalExplanation} Din tidigare mästarlicens gav redan denna intäktsbonus. Den behålls utan att räknas dubbelt.`.trim(),
+    };
+  }
 
   if (!impact.educationalExplanation) {
     return {

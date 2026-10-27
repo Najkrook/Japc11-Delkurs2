@@ -17,6 +17,19 @@ import {
   type PurchaseFailureReason,
 } from './catalog.ts';
 import type { SushiRestaurantState, EquipDecorationResult } from './types.ts';
+import {
+  CURRENT_BALANCE_VERSION,
+  DEFAULT_AVERAGE_REVENUE,
+  DEFAULT_CAP_MS,
+  DEFAULT_KITCHEN_CAPACITY,
+  DEFAULT_SERVICE_CAPACITY,
+  EXTENDED_CAP_MS,
+} from './types.ts';
+import {
+  getRestaurantProject,
+  projectEligibility,
+  type PurchaseRestaurantProjectResult,
+} from './projects.ts';
 
 export type {
   SushiCatalogItem,
@@ -55,6 +68,50 @@ export function sushiStorageKey(uid: string): string {
 }
 
 export const MAX_PROCESSED_REQUESTS = 200;
+
+function canonicalRevenue(inventory: readonly string[]): number {
+  return [...new Set(inventory)].reduce(
+    (revenue, id) => revenue + (getCatalogItem(id)?.averageRevenueDelta ?? 0),
+    DEFAULT_AVERAGE_REVENUE,
+  );
+}
+
+/** Settle the old rules first. New balance rules only affect future production. */
+export function migrateRestaurantBalance(
+  state: SushiRestaurantState,
+  nowMs: number,
+): SushiRestaurantState {
+  if ((state.balanceVersion ?? 1) >= CURRENT_BALANCE_VERSION) return state;
+  const accrued = calculateAccrual(state, nowMs).updatedState;
+  const inventory = [...new Set(state.inventory)];
+  const kitchen = inventory.reduce(
+    (value, id) => value + (getCatalogItem(id)?.kitchenCapacityDelta ?? 0),
+    DEFAULT_KITCHEN_CAPACITY,
+  );
+  const service = inventory.reduce(
+    (value, id) => value + (getCatalogItem(id)?.serviceCapacityDelta ?? 0),
+    DEFAULT_SERVICE_CAPACITY,
+  );
+  const revenue = canonicalRevenue(inventory);
+  // A legacy license cost +5/order. Do not remove a benefit already paid for.
+  // Future purchases consume this floor instead of stacking a second bonus.
+  const legacyRevenueFloor = Math.max(revenue, state.averageRevenuePerOrder);
+  return {
+    ...state,
+    ...accrued,
+    balanceVersion: CURRENT_BALANCE_VERSION,
+    legacyRevenueFloor,
+    kitchenCapacity: Math.max(kitchen, state.kitchenCapacity),
+    serviceCapacity: Math.max(service, state.serviceCapacity),
+    averageRevenuePerOrder: legacyRevenueFloor,
+    capMs: Math.max(
+      state.capMs,
+      inventory.includes('cap_extension_12h') ? EXTENDED_CAP_MS : DEFAULT_CAP_MS,
+    ),
+    completedProjects: state.completedProjects ?? [],
+    updatedAtMs: Math.max(state.updatedAtMs, nowMs),
+  };
+}
 
 function recordProcessedRequest(
   existing: SushiRestaurantState['processedRequests'] | undefined,
@@ -200,7 +257,7 @@ export class SushiService {
     if (itemId !== null && (!item || item.category !== 'decoration' || item.slotType !== slot)) {
       return { success: false, message: 'Föremålet passar inte på den här platsen.' };
     }
-    return this.repo.transaction<EquipDecorationResult>(uid, async (current) => {
+    return this.balanceTransaction<EquipDecorationResult>(uid, nowMs, async (current) => {
       if (!current)
         return {
           state: null,
@@ -254,12 +311,126 @@ export class SushiService {
     this.repo = repo;
   }
 
+  private balanceTransaction<T>(
+    uid: string,
+    nowMs: number,
+    update: (
+      current: SushiRestaurantState | null,
+    ) => Promise<{ state: SushiRestaurantState | null; result: T }>,
+  ): Promise<T> {
+    return this.repo.transaction(uid, async (stored) => {
+      const current = stored ? migrateRestaurantBalance(stored, nowMs) : null;
+      const changed = await update(current);
+      // Even a rejected operation must persist a one-time migration, if needed.
+      return current !== stored && changed.state === null
+        ? { ...changed, state: current }
+        : changed;
+    });
+  }
+
   public getRepository(): SushiRestaurantRepository {
     return this.repo;
   }
 
   public setRepository(repo: SushiRestaurantRepository): void {
     this.repo = repo;
+  }
+
+  /** Buy one optional, permanent cosmetic project without changing production. */
+  public async purchaseRestaurantProject(
+    uid: string,
+    projectId: string,
+    idempotencyKey: string,
+    nowMs = Date.now(),
+  ): Promise<PurchaseRestaurantProjectResult> {
+    if (!uid || !idempotencyKey || typeof idempotencyKey !== 'string') {
+      throw new Error('User and request ID are required');
+    }
+    return this.balanceTransaction<PurchaseRestaurantProjectResult>(uid, nowMs, async (current) => {
+      if (!current)
+        return {
+          state: null,
+          result: {
+            success: false,
+            reason: 'RESTAURANT_NOT_FOUND',
+            message: 'Öppna restaurangen först.',
+          },
+        };
+      const project = getRestaurantProject(projectId);
+      if (!project)
+        return {
+          state: current,
+          result: {
+            success: false,
+            reason: 'PROJECT_NOT_FOUND',
+            message: 'Projektet finns inte.',
+            state: current,
+          },
+        };
+      const summary = `project:${project.id}`;
+      if (Object.hasOwn(current.processedRequests, idempotencyKey)) {
+        if (current.processedRequests[idempotencyKey].resultSummary !== summary)
+          return {
+            state: current,
+            result: {
+              success: false,
+              reason: 'REQUEST_CONFLICT',
+              message: 'Anropet hör till ett annat köp.',
+              state: current,
+            },
+          };
+        return {
+          state: current,
+          result: { success: true, state: current, project, wasAlreadyProcessed: true },
+        };
+      }
+      if ((current.completedProjects ?? []).includes(project.id))
+        return {
+          state: current,
+          result: {
+            success: false,
+            reason: 'ALREADY_COMPLETED',
+            message: 'Projektet är redan klart.',
+            state: current,
+          },
+        };
+      const eligibility = projectEligibility(current, project);
+      if (!eligibility.eligible)
+        return {
+          state: current,
+          result: {
+            success: false,
+            reason: 'PROJECT_LOCKED',
+            message: eligibility.reason,
+            state: current,
+          },
+        };
+      const accrued: SushiRestaurantState = {
+        ...current,
+        ...calculateAccrual(current, nowMs).updatedState,
+        updatedAtMs: Math.max(current.updatedAtMs, nowMs),
+      };
+      if (accrued.balanceUnits < project.priceUnits)
+        return {
+          state: accrued,
+          result: {
+            success: false,
+            reason: 'INSUFFICIENT_FUNDS',
+            message: 'Samla ihop projektets pris i disponibla yen först.',
+            state: accrued,
+          },
+        };
+      const state: SushiRestaurantState = {
+        ...accrued,
+        balanceUnits: accrued.balanceUnits - project.priceUnits,
+        completedProjects: [...(accrued.completedProjects ?? []), project.id],
+        processedRequests: recordProcessedRequest(accrued.processedRequests, idempotencyKey, {
+          processedAtMs: nowMs,
+          resultSummary: summary,
+        }),
+      };
+      return { state, result: { success: true, state, project, wasAlreadyProcessed: false } };
+    });
   }
 
   /**
@@ -275,7 +446,7 @@ export class SushiService {
       throw new Error('INVALID_UID: User UID must be provided');
     }
 
-    return await this.repo.transaction(uid, async (current) => {
+    return await this.balanceTransaction(uid, nowMs, async (current) => {
       if (!current) {
         const fresh = createDefaultRestaurantState(uid, nowMs);
         if (initialGrants && initialGrants.length > 0) {
@@ -322,7 +493,7 @@ export class SushiService {
       throw new Error('INVALID_GRANTS: earnedGrants must be an array of strings');
     }
 
-    return await this.repo.transaction(uid, async (current) => {
+    return await this.balanceTransaction(uid, nowMs, async (current) => {
       if (!current) {
         // Cold start: restaurant created directly via medal sync
         const fresh = createDefaultRestaurantState(uid, nowMs);
@@ -364,7 +535,7 @@ export class SushiService {
       throw new Error('INVALID_IDEMPOTENCY_KEY: idempotencyKey must be a non-empty string');
     }
 
-    return await this.repo.transaction<CollectRevenueResult>(uid, async (current) => {
+    return await this.balanceTransaction<CollectRevenueResult>(uid, nowMs, async (current) => {
       if (!current) {
         throw new Error('RESTAURANT_NOT_FOUND: User does not have an active restaurant');
       }
@@ -456,7 +627,7 @@ export class SushiService {
       throw new Error('INVALID_ITEM_ID: Item ID must be provided');
     }
 
-    return await this.repo.transaction<PurchaseItemResult>(uid, async (current) => {
+    return await this.balanceTransaction<PurchaseItemResult>(uid, nowMs, async (current) => {
       if (!current) {
         return {
           state: null,
@@ -578,7 +749,10 @@ export class SushiService {
       const newInventory = [...(current.inventory || []), itemId];
       const newKitchen = intermediateState.kitchenCapacity + (item.kitchenCapacityDelta ?? 0);
       const newService = intermediateState.serviceCapacity + (item.serviceCapacityDelta ?? 0);
-      const newAvgRev = intermediateState.averageRevenuePerOrder + (item.averageRevenueDelta ?? 0);
+      const newAvgRev =
+        current.legacyRevenueFloor !== undefined
+          ? Math.max(canonicalRevenue(newInventory), current.legacyRevenueFloor)
+          : intermediateState.averageRevenuePerOrder + (item.averageRevenueDelta ?? 0);
       const newCapMs = item.newCapMs ?? intermediateState.capMs;
 
       const updatedProcessedRequests = idempotencyKey

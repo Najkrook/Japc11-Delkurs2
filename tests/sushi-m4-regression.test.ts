@@ -1,3 +1,8 @@
+import {
+  createLegacyEconomyState,
+  LEGACY_CAP_MS,
+  LEGACY_EXTENDED_CAP_MS,
+} from './helpers/legacy-sushi-economy.ts';
 /**
  * Milestone 4: Comprehensive QA & Release Regression Test Suite
  *
@@ -17,18 +22,11 @@ import {
   calculateProductionRate,
   collectEarnings,
   createDefaultRestaurantState,
-  createInitialEconomyState,
   unitsToWholeYen,
   unitsToYenDecimal,
   yenToUnits,
 } from '../src/course/sushi-game/economy.ts';
-import {
-  DEFAULT_CAP_MS,
-  EXTENDED_CAP_MS,
-  MS_PER_HOUR,
-  MS_PER_MINUTE,
-  YEN_UNIT_MULTIPLIER,
-} from '../src/course/sushi-game/types.ts';
+import { MS_PER_HOUR, MS_PER_MINUTE, YEN_UNIT_MULTIPLIER } from '../src/course/sushi-game/types.ts';
 import type { SushiEconomyState, SushiRestaurantState } from '../src/course/sushi-game/types.ts';
 import {
   SUSHI_CATALOG,
@@ -101,11 +99,11 @@ test('Suite 1.1: Extended offline accrual at 10m, 1h, and 8h default cap (20 ¥/
   const startMs = 1_000_000_000;
   // Setup restaurant with Kitchen 3, Service 2, AvgRev 10
   // Throughput: O = min(3, 2) = 2 orders/min; R = 2 * 10 = 20 yen/min.
-  const state: SushiEconomyState = createInitialEconomyState(startMs, {
+  const state: SushiEconomyState = createLegacyEconomyState(startMs, {
     kitchenCapacity: 3,
     serviceCapacity: 2,
     averageRevenuePerOrder: 10,
-    capMs: DEFAULT_CAP_MS, // 28,800,000 ms (8 hours)
+    capMs: LEGACY_CAP_MS, // 28,800,000 ms (8 hours)
   });
 
   const rate = calculateProductionRate(
@@ -127,7 +125,7 @@ test('Suite 1.1: Extended offline accrual at 10m, 1h, and 8h default cap (20 ¥/
   assert.equal(accrual10m.earnedUnits, 12_000_000, 'Earned units should be exactly 12,000,000');
   assert.equal(unitsToWholeYen(accrual10m.earnedUnits), 200, 'Whole yen should be exactly 200 ¥');
   assert.equal(accrual10m.isCapped, false, 'Should not be capped at 10 minutes');
-  assert.equal(accrual10m.remainingCapMs, DEFAULT_CAP_MS - 600_000);
+  assert.equal(accrual10m.remainingCapMs, LEGACY_CAP_MS - 600_000);
 
   // Point B: 1 hour offline (3,600,000 ms)
   // Expected: 60 min * 20 ¥/min = 1,200 ¥ = 72,000,000 units
@@ -143,7 +141,7 @@ test('Suite 1.1: Extended offline accrual at 10m, 1h, and 8h default cap (20 ¥/
     'Whole yen should be exactly 1,200 ¥',
   );
   assert.equal(accrual1h.isCapped, false, 'Should not be capped at 1 hour');
-  assert.equal(accrual1h.remainingCapMs, DEFAULT_CAP_MS - 3_600_000);
+  assert.equal(accrual1h.remainingCapMs, LEGACY_CAP_MS - 3_600_000);
 
   // Point C: 8 hours offline (28,800,000 ms) - exact default cap boundary
   // Expected: 480 min * 20 ¥/min = 9,600 ¥ = 576,000,000 units
@@ -164,12 +162,12 @@ test('Suite 1.1: Extended offline accrual at 10m, 1h, and 8h default cap (20 ¥/
 
 test('Suite 1.2: Extended offline accrual with 12h cap extension at 12h and 24h with stopped time discarded', () => {
   const startMs = 1_000_000_000;
-  // State equipped with cap_extension_12h (EXTENDED_CAP_MS = 43,200,000 ms)
-  const state: SushiEconomyState = createInitialEconomyState(startMs, {
+  // State equipped with cap_extension_12h (LEGACY_EXTENDED_CAP_MS = 43,200,000 ms)
+  const state: SushiEconomyState = createLegacyEconomyState(startMs, {
     kitchenCapacity: 3,
     serviceCapacity: 2,
     averageRevenuePerOrder: 10,
-    capMs: EXTENDED_CAP_MS, // 12 hours
+    capMs: LEGACY_EXTENDED_CAP_MS, // 12 hours
   });
 
   // Point D: 12 hours offline (43,200,000 ms)
@@ -219,11 +217,11 @@ test('Suite 1.2: Extended offline accrual with 12h cap extension at 12h and 24h 
 
 test('Suite 1.3: Manual collection clearing the cap, transferring revenue, and resetting production', () => {
   const startMs = 1_000_000_000;
-  const state: SushiEconomyState = createInitialEconomyState(startMs, {
+  const state: SushiEconomyState = createLegacyEconomyState(startMs, {
     kitchenCapacity: 3,
     serviceCapacity: 2,
     averageRevenuePerOrder: 10,
-    capMs: EXTENDED_CAP_MS,
+    capMs: LEGACY_EXTENDED_CAP_MS,
   });
 
   // Accrue 24 hours (capped at 14,400 ¥ = 864,000,000 units)
@@ -257,7 +255,7 @@ test('Suite 1.3: Manual collection clearing the cap, transferring revenue, and r
   assert.equal(postAccrual.isCapped, false, 'Should not be capped after fresh collection');
   assert.equal(
     postAccrual.remainingCapMs,
-    EXTENDED_CAP_MS - 3_600_000,
+    LEGACY_EXTENDED_CAP_MS - 3_600_000,
     'Remaining cap must be 11h',
   );
 });
@@ -292,11 +290,11 @@ test('Suite 2.1: Full curriculum mapping: 21 items map to Genki I Chapters 6–1
     }
   }
 
-  // Verify total catalog sink equilibrium equals 48,000 yen
+  // Verify total catalog sink equilibrium equals 47,750 yen
   const totalYen = SUSHI_CATALOG.reduce((sum, item) => sum + item.priceYen, 0);
-  assert.equal(totalYen, 48_000, 'Master 21-item catalog sum must equal exactly 48,000 ¥');
+  assert.equal(totalYen, 47_750, 'Master 21-item catalog sum must equal exactly 47,750 ¥');
   const totalUnits = SUSHI_CATALOG.reduce((sum, item) => sum + item.priceUnits, 0);
-  assert.equal(totalUnits, 48_000 * YEN_UNIT_MULTIPLIER, 'Total units must equal 2,880,000,000');
+  assert.equal(totalUnits, 47_750 * YEN_UNIT_MULTIPLIER, 'Total units must equal 2,865,000,000');
 });
 
 test('Suite 2.2: Monotonic non-revocation under score reductions, quiz mistakes, and course resets', async () => {
@@ -374,8 +372,8 @@ test('Suite 3.1: Purchase transactions: exact 60,000 units/yen debit and balance
   // Item to purchase: prep_counter (300 ¥ = 18,000,000 units)
   const item = getCatalogItem('prep_counter')!;
   assert.ok(item, 'prep_counter must exist in catalog');
-  assert.equal(item.priceYen, 300);
-  assert.equal(item.priceUnits, 18_000_000);
+  assert.equal(item.priceYen, 50);
+  assert.equal(item.priceUnits, 3_000_000);
 
   // Initialize restaurant with prep_counter unlocked
   const initial = await service.getOrInitRestaurant(uid, nowMs, ['prep_counter']);
@@ -402,8 +400,8 @@ test('Suite 3.1: Purchase transactions: exact 60,000 units/yen debit and balance
   );
   if (!failureUnderfunded.success) {
     assert.equal(failureUnderfunded.reason, 'INSUFFICIENT_FUNDS');
-    assert.equal(failureUnderfunded.requiredUnits, 18_000_000);
-    assert.equal(failureUnderfunded.actualUnits, 17_999_999);
+    assert.equal(failureUnderfunded.requiredUnits, 3_000_000);
+    assert.equal(failureUnderfunded.actualUnits, 2_999_999);
   }
 
   // Case B: Student has uncollected register units, but 0 spendable wallet balance
@@ -447,8 +445,8 @@ test('Suite 3.1: Purchase transactions: exact 60,000 units/yen debit and balance
   );
   assert.equal(successExact.success, true, 'Purchase must succeed with exact balance');
   if (successExact.success) {
-    assert.equal(successExact.debitedUnits, 18_000_000, 'Must debit exactly 18,000,000 units');
-    assert.equal(successExact.debitedYen, 300, 'Must debit exactly 300 whole yen');
+    assert.equal(successExact.debitedUnits, 3_000_000, 'Must debit exactly 18,000,000 units');
+    assert.equal(successExact.debitedYen, 50, 'Must debit exactly 300 whole yen');
     assert.equal(successExact.state.balanceUnits, 0, 'Remaining balance must be exactly 0 units');
     assert.ok(
       successExact.state.inventory.includes('prep_counter'),
@@ -472,7 +470,7 @@ test('Suite 3.1: Purchase transactions: exact 60,000 units/yen debit and balance
 test('Suite 3.2: Prospective upgrade rate transitions across production chain: O = min(K, S), R = O * A', () => {
   // Trace the full upgrade progression:
   // Baseline -> Prep Counter (+2K) -> Knife (+1K) -> Belt (+2S) -> Counter (+2S) -> Sous Chef (+2K) -> Master License (+5A)
-  let current: SushiEconomyState = createInitialEconomyState(1_000_000);
+  let current: SushiEconomyState = createLegacyEconomyState(1_000_000);
 
   // 0. Initial baseline
   // K=1, S=2, A=10 -> O=min(1, 2)=1, R=10 ¥/min (Bottleneck: Kitchen)
@@ -577,7 +575,7 @@ test('Suite 3.3: Idempotency with duplicate request keys on purchase and collect
   if (p1.success) {
     assert.equal(p1.wasAlreadyProcessed, false);
     assert.equal(p1.state.inventory.filter((id) => id === 'paper_lantern').length, 1);
-    assert.equal(p1.state.balanceUnits, 60_000_000 - 18_000_000); // 300 yen debited
+    assert.equal(p1.state.balanceUnits, 60_000_000 - 18_000_000); // Paper lantern remains ¥300.
   }
 
   // 2. Duplicate purchase call with same idempotency key
@@ -734,7 +732,7 @@ test('Suite 4.1: Japanese Study Flashcards & Vocabulary Drills operate with zero
   assert.equal(snapshot.masteredVocabIds[firstCardId], true);
 
   // 4. Verify that running sushi economy operations does NOT mutate course progress
-  const economyState = createInitialEconomyState(500_000);
+  const economyState = createLegacyEconomyState(500_000);
   const accrual = calculateAccrual(economyState, 1_000_000);
   collectEarnings(accrual.updatedState, 1_000_000);
 

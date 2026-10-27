@@ -1,0 +1,44 @@
+Browser tab: 1, Title: "JAPC11 · Delkurs 2 — Genki I (Kapitel 6–12)", URL: "http://127.0.0.1:5176/?sushi=1#/sushi".
+1 AXWebArea JAPC11 · Delkurs 2 — Genki I (Kapitel 6–12), URL: 127.0.0.1:5176/?sushi=1#/sushi
+	2 container
+		3 heading Sakura Sushi 🍣 Sushirestaurang, Value: 1
+			4 text Sakura Sushi 🍣 Sushirestaurang
+		5 button B Balance audit · complete (Logga ut), Help: Inloggad som Balance audit · complete · Klicka för att logga ut
+			6 text B
+			7 text Balance audit · complete
+			8 text (Logga ut)
+		9 button 🌸 Sakura, Help: Slå på Sakura / Kawaii-tema
+		10 button (collapsed) Meny, Help: Öppna meny och inredning, Secondary Actions: Expand
+		11 button (collapsed) Butik, Help: Öppna butik och upplåsningar, Secondary Actions: Expand
+		12 button ← Tillbaka till studierna, Help: Tillbaka till studierna
+		13 container Personlig sushirestaurang
+			14 container
+				15 heading Välkommen, Balance audit · complete!, Value: 2
+					16 text Välkommen,  Balance audit · complete !
+				17 text Disponibelt saldo: ¥  0
+				18 text Din restaurang producerar och tjänar yen i realtid. Hämta intäkterna till ditt disponibla saldo.
+				19 container
+					20 text 90  ¥/min
+				21 text Intäktstakt: Kök:  6 ordrar/min  · Service:  6 ordrar/min  ·  Balanserad produktion
+			26 container
+				27 image Din sushirestaurang Isometrisk vy snett uppifrån genom restaurangens öppna hörn, med två väggar och synligt trägolv. Förbättrad beredningsbänk . Transportband installerat . Precisionskniv vid beredningsbänken. Uppgraderad serveringsdisk. Assisterande souschef i köket. Inramad mästarlicens på väggen. Laxnigiri på disken. Kappamaki på disken. Tonfisknigiri på disken. Räknigiri på disken. Tamagonigiri på disken. Sashimitallrik på disken. Omakasemeny på disken. Norendraperi på väggen. Gyllene Maneki-neko på golvet., Help: Isometrisk vy snett uppifrån genom restaurangens öppna hörn, med två väggar och synligt trägolv. Förbättrad beredningsbänk. Transportband installerat. Precisionskniv vid beredningsbänken. Uppgraderad serveringsdisk. Assisterande souschef i köket. Inramad mästarlicens på väggen. Laxnigiri på disken. Kappamaki på disken. Tonfisknigiri på disken. Räknigiri på disken. Tamagonigiri på disken. Sashimitallrik på disken. Omakasemeny på disken. Norendraperi på väggen. Gyllene Maneki-neko på golvet.
+				28 button Se japanska fraser med gästen
+				29 button Se japanska fraser med gästen
+				30 button Se japanska fraser med gästen
+				31 text Din lilla sushibar Utökat kök  ·  Transportband
+			32 container
+				33 text Restaurangen är komplett! Alla 21 belöningar är dina. 21  / 21 belöningar köpta
+			34 text Tryck på en gäst · se japanska fraser
+			35 container Kassa och ohämtade intäkter
+				36 text OHÄMTADE INTÄKTER 33 12h Tak 0.0 h /  12 h
+				37 progress indicator Description: Produktionstid i perioden, Value: 0
+				38 text ✨ Ny produktionstid aktiv! (12 timmar max)
+				39 button (collapsed) Produktion ▾, Secondary Actions: Expand
+					40 text Produktion
+					41 text  ▾
+				42 button Hämta 33 intjänade yen till ditt disponibla saldo
+					43 text Hämta intäkter ¥ 
+					45 text 33
+			44 text Grattis! 21 nya kursbelöningar upplåsta från dina kursmedaljer: Förbättrad beredningsbänk, Laxnigiri, Papperslykta, Längre produktionstid, Kappamaki (Gurkrulle), Krukväxt, Precisionskniv, Maguronigiri (Tonfisk), Noren-gardin, Transportband, Ebinigiri (Räka), Vågmotiv, Utökad serveringsdisk, Tamagonigiri (Ägg), Andon-golvlykta, Assisterande kock, Sashimi Moriawase, Sakura Bonsai, Mästarcertifiering, Omakase-meny, Gyllene Maneki-Neko. Föremålen är nu tillgängliga att köpa i butiken.
+
+The focused UI element is 1 AXWebArea JAPC11 · Delkurs 2 — Genki I (Kapitel 6–12), URL: 127.0.0.1:5176/?sushi=1#/sushi

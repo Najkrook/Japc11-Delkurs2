@@ -8,6 +8,7 @@ import {
 } from './domain-service.ts';
 import type { SushiRestaurantState, DecorationSlot, EquipDecorationResult } from './types.ts';
 import type { PurchaseItemResult } from './catalog.ts';
+import type { PurchaseRestaurantProjectResult } from './projects.ts';
 import { isLocalhost } from './config.ts';
 export * from './domain-service.ts';
 
@@ -165,6 +166,18 @@ export async function purchaseCatalogItem(
     : remote(uid, { operation: 'purchase', itemId, idempotencyKey });
 }
 export const purchaseUpgrade = purchaseCatalogItem;
+
+export async function purchaseRestaurantProject(
+  uid: string,
+  projectId: string,
+  idempotencyKey: string,
+  nowMs = Date.now(),
+): Promise<PurchaseRestaurantProjectResult> {
+  const active = getActiveService();
+  return active
+    ? active.purchaseRestaurantProject(uid, projectId, idempotencyKey, nowMs)
+    : remote(uid, { operation: 'project', projectId, idempotencyKey });
+}
 
 export async function equipDecoration(
   uid: string,

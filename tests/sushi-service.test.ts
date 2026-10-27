@@ -55,19 +55,18 @@ test('SushiService: Reopening existing restaurant evaluates lazy accrual up to s
   assert.equal(reopened.balanceUnits, 0); // Not collected yet
 });
 
-test('SushiService: Accrual clamps to 8-hour cap and stops production on long absence', async () => {
+test('SushiService: Accrual clamps to the 24-hour cap on a long absence', async () => {
   const repo = new InMemorySushiRepository();
   const service = new SushiService(repo);
 
   const t0 = 0;
   await service.getOrInitRestaurant('student-charlie', t0);
 
-  // Return after 10 hours (2 hours beyond 8h cap)
-  const t10h = 10 * MS_PER_HOUR;
+  // Return after 30 hours: 24 productive hours, six stopped hours.
+  const t10h = 30 * MS_PER_HOUR;
   const reopened = await service.getOrInitRestaurant('student-charlie', t10h);
 
-  // Exactly 8 hours productive time = 480 min * 10 = 4,800 yen
-  assert.equal(unitsToWholeYen(reopened.uncollectedUnits), 4800);
+  assert.equal(unitsToWholeYen(reopened.uncollectedUnits), 14400);
   assert.equal(reopened.usedProductionMs, DEFAULT_CAP_MS);
   assert.equal(reopened.accountedAtMs, t10h); // Clock advanced, but production stopped
 });

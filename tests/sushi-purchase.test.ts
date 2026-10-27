@@ -39,8 +39,8 @@ test('M3-Catalog: Canonical catalog defines all 7 MVP items with rich typing', (
 
   const prepCounter = getCatalogItem('prep_counter');
   assert.ok(prepCounter, 'prep_counter must exist');
-  assert.equal(prepCounter.priceYen, 300);
-  assert.equal(prepCounter.priceUnits, 18_000_000);
+  assert.equal(prepCounter.priceYen, 50);
+  assert.equal(prepCounter.priceUnits, 3_000_000);
   assert.equal(prepCounter.kitchenCapacityDelta, 2);
   assert.equal(prepCounter.requiredLesson, 6);
   assert.equal(prepCounter.requiredTier, 'bronze');
@@ -134,7 +134,7 @@ test('M3-Preview: previewCatalogPurchase provides prospective rates and pedagogi
   assert.ok(capPreview);
   assert.equal(capPreview.newCapMs, EXTENDED_CAP_MS);
   assert.ok(capPreview.hasImmediateEffect);
-  assert.ok(capPreview.educationalExplanation.includes('+4 timmar'));
+  assert.ok(capPreview.educationalExplanation.includes('+24 timmar'));
 });
 
 // ==========================================
@@ -199,15 +199,15 @@ test('M3-Service: Rejects purchase if spendable balance is insufficient (INSUFFI
   // User unlocked prep_counter (costs 300 yen / 18M units), but has only 200 yen balance (12M units)
   await service.getOrInitRestaurant(uid, 1000, ['prep_counter']);
   await repo.transaction(uid, async (current) => ({
-    state: { ...current!, balanceUnits: yenToUnits(200) },
+    state: { ...current!, balanceUnits: yenToUnits(49) },
     result: null,
   }));
 
   const res = await service.purchaseCatalogItem(uid, 'prep_counter');
   assert.equal(res.success, false);
   assert.equal(res.reason, 'INSUFFICIENT_FUNDS');
-  assert.equal(res.requiredUnits, 18_000_000);
-  assert.equal(res.actualUnits, 12_000_000);
+  assert.equal(res.requiredUnits, 3_000_000);
+  assert.equal(res.actualUnits, yenToUnits(49));
 });
 
 test('M3-Service: Uncollected revenue CANNOT pay for purchases (Security Invariant)', async () => {
@@ -219,7 +219,7 @@ test('M3-Service: Uncollected revenue CANNOT pay for purchases (Security Invaria
   // Unlocked prep_counter (300 yen), spendable balance = 50 yen (3M units)
   await service.getOrInitRestaurant(uid, t0, ['prep_counter']);
   await repo.transaction(uid, async (current) => ({
-    state: { ...current!, balanceUnits: yenToUnits(50) },
+    state: { ...current!, balanceUnits: yenToUnits(49) },
     result: null,
   }));
 
@@ -230,7 +230,7 @@ test('M3-Service: Uncollected revenue CANNOT pay for purchases (Security Invaria
 
   assert.equal(res.success, false, 'Uncollected revenue in cash register must NOT fund purchases');
   assert.equal(res.reason, 'INSUFFICIENT_FUNDS');
-  assert.equal(res.actualUnits, yenToUnits(50));
+  assert.equal(res.actualUnits, yenToUnits(49));
 
   // Verify intermediate accrual was preserved in repo
   const afterCheck = await repo.get(uid);
@@ -240,7 +240,7 @@ test('M3-Service: Uncollected revenue CANNOT pay for purchases (Security Invaria
     yenToUnits(600),
     'Accrued register income must be preserved',
   );
-  assert.equal(afterCheck.balanceUnits, yenToUnits(50), 'Spendable balance must be untouched');
+  assert.equal(afterCheck.balanceUnits, yenToUnits(49), 'Spendable balance must be untouched');
   assert.equal(afterCheck.inventory.length, 0, 'No item purchased');
 });
 
@@ -261,12 +261,12 @@ test('M3-Service: Successful purchase of prep_counter mutates balance, inventory
   const res = await service.purchaseCatalogItem(uid, 'prep_counter', 'tx_prep_1', t10m);
 
   assert.equal(res.success, true);
-  assert.equal(res.debitedUnits, 18_000_000);
-  assert.equal(res.debitedYen, 300);
+  assert.equal(res.debitedUnits, 3_000_000);
+  assert.equal(res.debitedYen, 50);
   assert.equal(res.wasAlreadyProcessed, false);
 
   const state = res.state;
-  assert.equal(unitsToWholeYen(state.balanceUnits), 200, '500 - 300 = 200 yen balance');
+  assert.equal(unitsToWholeYen(state.balanceUnits), 450, '500 - 50 = 450 yen balance');
   assert.deepEqual(state.inventory, ['prep_counter']);
   assert.equal(state.kitchenCapacity, 3, 'Kitchen capacity increased by +2 (from 1 to 3)');
   assert.equal(state.serviceCapacity, 2, 'Service capacity unchanged');
@@ -314,14 +314,14 @@ test('M3-Service: Idempotency key avoids duplicate debit on retries', async () =
   const res1 = await service.purchaseCatalogItem(uid, 'prep_counter', idempotencyKey, 2000);
   assert.equal(res1.success, true);
   assert.equal(res1.wasAlreadyProcessed, false);
-  assert.equal(res1.debitedYen, 300);
-  assert.equal(unitsToWholeYen(res1.state.balanceUnits), 200);
+  assert.equal(res1.debitedYen, 50);
+  assert.equal(unitsToWholeYen(res1.state.balanceUnits), 450);
 
   // Call 2: retry with same idempotency key
   const res2 = await service.purchaseCatalogItem(uid, 'prep_counter', idempotencyKey, 3000);
   assert.equal(res2.success, true);
   assert.equal(res2.wasAlreadyProcessed, true);
-  assert.equal(unitsToWholeYen(res2.state.balanceUnits), 200, 'Balance must NOT be debited twice');
+  assert.equal(unitsToWholeYen(res2.state.balanceUnits), 450, 'Balance must NOT be debited twice');
   assert.deepEqual(
     res2.state.inventory,
     ['prep_counter'],
@@ -333,131 +333,78 @@ test('M3-Service: Idempotency key avoids duplicate debit on retries', async () =
 const MS_MINUTE = MS_PER_MINUTE;
 
 // ==========================================
-// 3. 12h Cap Extension Scenarios A, B, C
+// 3. Current 24h -> 48h cap extension: before, exactly at, and beyond the old limit
 // ==========================================
 
-test('M3-Cap: Scenario A (Cap purchase before limit at 2h)', async () => {
-  const repo = new InMemorySushiRepository();
-  const service = new SushiService(repo);
-  const uid = 'user-cap-scen-a';
-  const t0 = 1_000_000;
-
-  // Unlocked cap_extension_12h (1,800 yen), starting balance 10,000 yen
-  await service.getOrInitRestaurant(uid, t0, ['cap_extension_12h']);
-  await repo.transaction(uid, async (current) => ({
-    state: { ...current!, balanceUnits: yenToUnits(10_000) },
-    result: null,
-  }));
-
-  // Purchase at T = 2h
-  const t2h = t0 + 2 * MS_PER_HOUR;
-  const res = await service.purchaseCatalogItem(uid, 'cap_extension_12h', undefined, t2h);
-  assert.equal(res.success, true);
-
-  const state2h = res.state;
-  assert.equal(unitsToWholeYen(state2h.balanceUnits), 8200, '10000 - 1800 = 8200 yen');
-  assert.equal(unitsToWholeYen(state2h.uncollectedUnits), 1200, '2h at 10 yen/min = 1200 yen');
-  assert.equal(state2h.usedProductionMs, 2 * MS_PER_HOUR);
-  assert.equal(state2h.capMs, EXTENDED_CAP_MS);
-
-  // Wait 10 hours after purchase (T = 12h) -> remaining 10h should be produced, register full
-  const t12h = t0 + 12 * MS_PER_HOUR;
-  const state12h = await service.getOrInitRestaurant(uid, t12h);
-  assert.equal(unitsToWholeYen(state12h.uncollectedUnits), 7200, '1200 + 6000 = 7200 yen total');
-  assert.equal(state12h.usedProductionMs, 12 * MS_PER_HOUR);
-
-  // Wait 1 hour more (T = 13h) -> excess time discarded
-  const t13h = t0 + 13 * MS_PER_HOUR;
-  const state13h = await service.getOrInitRestaurant(uid, t13h);
-  assert.equal(unitsToWholeYen(state13h.uncollectedUnits), 7200, 'Capped at 7200 yen');
-  assert.equal(state13h.usedProductionMs, 12 * MS_PER_HOUR);
-});
-
-test('M3-Cap: Scenario B (Cap purchase at 8h limit)', async () => {
-  const repo = new InMemorySushiRepository();
-  const service = new SushiService(repo);
-  const uid = 'user-cap-scen-b';
-  const t0 = 1_000_000;
-
-  await service.getOrInitRestaurant(uid, t0, ['cap_extension_12h']);
-  await repo.transaction(uid, async (current) => ({
-    state: { ...current!, balanceUnits: yenToUnits(10_000) },
-    result: null,
-  }));
-
-  // Purchase at T = 8h (register full under 8h cap: 4,800 yen)
-  const t8h = t0 + 8 * MS_PER_HOUR;
-  const res = await service.purchaseCatalogItem(uid, 'cap_extension_12h', undefined, t8h);
-  assert.equal(res.success, true);
-
-  const state8h = res.state;
-  assert.equal(unitsToWholeYen(state8h.balanceUnits), 8200);
-  assert.equal(unitsToWholeYen(state8h.uncollectedUnits), 4800);
-  assert.equal(state8h.usedProductionMs, 8 * MS_PER_HOUR);
-  assert.equal(state8h.capMs, EXTENDED_CAP_MS);
-
-  // Wait 1h after purchase (T = 9h) -> 1h new production
-  const t9h = t0 + 9 * MS_PER_HOUR;
-  const state9h = await service.getOrInitRestaurant(uid, t9h);
-  assert.equal(unitsToWholeYen(state9h.uncollectedUnits), 5400, '4800 + 600 = 5400 yen');
-  assert.equal(state9h.usedProductionMs, 9 * MS_PER_HOUR);
-
-  // Wait 3h more (T = 12h) -> reaches 12h cap
-  const t12h = t0 + 12 * MS_PER_HOUR;
-  const state12h = await service.getOrInitRestaurant(uid, t12h);
-  assert.equal(unitsToWholeYen(state12h.uncollectedUnits), 7200, '4800 + 2400 = 7200 yen');
-  assert.equal(state12h.usedProductionMs, 12 * MS_PER_HOUR);
-});
-
-test('M3-Cap: Scenario C (Cap purchase at stopped register after 10h with prep counter)', async () => {
-  const repo = new InMemorySushiRepository();
-  const service = new SushiService(repo);
-  const uid = 'user-cap-scen-c';
-  const t0 = 1_000_000;
-
-  // Restaurant has prep_counter already (rate = 20 yen/min)
-  await service.getOrInitRestaurant(uid, t0, ['cap_extension_12h']);
-  await repo.transaction(uid, async (current) => ({
-    state: {
-      ...current!,
-      kitchenCapacity: 3, // prep_counter active
-      balanceUnits: yenToUnits(9700),
-      inventory: ['prep_counter'],
+for (const scenario of [
+  {
+    name: 'before the old limit',
+    visitHour: 2,
+    kitchen: 1,
+    oldEarned: 1200,
+    usedHours: 2,
+    fullHour: 48,
+    fullEarned: 28800,
+  },
+  {
+    name: 'exactly at the old limit',
+    visitHour: 24,
+    kitchen: 1,
+    oldEarned: 14400,
+    usedHours: 24,
+    fullHour: 48,
+    fullEarned: 28800,
+  },
+  {
+    name: 'after two stopped hours',
+    visitHour: 26,
+    kitchen: 3,
+    oldEarned: 28800,
+    usedHours: 24,
+    fullHour: 50,
+    fullEarned: 57600,
+  },
+]) {
+  test(
+    'M3-Cap: 48h upgrade ' + scenario.name + ' preserves income and only resumes future time',
+    async () => {
+      const repo = new InMemorySushiRepository();
+      const service = new SushiService(repo);
+      const uid = 'current-cap-' + scenario.visitHour;
+      const initial = await service.getOrInitRestaurant(uid, 0, ['cap_extension_12h']);
+      await repo.set({
+        ...initial,
+        kitchenCapacity: scenario.kitchen,
+        balanceUnits: yenToUnits(10000),
+      });
+      const result = await service.purchaseCatalogItem(
+        uid,
+        'cap_extension_12h',
+        'upgrade',
+        scenario.visitHour * MS_PER_HOUR,
+      );
+      assert.equal(result.success, true);
+      if (!result.success) return;
+      assert.equal(result.state.balanceUnits, yenToUnits(8200));
+      assert.equal(result.state.uncollectedUnits, yenToUnits(scenario.oldEarned));
+      assert.equal(result.state.usedProductionMs, scenario.usedHours * MS_PER_HOUR);
+      assert.equal(result.state.capMs, EXTENDED_CAP_MS);
+      const full = await service.getOrInitRestaurant(uid, scenario.fullHour * MS_PER_HOUR);
+      assert.equal(full.uncollectedUnits, yenToUnits(scenario.fullEarned));
+      assert.equal(full.usedProductionMs, 48 * MS_PER_HOUR);
+      const stopped = await service.getOrInitRestaurant(uid, (scenario.fullHour + 1) * MS_PER_HOUR);
+      assert.equal(stopped.uncollectedUnits, full.uncollectedUnits);
+      const collected = await service.collectRevenue(
+        uid,
+        'collect',
+        (scenario.fullHour + 1) * MS_PER_HOUR,
+      );
+      assert.equal(collected.state.balanceUnits, yenToUnits(8200 + scenario.fullEarned));
+      assert.equal(collected.state.usedProductionMs, 0);
+      assert.equal(collected.state.capMs, EXTENDED_CAP_MS);
     },
-    result: null,
-  }));
-
-  // Student is away for 10 hours (8h productive, 2h stopped under 8h cap)
-  const t10h = t0 + 10 * MS_PER_HOUR;
-  // Purchase cap_extension_12h at T = 10h
-  const res = await service.purchaseCatalogItem(uid, 'cap_extension_12h', undefined, t10h);
-  assert.equal(res.success, true);
-
-  const state10h = res.state;
-  assert.equal(unitsToWholeYen(state10h.balanceUnits), 7900, '9700 - 1800 = 7900 yen');
-  assert.equal(unitsToWholeYen(state10h.uncollectedUnits), 9600, '8h at 20 yen/min = 9600 yen');
-  assert.equal(state10h.usedProductionMs, 8 * MS_PER_HOUR);
-  assert.equal(state10h.capMs, EXTENDED_CAP_MS);
-
-  // 1 hour later (T = 11h at 20 yen/min): earns 1200 yen
-  const t11h = t0 + 11 * MS_PER_HOUR;
-  const state11h = await service.getOrInitRestaurant(uid, t11h);
-  assert.equal(unitsToWholeYen(state11h.uncollectedUnits), 10_800, '9600 + 1200 = 10800 yen');
-
-  // 3 hours later (T = 14h): exactly 4 new productive hours earned, reaches 12h cap
-  const t14h = t0 + 14 * MS_PER_HOUR;
-  const state14h = await service.getOrInitRestaurant(uid, t14h);
-  assert.equal(unitsToWholeYen(state14h.uncollectedUnits), 14_400, '9600 + 4800 = 14400 yen');
-  assert.equal(state14h.usedProductionMs, 12 * MS_PER_HOUR);
-
-  // Manual collection at T = 14h: transfers all 14,400 yen into balance, resets register, keeps 12h cap
-  const collectRes = await service.collectRevenue(uid, 'collect_c_14h', t14h);
-  assert.equal(collectRes.collectedYen, 14_400);
-  assert.equal(unitsToWholeYen(collectRes.state.balanceUnits), 22_300, '7900 + 14400 = 22300 yen');
-  assert.equal(collectRes.state.uncollectedUnits, 0);
-  assert.equal(collectRes.state.usedProductionMs, 0);
-  assert.equal(collectRes.state.capMs, EXTENDED_CAP_MS, '12h cap persists into fresh period');
-});
+  );
+}
 
 // ==========================================
 // 4. Asymmetrical Upgrade Path B (Conveyor Belt First)
@@ -500,8 +447,8 @@ test('M3-Asymmetrical: Purchasing conveyor belt first gives ±0 yen/min, then pr
   // Step 2: Now buy prep counter (+2 kitchen, costs 300 yen)
   const res2 = await service.purchaseCatalogItem(uid, 'prep_counter', 'tx_pc_2', t0 + 1000);
   assert.equal(res2.success, true);
-  assert.equal(res2.debitedYen, 300);
-  assert.equal(unitsToWholeYen(res2.state.balanceUnits), 1100);
+  assert.equal(res2.debitedYen, 50);
+  assert.equal(unitsToWholeYen(res2.state.balanceUnits), 1350);
   assert.equal(res2.state.kitchenCapacity, 3);
   assert.equal(res2.state.serviceCapacity, 4);
 

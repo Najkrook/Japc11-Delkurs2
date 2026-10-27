@@ -3,7 +3,7 @@
  * JAPC11 Delkurs 2 Prototype
  *
  * Implements strict integer math (1/60000 yen units and integer milliseconds).
- * Zero floating-point drift, bounded 8-hour idle cap, prospective upgrade rules.
+ * Zero floating-point drift, bounded configurable idle cap, prospective upgrade rules.
  */
 
 import {
@@ -12,6 +12,7 @@ import {
   DEFAULT_KITCHEN_CAPACITY,
   DEFAULT_SERVICE_CAPACITY,
   DEFAULT_AVERAGE_REVENUE,
+  CURRENT_BALANCE_VERSION,
 } from './types.ts';
 import type {
   SushiEconomyState,
@@ -298,6 +299,7 @@ export function createDefaultRestaurantState(
 ): SushiRestaurantState {
   return {
     schemaVersion: 1,
+    balanceVersion: CURRENT_BALANCE_VERSION,
     id: uid,
     ownerUid: uid,
     createdAtMs: nowMs,
@@ -313,6 +315,7 @@ export function createDefaultRestaurantState(
     uncollectedUnits: 0,
     permanentGrants: [],
     inventory: [],
+    completedProjects: [],
     equipped: {
       wallSlot: null,
       floorSlot: null,

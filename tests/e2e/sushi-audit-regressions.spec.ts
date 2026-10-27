@@ -5,8 +5,8 @@ test('real income, visible telemetry and collection remain usable', async ({ pag
   const now = Date.UTC(2026, 9, 27, 12);
   await page.clock.setFixedTime(now);
   const state = createDefaultRestaurantState('audit-browser', now, {
-    uncollectedUnits: 4800 * 60000,
-    usedProductionMs: 8 * 3600000,
+    uncollectedUnits: 14400 * 60000,
+    usedProductionMs: 24 * 3600000,
   });
   await page.addInitScript((fixture) => {
     sessionStorage.setItem(
@@ -19,7 +19,7 @@ test('real income, visible telemetry and collection remain usable', async ({ pag
   page.on('pageerror', (error) => errors.push(error.message));
   await page.goto('/#/sushi');
   const collect = page.getByTestId('sushi-collect-btn');
-  await expect(collect.locator('.sushi-collect-yen')).toHaveText('¥ 4,800');
+  await expect(collect.locator('.sushi-collect-yen')).toHaveText('¥ 14,400');
   for (const id of ['sushi-rate-info', 'sushi-capped-badge', 'sushi-uncollected-amount']) {
     const element = page.getByTestId(id);
     await element.scrollIntoViewIfNeeded();
@@ -29,7 +29,7 @@ test('real income, visible telemetry and collection remain usable', async ({ pag
   }
   await collect.click();
   await expect(collect).toBeDisabled();
-  await expect(page.getByTestId('sushi-reward-pop')).toContainText('4');
+  await expect(page.getByTestId('sushi-reward-pop')).toContainText('14400');
   await expect(collect.locator('.sushi-collect-yen')).toHaveText('¥ 0');
   await expect(collect).toHaveAttribute('aria-label', /Hämta 0 intjänade yen/);
   await expect(page.getByRole('progressbar')).toHaveAttribute('aria-valuenow', '0');
@@ -38,7 +38,7 @@ test('real income, visible telemetry and collection remain usable', async ({ pag
     .toBe(0);
   await expect(page.getByTestId('sushi-capped-badge')).toHaveCount(0);
   await expect(page.getByTestId('sushi-uncollected-amount')).toContainText('0');
-  await expect(page.getByTestId('sushi-spendable-balance')).toContainText('4,800');
+  await expect(page.getByTestId('sushi-spendable-balance')).toContainText('14,400');
   await expect(
     page.locator('.sushi-stats-plaque, .sushi-clock-badge, .sushi-calendar-badge'),
   ).toHaveCount(0);
@@ -53,7 +53,7 @@ test('real income, visible telemetry and collection remain usable', async ({ pag
   expect(errors).toEqual([]);
 });
 
-test('cozy tycoon: guests teach phrases and a goal leads to a visible purchase', async ({
+test('cozy companion: guests teach phrases and a goal leads to a visible purchase', async ({
   page,
 }, testInfo) => {
   const now = Date.UTC(2026, 9, 27, 12);

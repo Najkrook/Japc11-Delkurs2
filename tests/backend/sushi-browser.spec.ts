@@ -114,6 +114,7 @@ for (const width of [390, 1280]) {
         .set({ payload: JSON.stringify(progress), updatedAt: progress.updatedAt });
       await db.doc(`users/${uid}/sushi/restaurant`).update({ balanceUnits: 600_000_000 });
       await page.reload();
+      await page.getByTestId('sushi-toggle-shop').click();
       await expect(page.getByTestId('buy-btn-salmon_nigiri')).toBeEnabled();
       await expect(page.getByTestId('menu-salmon_nigiri')).toHaveCount(0);
       for (const item of [
@@ -127,8 +128,7 @@ for (const width of [390, 1280]) {
         await page.getByTestId(`buy-btn-${item}`).click();
         await expect(page.getByTestId(`owned-indicator-${item}`)).toBeVisible();
       }
-      await expect(page.getByTestId('menu-salmon_nigiri')).toBeVisible();
-      await expect(page.getByTestId('placed-wallSlot')).toContainText('Tom plats');
+      await page.getByTestId('sushi-close-shop-btn').click();
       await expect(page.getByTestId('art-prep-counter')).toBeVisible();
       await expect(page.getByTestId('art-conveyor-belt')).toBeVisible();
       await expect(page.getByTestId('art-salmon_nigiri')).toBeVisible();
@@ -159,6 +159,9 @@ for (const width of [390, 1280]) {
         document.dispatchEvent(new Event('visibilitychange'));
       });
       await expect(page.getByTestId('restaurant-scene')).toHaveAttribute('data-paused', 'false');
+      await page.getByTestId('sushi-toggle-menu').click();
+      await expect(page.getByTestId('menu-salmon_nigiri')).toBeVisible();
+      await expect(page.getByTestId('placed-wallSlot')).toContainText('Tom plats');
       const wall = page.getByTestId('decoration-wallSlot');
       await wall.locator('summary').focus();
       await page.keyboard.press('Enter');
@@ -195,15 +198,18 @@ for (const width of [390, 1280]) {
       else await floor.getByRole('button', { name: 'Placera Krukväxt' }).click();
       await expect(page.getByTestId('placed-floorSlot')).toContainText('Krukväxt');
       await page.reload();
+      await page.getByTestId('sushi-toggle-menu').click();
       await expect(page.getByTestId('placed-wallSlot')).toContainText('Vågmotiv');
       await expect(page.getByTestId('placed-floorSlot')).toContainText('Krukväxt');
       await expect(page.getByTestId('menu-salmon_nigiri')).toBeVisible();
       await expect(page.getByTestId('art-wave_print')).toBeVisible();
       await expect(page.getByTestId('art-paper_lantern')).toHaveCount(0);
       await expect(page.getByTestId('art-potted_plant')).toBeVisible();
+      await page.getByTestId('sushi-close-menu-btn').click();
       await page
         .getByTestId('restaurant-scene')
         .screenshot({ path: `test-results/restaurant-upgraded-${width}.png` });
+      await page.getByTestId('sushi-toggle-menu').click();
       await wall.locator('summary').click();
       await wall.getByRole('button', { name: 'Ta bort från väggplats' }).click();
       await expect(page.getByTestId('placed-wallSlot')).toContainText('Tom plats');
@@ -225,6 +231,22 @@ for (const width of [390, 1280]) {
         await page.evaluate(() => document.documentElement.scrollWidth <= window.innerWidth),
         JSON.stringify(overflow),
       ).toBeTruthy();
+
+      // Exercise the new project through the real browser callable boundary too.
+      const beforeProject = (await db.doc(`users/${uid}/sushi/restaurant`).get()).data();
+      await db.doc(`users/${uid}/sushi/restaurant`).update({ balanceUnits: 60_000 * 60_000 });
+      await page.reload();
+      await page.getByTestId('sushi-toggle-menu').click();
+      await page.getByTestId('buy-project-study_nook').click();
+      await expect(page.getByTestId('sushi-project-study_nook')).toContainText('Byggt');
+      const afterProject = (await db.doc(`users/${uid}/sushi/restaurant`).get()).data();
+      expect(afterProject?.completedProjects).toEqual(['study_nook']);
+      expect(afterProject?.balanceUnits).toBe(0);
+      expect(afterProject?.kitchenCapacity).toBe(beforeProject?.kitchenCapacity);
+      expect(afterProject?.serviceCapacity).toBe(beforeProject?.serviceCapacity);
+      expect(afterProject?.averageRevenuePerOrder).toBe(beforeProject?.averageRevenuePerOrder);
+      await page.reload();
+      await expect(page.getByTestId('art-project-study_nook')).toBeVisible();
     } finally {
       await db.terminate();
       await deleteApp(admin);

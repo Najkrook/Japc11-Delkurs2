@@ -196,8 +196,8 @@ test('Tier 1 [F10]: Master catalog items define canonical requirements, prices, 
   assert.equal(prepCounter.id, 'prep_counter');
   assert.equal(prepCounter.requiredLesson, 6);
   assert.equal(prepCounter.requiredTier, 'bronze');
-  assert.equal(prepCounter.priceYen, 300);
-  assert.equal(prepCounter.priceUnits, 300 * 60_000);
+  assert.equal(prepCounter.priceYen, 50);
+  assert.equal(prepCounter.priceUnits, 50 * 60_000);
   assert.equal(prepCounter.kitchenCapacityDelta, 2);
 
   const salmonNigiri = getCatalogItem('salmon_nigiri');
@@ -250,7 +250,7 @@ test('Tier 1 [F10]: previewUpgradeImpact calculates rate deltas and bottleneck e
   assert.equal(capImpact.ordersDelta, 0);
   assert.equal(capImpact.yenDelta, 0);
   assert.equal(capImpact.hasImmediateEffect, true);
-  assert.match(capImpact.educationalExplanation, /Förlänger produktionstiden med \+4 timmar/);
+  assert.match(capImpact.educationalExplanation, /Förlänger produktionstiden med \+24 timmar/);
 });
 
 // =============================================================================

@@ -68,7 +68,7 @@ test('an unlocked goal opens an unfiltered shop after visiting decoration', asyn
   await page.getByTestId('decoration-wallSlot').locator('summary').click();
   await page.getByTestId('decoration-shop-wallSlot').click();
   await page.getByTestId('sushi-close-shop-btn').click();
-  await expect(page.getByTestId('sushi-next-goal')).toContainText('¥ 300');
+  await expect(page.getByTestId('sushi-next-goal')).toContainText('¥ 50');
   await page.getByTestId('sushi-goal-action').click();
   await expect(page.getByTestId('buy-btn-prep_counter')).toBeVisible();
 });

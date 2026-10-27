@@ -1,0 +1,45 @@
+Browser tab: 1, Title: "JAPC11 · Delkurs 2 — Genki I (Kapitel 6–12)", URL: "http://127.0.0.1:5176/?sushi=1#/sushi".
+1 AXWebArea JAPC11 · Delkurs 2 — Genki I (Kapitel 6–12), URL: 127.0.0.1:5176/?sushi=1#/sushi
+	2 container
+		3 heading Sakura Sushi 🍣 Sushirestaurang, Value: 1
+			4 text Sakura Sushi 🍣 Sushirestaurang
+		5 button B Balance audit · fresh (Logga ut), Help: Inloggad som Balance audit · fresh · Klicka för att logga ut
+			6 text B
+			7 text Balance audit · fresh
+			8 text (Logga ut)
+		9 button 🌸 Sakura, Help: Slå på Sakura / Kawaii-tema
+		10 button (collapsed) Meny, Help: Öppna meny och inredning, Secondary Actions: Expand
+		11 button (collapsed) Butik, Help: Öppna butik och upplåsningar, Secondary Actions: Expand
+		12 button ← Tillbaka till studierna, Help: Tillbaka till studierna
+		13 container Personlig sushirestaurang
+			14 container
+				15 heading Välkommen, Balance audit · fresh!, Value: 2
+					16 text Välkommen,  Balance audit · fresh !
+				17 text Disponibelt saldo: ¥  0
+				18 text Din restaurang producerar och tjänar yen i realtid. Hämta intäkterna till ditt disponibla saldo.
+				19 container
+					20 text 10  ¥/min
+				21 text Intäktstakt: Kök:  1 order/min  · Service:  2 ordrar/min  ·  Kök (Flaskhals)
+			26 container
+				27 image Din sushirestaurang Isometrisk vy snett uppifrån genom restaurangens öppna hörn, med två väggar och synligt trägolv. Grundkök . Serveringsdisk utan transportband . , Help: Isometrisk vy snett uppifrån genom restaurangens öppna hörn, med två väggar och synligt trägolv. Grundkök. Serveringsdisk utan transportband.
+				28 button Se japanska fraser med gästen
+				29 button Se japanska fraser med gästen
+				30 text Din lilla sushibar Grundkök  ·  Serveringsdisk
+			31 container
+				32 text Nästa mål
+				33 button Förbättrad beredningsbänk ¥ 300 · Öppna butik
+					34 text Förbättrad beredningsbänk
+					35 text ¥ 300 · Öppna butik
+				36 text 0  / 21 belöningar köpta
+			37 text Tryck på en gäst · se japanska fraser
+			38 container Kassa och ohämtade intäkter
+				39 text OHÄMTADE INTÄKTER 0 8h Tak 0.0 h /  8 h
+				40 progress indicator Description: Produktionstid i perioden, Value: 0
+				41 button (collapsed) Produktion ▾, Secondary Actions: Expand
+					42 text Produktion
+					43 text  ▾
+				44 button (disabled) Hämta 0 intjänade yen till ditt disponibla saldo
+					45 text Hämta intäkter ¥  0
+			46 text Grattis! Ny kursbelöning upplåst: Förbättrad beredningsbänk från Kapitel 6 Bronsmedalj. Föremålet är nu tillgängligt att köpa i butiken.
+
+The focused UI element is 1 AXWebArea JAPC11 · Delkurs 2 — Genki I (Kapitel 6–12), URL: 127.0.0.1:5176/?sushi=1#/sushi

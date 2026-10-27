@@ -1,9 +1,32 @@
 # Sushi Restaurant Game — Test Infrastructure & QA Architecture
 
 **Status**: Active & Authoritative  
-**Date**: 2026-10-25  
+**Date**: 2026-10-27 (balance-version-2 update)
+
 **Scope**: Japanese Language Study Platform — Sushi Restaurant Simulation (`src/course/sushi-game/`)  
 **Maintainer**: E2E Test Engineering & QA Track
+
+---
+
+## 0. Current balance version and historical fixtures
+
+The current local rules are [Economy and balance model, version 2](docs/sushi-game/economy-balance-model.md), implemented with `balanceVersion: 2`: ¥50 first upgrade, 24h base / 48h extended cap, knife/counter +1 ¥ per order each, license +3, final expected income 90 ¥/min, and ¥47,750 total core catalog cost. The stored cap-item ID `cap_extension_12h` is preserved for compatibility; it now means a 48h cap.
+
+Older suites include deliberate 8h/12h and ¥300 prospective-accounting scenarios. They must create those old values explicitly, rather than assuming new restaurants still use them. Version-1 save tests omit `balanceVersion` or set it to 1; ordinary version-2 fixtures use `createDefaultRestaurantState` without those overrides. Preserve exact historical arithmetic where it tests an invariant, but do not preserve stale product-default assertions.
+
+Current regression seams:
+
+- `tests/sushi-balance-remedies.test.ts`: five-minute first eligible purchase; expected chapter-order rates 20/20/22/44/48/72/90; fixed-rate collection parity for gaps within the cap; equal-capacity explanation; prospective old-save migration; preservation/absorption of the legacy license revenue floor; project eligibility, insufficient funds, idempotency, and concurrency.
+- `tests/sushi-study-companion.test.ts`: separate useful growth/personalization goals, collection-versus-saving messaging, nonsequential grants, seven permanent honors independent of equipment, exact source-backed decks for all seven chapters, and no state/curriculum mutation.
+- `tests/backend/sushi-callable.test.ts` and current browser suites: trusted callable operation boundaries and actual rendered integration. Pure in-memory passes alone do not prove that a deployed backend or rendered flow works.
+
+Migration fixtures must settle old rates/caps before changing future rules; preserve wallet, register remainder, used time, grants, inventory, and paid benefits; never backfill stopped time; and prove the migration is not replayed. A previously purchased +5 license uses a `legacyRevenueFloor`, so subsequent knife/counter bonuses can be absorbed before increasing revenue. Both purchase previews and actual transactions must agree with that case.
+
+Four optional finite visual projects cost ¥60,000 / ¥180,000 / ¥540,000 / ¥1,620,000 (¥2,400,000 total), use permanent chapter 6/8/10/12 bronze eligibility, and are separate from core inventory/completion. Verify that their server-authoritative purchases never change production or study scoring. Gold honors are awarded from permanent gold grants, not decoration purchases or equipped slots. Reveal/next guest recall does not award money or mark mastery.
+
+The cadence simulation in `output/sushi-remedy-economy.json` models weekly chapter gates with core purchases before optional projects. By day 42, weekly visitors own all21 plus two projects with ¥319,930 left; daily visitors own all21 plus three projects with ¥1,435,930; twice-daily visitors have the same projects with ¥1,443,130. These are deterministic scenario results, not observed satisfaction or retention.
+
+Coverage listings describe intended checks, not a current pass receipt. Inspect actual command results and rendered evidence before sign-off. This update does not deploy anything to production, and semantic/browser checks alone do not establish full accessibility compliance.
 
 ---
 
@@ -13,7 +36,7 @@ The Sushi Restaurant Game is an idle simulation embedded within the Japanese lan
 
 To ensure long-term stability, zero floating-point financial drift, and clean isolation from primary study views (flashcards, kanji cards, Dojo conjugation drills), this testing infrastructure enforces four fundamental principles:
 
-1. **Opaque-Box, Requirement-Driven Testing**: Tests are written against strict interface specifications and mathematical invariants rather than implementation internals. Expected outputs are derived mathematically from the authoritative game brief (`sushigame.md`) and curriculum specifications (`PROJECT.md`).
+1. **Opaque-Box, Requirement-Driven Testing**: Tests are written against interface specifications and mathematical invariants rather than implementation internals. Derive expected outputs from the current balance-v2 model, game brief (`sushigame.md`), and current course data. Explicit historical fixtures retain their old values only where the tested accounting/migration invariant calls for them.
 2. **Deterministic, Lossless Math (Exact 1/60,000 Yen)**: Internal currency accounting uses fixed-point integer arithmetic where 1 yen = 60,000 units. Tests assert exact integer identities and verify zero drift across fractional millisecond accrual intervals.
 3. **Progressive Testability & Isolation**: Tests are self-contained, order-independent, and execute without external live dependencies. The in-memory repository pattern (`InMemorySushiRepository`) enables fast, deterministic verification of concurrency, clock skew, and persistence.
 4. **Adversarial & Boundary Verification**: In accordance with game studio QA best practices, test suites systematically stress edge conditions: clock rollback, extreme offline absence (e.g. 1 year), rapid concurrent requests, race conditions, duplicate idempotency keys, and malformed curriculum snapshots.
@@ -38,7 +61,7 @@ The testing architecture is organized into four complementary tiers, balancing e
 ├───────────────────────────────────────────────────────────────────┤
 │ Tier 2: Boundary, Corner Cases, Concurrency & Idempotency         │
 │  - Clock skew, zero/negative elapsed time, extreme offline time   │
-│  - Cap clamping (8h default, 12h extended) & stopped time discard │
+│  - Cap clamping (24h base, 48h extended) & stopped time discard  │
 │  - Rapid concurrency, repository locking, idempotency replay      │
 │  - Monotonic non-revocation under course reset / score drops      │
 ├───────────────────────────────────────────────────────────────────┤
@@ -69,7 +92,7 @@ The testing architecture is organized into four complementary tiers, balancing e
 - **Scope**: State transitions, asynchronous concurrency, and adversarial temporal inputs (`domain-service.ts`, `service.ts`).
 - **Characteristics**: Fast async in-memory execution, simulated clock manipulation, high-volume concurrent stresses.
 - **Key Verifications**:
-  - Exact cap boundaries ($T = 28,800,000\text{ ms}$, $T - 1\text{ ms}$, $T + 1\text{ ms}$).
+  - Current cap boundaries ($T = 86,400,000\text{ ms}$ base or $172,800,000\text{ ms}$ extended), including $T - 1\text{ ms}$ and $T + 1\text{ ms}$. Historical 28,800,000/43,200,000 ms values require explicit old-state fixtures.
   - Long absence stress (e.g. 72 hours, 1 year offline) safely clamped without integer overflow.
   - Negative elapsed time (backward clock skew) cleanly clamped to 0 ms without corrupting accounting timestamps.
   - Stopped time discard: offline time accumulated past the cap prior to buying a cap upgrade is never retroactively paid.
@@ -105,31 +128,31 @@ The testing architecture is organized into four complementary tiers, balancing e
 
 ## 3. Feature Checklist & Coverage Matrix
 
-| #   | Feature Area               | Description                                                         | Tier 1 | Tier 2 | Tier 3 | Tier 4 | Existing Test Files                                                              |
-| --- | -------------------------- | ------------------------------------------------------------------- | :----: | :----: | :----: | :----: | -------------------------------------------------------------------------------- |
-| F01 | Two-Capacity Model         | $O = \min(K, S), R = O \times A$; dynamic bottleneck identification |  [x]   |  [x]   |   -    |   -    | `sushi-economy.test.ts`                                                          |
-| F02 | 1/60,000 Yen Math          | Fixed-point integer math; lossless currency calculations            |  [x]   |  [x]   |   -    |   -    | `sushi-economy.test.ts`                                                          |
-| F03 | Lazy Offline Accrual       | Accrual evaluated on access; no background server timers            |  [x]   |  [x]   |  [x]   |   -    | `sushi-economy.test.ts`, `sushi-service.test.ts`                                 |
-| F04 | Offline Cap Clamping       | 8h standard (28.8M ms), 12h extended (43.2M ms); excess discarded   |  [x]   |  [x]   |  [x]   |   -    | `sushi-economy.test.ts`, `sushi-service.test.ts`                                 |
-| F05 | Manual Revenue Collection  | Transfer register earnings to wallet; reset production period       |  [x]   |  [x]   |  [x]   |  [x]   | `sushi-service.test.ts`, `sushi-view.test.ts`                                    |
-| F06 | Prospective Upgrades       | Upgrades apply strictly forward; past earnings untouched            |  [x]   |  [x]   |  [x]   |   -    | `sushi-economy.test.ts`, `sushi-purchase.test.ts`                                |
-| F07 | Stopped Time Discard       | Time spent capped before cap upgrade is permanently discarded       |  [x]   |  [x]   |  [x]   |   -    | `sushi-economy.test.ts`                                                          |
-| F08 | Genki Curriculum Sync      | Chapters 6–12 mapped via `lessonNumber`; Chapter 9 is `week-4`      |  [x]   |  [x]   |  [x]   |  [x]   | `sushi-medals.test.ts`                                                           |
-| F09 | Monotonic Non-Revocation   | Unlocks permanently retained; course resets cannot revoke           |  [x]   |  [x]   |  [x]   |   -    | `sushi-medals.test.ts`, `sushi-sync-medals-concurrency.test.ts`                  |
-| F10 | Shop Catalog & Preview     | 7 MVP items (Ch 6, 7, 9); prospective rate impact preview           |  [x]   |  [x]   |  [x]   |  [x]   | `sushi-purchase.test.ts`, `sushi-view.test.ts`                                   |
-| F11 | Single-Purchase Inventory  | Permanent purchases; repurchase rejected with `ALREADY_OWNED`       |  [x]   |  [x]   |  [x]   |   -    | `sushi-purchase.test.ts`                                                         |
-| F12 | Fixed Decoration Slots     | `wallSlot` and `floorSlot` equip mechanics; economic neutrality     |  [x]   |  [x]   |  [x]   |  [x]   | `sushi-personalization.test.ts`                                                  |
-| F13 | Idempotent Transactions    | Request keys deduplicated; repeat calls return cached state         |   -    |  [x]   |  [x]   |   -    | `sushi-service.test.ts`, `sushi-purchase.test.ts`                                |
-| F14 | Concurrency & Locking      | Multi-request race safety; cold-start stampede protection           |   -    |  [x]   |  [x]   |   -    | `sushi-adversarial-concurrency.test.ts`, `sushi-sync-medals-concurrency.test.ts` |
-| F15 | Client Clock Skew          | Negative elapsed time safely clamped to 0 ms                        |   -    |  [x]   |   -    |   -    | `sushi-economy.adversarial.test.ts`                                              |
-| F16 | Firestore Security Rules   | Client writes blocked (`allow write: if false;`); read auth-gated   |   -    |   -    |  [x]   |   -    | `tests/firestore/sushi-rules.test.ts`                                            |
-| F17 | Cloud Function Dual Tx     | Atomic read/write of restaurant and course progress                 |   -    |   -    |  [x]   |   -    | `tests/backend/sushi-function.test.ts`                                           |
-| F18 | Google Auth Gate           | Anonymous & unauthenticated sessions denied access                  |   -    |   -    |  [x]   |  [x]   | `sushi-view.test.ts`, `functions/src/index.ts`                                   |
-| F19 | Code-Splitting Isolation   | Deferred bundle chunk loaded dynamically only upon `#/sushi`        |   -    |   -    |   -    |  [x]   | `tests/e2e/sushi-lazy-chunk.spec.ts`                                             |
-| F20 | Vector Scene & Polish      | Inline SVG cross-section rendering equipped decor & tread animation |   -    |   -    |   -    |  [x]   | `sushi-view.test.ts`                                                             |
-| F21 | Page Visibility Throttling | `document.hidden` halts belt animation & throttles 1 Hz ticker      |   -    |  [x]   |   -    |  [x]   | `sushi-ticker.test.ts`                                                           |
-| F22 | WCAG 2.1 AA Accessibility  | Semantic HTML, ARIA announcements, `:focus-visible` styling         |  [x]   |   -    |   -    |  [x]   | `sushi-view.test.ts`                                                             |
-| F23 | Release Gate Config        | Sushi nav concealed in production until release flag enabled        |  [x]   |  [x]   |   -    |  [x]   | `sushi-view.test.ts`                                                             |
+| #   | Feature Area               | Description                                                                | Tier 1 | Tier 2 | Tier 3 | Tier 4 | Existing Test Files                                                                |
+| --- | -------------------------- | -------------------------------------------------------------------------- | :----: | :----: | :----: | :----: | ---------------------------------------------------------------------------------- |
+| F01 | Two-Capacity Model         | $O = \min(K, S), R = O \times A$; dynamic bottleneck identification        |  [x]   |  [x]   |   -    |   -    | `sushi-economy.test.ts`                                                            |
+| F02 | 1/60,000 Yen Math          | Fixed-point integer math; lossless currency calculations                   |  [x]   |  [x]   |   -    |   -    | `sushi-economy.test.ts`                                                            |
+| F03 | Lazy Offline Accrual       | Accrual evaluated on access; no background server timers                   |  [x]   |  [x]   |  [x]   |   -    | `sushi-economy.test.ts`, `sushi-service.test.ts`                                   |
+| F04 | Offline Cap Clamping       | 24h base (86.4M ms), 48h extended (172.8M ms); explicit legacy fixtures    |  [x]   |  [x]   |  [x]   |   -    | `sushi-economy.test.ts`, `sushi-service.test.ts`, `sushi-balance-remedies.test.ts` |
+| F05 | Manual Revenue Collection  | Transfer register earnings to wallet; reset production period              |  [x]   |  [x]   |  [x]   |  [x]   | `sushi-service.test.ts`, `sushi-view.test.ts`                                      |
+| F06 | Prospective Upgrades       | Upgrades apply strictly forward; past earnings untouched                   |  [x]   |  [x]   |  [x]   |   -    | `sushi-economy.test.ts`, `sushi-purchase.test.ts`                                  |
+| F07 | Stopped Time Discard       | Time spent capped before cap upgrade is permanently discarded              |  [x]   |  [x]   |  [x]   |   -    | `sushi-economy.test.ts`                                                            |
+| F08 | Genki Curriculum Sync      | Chapters 6–12 mapped via `lessonNumber`; Chapter 9 is `week-4`             |  [x]   |  [x]   |  [x]   |  [x]   | `sushi-medals.test.ts`                                                             |
+| F09 | Monotonic Non-Revocation   | Unlocks permanently retained; course resets cannot revoke                  |  [x]   |  [x]   |  [x]   |   -    | `sushi-medals.test.ts`, `sushi-sync-medals-concurrency.test.ts`                    |
+| F10 | Shop Catalog & Preview     | 21 core items (Ch 6–12); prospective impact including legacy revenue floor |  [x]   |  [x]   |  [x]   |  [x]   | `sushi-purchase.test.ts`, `sushi-balance-remedies.test.ts`, `sushi-view.test.ts`   |
+| F11 | Single-Purchase Inventory  | Permanent purchases; repurchase rejected with `ALREADY_OWNED`              |  [x]   |  [x]   |  [x]   |   -    | `sushi-purchase.test.ts`                                                           |
+| F12 | Fixed Decoration Slots     | `wallSlot` and `floorSlot` equip mechanics; economic neutrality            |  [x]   |  [x]   |  [x]   |  [x]   | `sushi-personalization.test.ts`                                                    |
+| F13 | Idempotent Transactions    | Request keys deduplicated; repeat calls return cached state                |   -    |  [x]   |  [x]   |   -    | `sushi-service.test.ts`, `sushi-purchase.test.ts`                                  |
+| F14 | Concurrency & Locking      | Multi-request race safety; cold-start stampede protection                  |   -    |  [x]   |  [x]   |   -    | `sushi-adversarial-concurrency.test.ts`, `sushi-sync-medals-concurrency.test.ts`   |
+| F15 | Client Clock Skew          | Negative elapsed time safely clamped to 0 ms                               |   -    |  [x]   |   -    |   -    | `sushi-economy.adversarial.test.ts`                                                |
+| F16 | Firestore Security Rules   | Client writes blocked (`allow write: if false;`); read auth-gated          |   -    |   -    |  [x]   |   -    | `tests/firestore/sushi-rules.test.ts`                                              |
+| F17 | Cloud Function Dual Tx     | Atomic read/write of restaurant and course progress                        |   -    |   -    |  [x]   |   -    | `tests/backend/sushi-function.test.ts`                                             |
+| F18 | Google Auth Gate           | Anonymous & unauthenticated sessions denied access                         |   -    |   -    |  [x]   |  [x]   | `sushi-view.test.ts`, `functions/src/index.ts`                                     |
+| F19 | Code-Splitting Isolation   | Deferred bundle chunk loaded dynamically only upon `#/sushi`               |   -    |   -    |   -    |  [x]   | `tests/e2e/sushi-lazy-chunk.spec.ts`                                               |
+| F20 | Vector Scene & Polish      | Inline SVG cross-section rendering equipped decor & tread animation        |   -    |   -    |   -    |  [x]   | `sushi-view.test.ts`                                                               |
+| F21 | Page Visibility Throttling | `document.hidden` halts belt animation & throttles 1 Hz ticker             |   -    |  [x]   |   -    |  [x]   | `sushi-ticker.test.ts`                                                             |
+| F22 | WCAG 2.1 AA Accessibility  | Semantic HTML, ARIA announcements, `:focus-visible` styling                |  [x]   |   -    |   -    |  [x]   | `sushi-view.test.ts`                                                               |
+| F23 | Release Gate Config        | Sushi nav concealed in production until release flag enabled               |  [x]   |  [x]   |   -    |  [x]   | `sushi-view.test.ts`                                                               |
 
 ---
 
@@ -174,11 +197,14 @@ japc11-delkurs2/
 
 ### 5.1 Unit, Domain & Boundary Tests (Tiers 1 & 2)
 
-Fast, in-memory execution using Node.js native TypeScript runner. Runs in under 3 seconds with zero external dependencies.
+Fast, in-memory execution using Node.js native TypeScript support. Measure runtime from the actual run; no emulator or network is needed for these suites.
 
 ```powershell
 # Run all unit, domain, and boundary test suites
 npm test
+
+# Focus on balance-v2 accounting, migration, projects, and study-companion rules
+node --test --test-isolation=none tests/sushi-balance-remedies.test.ts tests/sushi-study-companion.test.ts
 
 # Run specific Tier 1 Feature Coverage suite
 node --test tests/sushi-tier1-feature-coverage.test.ts

@@ -70,7 +70,7 @@ test('preparation, serving and dining animate without restarting on the income t
 test('capped production, overlay and hidden-tab pause states resume correctly', async ({
   page,
 }) => {
-  await seed(page, { usedProductionMs: 8 * 3600000, uncollectedUnits: 4800 * 60000 });
+  await seed(page, { usedProductionMs: 24 * 3600000, uncollectedUnits: 14400 * 60000 });
   const scene = page.getByTestId('restaurant-scene');
   const chef = page.getByTestId('sushi-activity-chef');
   await expect(scene).toHaveAttribute('data-production-stopped', 'true');

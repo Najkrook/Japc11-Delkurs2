@@ -2742,6 +2742,435 @@
     height: 44px;
   }
 }
+
+/* The study companion gives achievements and optional savings their own homes. */
+.sushi-companion-goal {
+  width: 278px;
+  transform: none;
+}
+.sushi-goal-modes {
+  display: flex;
+  gap: 4px;
+  border-bottom: 1px solid #c89a6c;
+  padding-bottom: 7px;
+  margin-bottom: 4px;
+}
+.sushi-goal-modes button,
+.sushi-goal-link,
+.sushi-honors-shortcut {
+  font: inherit;
+  color: #643d26;
+  cursor: pointer;
+}
+.sushi-goal-modes button {
+  background: transparent;
+  border: 1px solid transparent;
+  border-radius: 3px;
+  padding: 4px 7px;
+  font-size: 0.78rem;
+}
+.sushi-goal-modes button[aria-pressed='true'] {
+  background: #765037;
+  border-color: #4e2d1c;
+  color: #fff6df;
+}
+.sushi-goal-reason {
+  font-size: 0.76rem;
+  line-height: 1.5;
+  margin: 1px 0 7px;
+}
+.sushi-goal-reason summary {
+  cursor: pointer;
+}
+.sushi-goal-reason p {
+  margin: 6px 0;
+}
+.sushi-goal-link,
+.sushi-honors-shortcut {
+  border: 0;
+  background: transparent;
+  padding: 5px 0;
+  text-align: left;
+  font-size: 0.77rem;
+  text-decoration: underline;
+  text-underline-offset: 3px;
+}
+.sushi-honors-shortcut {
+  display: block;
+  width: 100%;
+  margin-top: 5px;
+  border-top: 1px solid #d9b68b;
+  text-decoration: none;
+}
+.sushi-goal-finished {
+  display: block;
+  font-size: 0.9rem;
+  margin: 9px 0 5px;
+}
+.sushi-companion-goal > p {
+  font-size: 0.8rem;
+  margin: 4px 0;
+}
+.sushi-companion-intro {
+  font-size: 0.85rem;
+  color: #74543c;
+  line-height: 1.6;
+}
+.sushi-chapter-honors,
+.sushi-projects {
+  margin: 22px 0 10px;
+  padding: 21px;
+  border: 2px solid #b48155;
+  background: #fff7e8;
+  box-shadow: inset 0 0 0 2px #f1dcb8;
+  color: #61402b;
+}
+.sushi-companion-section-heading {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  gap: 15px;
+}
+.sushi-companion-section-heading h3 {
+  font-size: 1.08rem;
+  margin: 4px 0 8px;
+}
+.sushi-companion-kicker {
+  color: #a3633e;
+  font-size: 0.72rem;
+  letter-spacing: 0.06em;
+}
+.sushi-chapter-honors p,
+.sushi-projects > p {
+  font-size: 0.85rem;
+  line-height: 1.65;
+  margin: 9px 0 17px;
+}
+.sushi-honor-grid {
+  display: grid;
+  grid-template-columns: repeat(4, minmax(0, 1fr));
+  gap: 9px;
+}
+.sushi-honor {
+  background: #f0e8d8;
+  border: 1px solid #c9b391;
+  padding: 11px 7px;
+  text-align: center;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 5px;
+}
+.sushi-honor.is-earned {
+  background: #fff0ba;
+  border-color: #b68a27;
+  box-shadow: inset 0 0 0 2px #ffe3a0;
+}
+.sushi-honor-icon {
+  display: inline-block;
+  width: 50px;
+  height: 50px;
+  font-size: 1.8rem;
+  line-height: 1.3;
+}
+.sushi-honor strong {
+  font-size: 0.79rem;
+}
+.sushi-honor > span:not(.sushi-honor-icon) {
+  font-size: 0.7rem;
+  line-height: 1.4;
+}
+.sushi-honor button {
+  font: inherit;
+  font-size: 0.72rem;
+  padding: 6px 3px 2px;
+  border: 0;
+  background: transparent;
+  color: #74452d;
+  text-decoration: underline;
+  text-underline-offset: 3px;
+  cursor: pointer;
+}
+.sushi-chapter-honors > small {
+  display: block;
+  margin-top: 13px;
+  font-size: 0.73rem;
+  line-height: 1.6;
+}
+.sushi-project-grid {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 13px;
+}
+.sushi-project-card {
+  border: 1px solid #b48155;
+  background: #fffdf2;
+  padding: 18px;
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+  gap: 10px;
+}
+.sushi-project-card h4 {
+  font-size: 1rem;
+  margin: 0;
+}
+.sushi-project-card p {
+  margin: 0;
+  line-height: 1.6;
+  font-size: 0.83rem;
+}
+.sushi-project-card > small,
+.sushi-project-savings small {
+  display: block;
+  font-size: 0.73rem;
+  line-height: 1.55;
+}
+.sushi-project-icon {
+  font-size: 1.8rem;
+}
+.sushi-project-card .sushi-btn-buy,
+.sushi-project-card .sushi-btn-secondary {
+  margin-top: auto;
+  width: 100%;
+  min-height: 42px;
+  white-space: normal;
+  font-size: 0.8rem;
+}
+.sushi-project-card.is-complete {
+  background: #eef1dc;
+  border-color: #72905c;
+}
+.sushi-project-done {
+  color: #49663e;
+  font-size: 0.84rem;
+}
+.sushi-project-savings {
+  width: 100%;
+}
+.sushi-project-savings progress {
+  width: 100%;
+  height: 10px;
+  accent-color: #a56a35;
+}
+.sushi-guest-practice {
+  width: min(530px, 86%);
+  max-width: 86%;
+  max-height: min(620px, 78%);
+  overflow-y: auto;
+  box-sizing: border-box;
+  top: 43%;
+  transform: translate(-50%, -50%);
+  padding: 24px;
+}
+.sushi-guest-practice::after {
+  display: none;
+}
+.sushi-guest-practice > strong {
+  font-family: 'Noto Sans JP', 'Segoe UI', sans-serif;
+  line-height: 1.75;
+  font-size: 1.3rem;
+  padding: 12px 5px;
+}
+.sushi-practice-chapter {
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: center;
+  gap: 9px;
+  align-items: center;
+  font-size: 0.85rem;
+  margin-bottom: 12px;
+}
+.sushi-practice-chapter select {
+  max-width: 100%;
+  font: inherit;
+  font-size: 0.8rem;
+  background: #fff5dc;
+  color: #643d26;
+  padding: 5px;
+  border: 1px solid #a57147;
+}
+.sushi-practice-answer {
+  background: #eff0dc;
+  border: 1px solid #b6bc95;
+  padding: 10px 12px;
+  margin: 9px 0;
+  line-height: 1.6;
+}
+.sushi-practice-answer > span {
+  font-size: 0.9rem;
+}
+.sushi-guest-practice > small {
+  display: block;
+  font-size: 0.7rem;
+  line-height: 1.65;
+  margin-top: 10px;
+}
+.sushi-practice-source {
+  border-top: 1px solid #d8c39d;
+  padding-top: 10px;
+}
+.sushi-practice-start {
+  display: block;
+  margin: 10px auto 0 !important;
+}
+.sushi-finale-scrim {
+  position: fixed;
+  inset: 0;
+  z-index: 3000;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 22px;
+  background: #302016c9;
+  backdrop-filter: blur(5px);
+}
+.sushi-finale {
+  width: min(590px, 100%);
+  max-height: 90dvh;
+  overflow-y: auto;
+  background: #fff4da;
+  color: #65422d;
+  border: 4px solid #98603d;
+  outline: 2px solid #f8cf7e;
+  box-shadow:
+    8px 10px #24140d55,
+    inset 0 0 0 3px #efcb90;
+  padding: 35px;
+  text-align: center;
+}
+.sushi-finale-seal {
+  font-size: 3.4rem;
+  line-height: 1.4;
+}
+.sushi-finale h2 {
+  font-family: 'Noto Sans JP', 'Segoe UI', sans-serif;
+  font-size: 2rem;
+  line-height: 1.5;
+  color: #a34c40;
+  margin: 10px 0;
+}
+.sushi-finale h3 {
+  font-size: 1.35rem;
+  margin: 10px 0 18px;
+}
+.sushi-finale p {
+  font-size: 0.92rem;
+  line-height: 1.85;
+  margin: 15px 0;
+}
+.sushi-finale-chapters {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+  justify-content: center;
+  margin: 20px 0;
+}
+.sushi-finale-chapters span {
+  border: 1px solid #c1964c;
+  background: #ffeab3;
+  padding: 7px 10px;
+}
+.sushi-finale-note {
+  color: #80624a;
+  font-size: 0.82rem !important;
+}
+.sushi-finale-actions {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+  margin-top: 25px;
+}
+.sushi-finale-actions button {
+  font: inherit;
+  font-size: 0.9rem;
+  min-height: 48px;
+  cursor: pointer;
+}
+@media (max-width: 640px) {
+  .sushi-companion-goal {
+    width: min(205px, 51%);
+    padding: 7px 9px;
+  }
+  .sushi-goal-modes {
+    gap: 1px;
+    padding-bottom: 4px;
+  }
+  .sushi-goal-modes button {
+    font-size: 0.65rem;
+    padding: 4px;
+  }
+  .sushi-goal-reason {
+    font-size: 0.67rem;
+  }
+  .sushi-companion-goal .sushi-goal-sprite {
+    flex-basis: 34px;
+    height: 34px;
+  }
+  .sushi-companion-goal .sushi-goal-action strong {
+    font-size: 0.72rem;
+  }
+  .sushi-companion-goal .sushi-goal-action small,
+  .sushi-honors-shortcut {
+    font-size: 0.66rem;
+  }
+  .sushi-chapter-honors,
+  .sushi-projects {
+    padding: 15px;
+  }
+  .sushi-honor-grid {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+  .sushi-project-grid {
+    grid-template-columns: 1fr;
+  }
+  .sushi-guest-practice {
+    padding: 20px 16px;
+  }
+  .sushi-guest-practice > strong {
+    font-size: 1.1rem;
+  }
+  .sushi-finale {
+    padding: 23px 19px;
+  }
+  .sushi-finale h2 {
+    font-size: 1.7rem;
+  }
+  .sushi-finale h3 {
+    font-size: 1.1rem;
+  }
+  .sushi-finale p {
+    font-size: 0.85rem;
+  }
+  .sushi-unlock-banner {
+    top: 88px;
+    left: auto;
+    right: 10px;
+    width: 39%;
+    max-width: 160px;
+    padding: 7px 8px;
+    box-sizing: border-box;
+  }
+  .sushi-unlock-banner-content {
+    display: block;
+  }
+  .sushi-unlock-banner-icon {
+    display: none;
+  }
+  .sushi-unlock-banner-text > strong {
+    display: block;
+    padding-right: 34px;
+  }
+  .sushi-unlock-banner-text p {
+    margin: 5px 0 0;
+  }
+  .sushi-unlock-banner-text p strong {
+    display: -webkit-box;
+    -webkit-line-clamp: 3;
+    -webkit-box-orient: vertical;
+    overflow: hidden;
+  }
+}
 @media (max-width: 640px) {
   .sushi-account-btn .sushi-user-name {
     display: none;

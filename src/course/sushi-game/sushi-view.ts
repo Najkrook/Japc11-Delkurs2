@@ -7,7 +7,6 @@ import {
 } from './restaurant-scene.ts';
 import type { CourseHostContext, CourseProgressData } from '../types.ts';
 import { courseWeeks } from '../data/index.ts';
-import { getWeekProgressSummary } from '../course-state.ts';
 import { calculateProductionRate, unitsToWholeYen } from './economy.ts';
 import { evaluateMedalGrants } from './medals.ts';
 import {
@@ -17,12 +16,24 @@ import {
   previewCatalogPurchase,
 } from './catalog.ts';
 import type { SushiRestaurantState, ProductionRate, DecorationSlot } from './types.ts';
+import { DEFAULT_CAP_MS, EXTENDED_CAP_MS } from './types.ts';
+import { getGuestStudyDeck } from './study-companion.ts';
+import { getRestaurantProject } from './projects.ts';
+import {
+  isRestaurantComplete,
+  renderCompanionGoal,
+  renderChapterHonors,
+  renderRestaurantProjects,
+  renderRestaurantFinale,
+  type SushiGoalMode,
+} from './companion-view.ts';
 import {
   getOrInitRestaurant,
   collectRevenue,
   syncMedalGrants,
   purchaseCatalogItem,
   equipDecoration,
+  purchaseRestaurantProject,
 } from './service.ts';
 import { isLocalhost } from './config.ts';
 
@@ -98,12 +109,23 @@ async function waitForStudySync(host: CourseHostContext | null, uid: string): Pr
  */
 export class SushiClientController {
   public greetingIndex = -1;
+  public guestMode: 'welcome' | 'study' = 'welcome';
+  public guestLessonNumber = 6;
+  public guestAnswerRevealed = false;
+  public goalMode: SushiGoalMode = 'grow';
+  public showFinale = false;
+  public buildingProjectId: string | null = null;
+  public projectError: string | null = null;
+  private projectKeys = new Map<string, string>();
   public speechError = '';
   public rewardMessage = '';
   public sceneArrival: RestaurantSceneArrival | null = null;
   private rewardTimer: ReturnType<typeof setTimeout> | null = null;
   public greet(): void {
-    this.greetingIndex = (this.greetingIndex + 1) % 3;
+    const length =
+      this.guestMode === 'study' ? getGuestStudyDeck(this.guestLessonNumber).length : 3;
+    this.greetingIndex = length ? (this.greetingIndex + 1) % length : -1;
+    this.guestAnswerRevealed = false;
     this.speechError = '';
     this.host?.render();
   }
@@ -111,6 +133,70 @@ export class SushiClientController {
     this.greetingIndex = -1;
     this.speechError = '';
     this.host?.render();
+  }
+  public practiceGuestChapter(lesson = this.guestLessonNumber): void {
+    if (!getGuestStudyDeck(lesson).length) return;
+    this.guestLessonNumber = lesson;
+    this.guestMode = 'study';
+    this.greetingIndex = 0;
+    this.guestAnswerRevealed = false;
+    this.speechError = '';
+    this.host?.render();
+  }
+  public revealGuestAnswer(): void {
+    this.guestAnswerRevealed = true;
+    this.host?.render();
+  }
+  public chooseGoal(mode: SushiGoalMode): void {
+    this.goalMode = mode;
+    this.host?.render();
+  }
+  public openJournal(): void {
+    this.greetingIndex = -1;
+    this.previewDecorationId = null;
+    this.activeOverlay = 'menu';
+    this.host?.render();
+  }
+  public openFinale(): void {
+    if (!this.state || !isRestaurantComplete(this.state)) return;
+    this.showFinale = true;
+    this.activeOverlay = null;
+    this.greetingIndex = -1;
+    this.host?.render();
+    this.focusFinale();
+  }
+  private focusFinale(): void {
+    queueMicrotask(() => {
+      if (this.showFinale && typeof document !== 'undefined')
+        document.querySelector<HTMLElement>('[data-testid="sushi-finale"]')?.focus();
+    });
+  }
+  public dismissFinale(): void {
+    this.showFinale = false;
+    if (this.uid && typeof window !== 'undefined') {
+      try {
+        window.localStorage.setItem(`japc11-sushi-finale-seen-${this.uid}`, 'true');
+      } catch {}
+    }
+    this.host?.render();
+    if (typeof document !== 'undefined')
+      document.querySelector<HTMLElement>('[data-testid="sushi-replay-finale"]')?.focus();
+  }
+  private checkCompletion(): void {
+    if (!this.state || !isRestaurantComplete(this.state)) return;
+    let seen = false;
+    if (this.uid && typeof window !== 'undefined') {
+      try {
+        seen = window.localStorage.getItem(`japc11-sushi-finale-seen-${this.uid}`) === 'true';
+      } catch {}
+    }
+    if (!seen) {
+      this.showFinale = true;
+      this.activeOverlay = null;
+      this.recentlyUnlocked = [];
+      this.greetingIndex = -1;
+      this.focusFinale();
+    }
   }
   public speakPhrase(text: string, button?: HTMLElement): void {
     const result = this.host?.speak(text, button);
@@ -188,11 +274,17 @@ export class SushiClientController {
     this.host?.render();
   }
 
-  public openGoalShop(): void {
+  public openGoalShop(itemId?: string): void {
     this.previewDecorationId = null;
     this.shopCategoryFilter = 'all';
     this.activeOverlay = 'shop';
     this.host?.render();
+    if (itemId && typeof document !== 'undefined')
+      queueMicrotask(() =>
+        document
+          .querySelector<HTMLElement>(`[data-testid="unlock-card-${itemId}"]`)
+          ?.scrollIntoView({ block: 'nearest' }),
+      );
   }
 
   public previewDecoration(itemId: string): void {
@@ -282,6 +374,26 @@ export class SushiClientController {
       !this.keyHandler
     ) {
       this.keyHandler = (e: KeyboardEvent) => {
+        if (this.showFinale) {
+          if (e.key === 'Escape') this.dismissFinale();
+          if (e.key === 'Tab' && typeof document !== 'undefined') {
+            const panel = document.querySelector<HTMLElement>('[data-testid="sushi-finale"]');
+            const buttons = panel?.querySelectorAll<HTMLButtonElement>('button');
+            const first = buttons?.[0],
+              last = buttons?.[buttons.length - 1];
+            if (
+              first &&
+              last &&
+              (e.shiftKey
+                ? document.activeElement === first || document.activeElement === panel
+                : document.activeElement === last || document.activeElement === panel)
+            ) {
+              e.preventDefault();
+              (e.shiftKey ? last : first).focus();
+            }
+          }
+          return;
+        }
         if (e.key === 'Escape') {
           if (this.activeOverlay !== null) this.closeOverlay();
           else if (this.previewDecorationId !== null) this.closeDecorationPreview();
@@ -292,6 +404,9 @@ export class SushiClientController {
     }
 
     this.progressSnapshot = courseProgressSnapshot ?? null;
+    this.guestLessonNumber =
+      courseWeeks.find((week) => week.id === courseProgressSnapshot?.activeWeekId)?.lessonNumber ??
+      6;
     const generation = this.generation;
     this.loading = true;
 
@@ -304,7 +419,9 @@ export class SushiClientController {
       .then((authoritative) => {
         if (this.uid !== uid || this.generation !== generation) return; // Account switched while in flight
         const prevGrants = new Set(this.state?.permanentGrants || []);
-        const newGrants = authoritative.permanentGrants.filter((g) => !prevGrants.has(g));
+        const newGrants = authoritative.permanentGrants.filter(
+          (g) => !prevGrants.has(g) && !authoritative.inventory.includes(g),
+        );
 
         this.state = authoritative;
         this.clientReceivedAtMs = Date.now();
@@ -322,6 +439,7 @@ export class SushiClientController {
             ).yenPerMinute
           } yen per minut.`;
         }
+        this.checkCompletion();
         this.host?.render();
       })
       .catch((err: unknown) => {
@@ -367,6 +485,14 @@ export class SushiClientController {
     this.rewardMessage = '';
     this.sceneArrival = null;
     this.greetingIndex = -1;
+    this.guestMode = 'welcome';
+    this.guestLessonNumber = 6;
+    this.guestAnswerRevealed = false;
+    this.goalMode = 'grow';
+    this.showFinale = false;
+    this.buildingProjectId = null;
+    this.projectError = null;
+    this.projectKeys.clear();
     this.speechError = '';
     this.isEquipping = false;
     this.equipError = null;
@@ -485,7 +611,7 @@ export class SushiClientController {
 
   /**
    * Recalculates estimated uncollected revenue based on elapsed wall-clock time
-   * clamped to the 8-hour cap.
+   * clamped to the restaurant's current storage cap.
    */
   public recalculate(): {
     displayedUncollectedYen: number;
@@ -608,6 +734,7 @@ export class SushiClientController {
     if (this.isBuying || this.isCollecting || this.syncing || !this.state || !this.uid) return;
     const item = getCatalogItem(itemId);
     if (!item) return;
+    const purchasePreview = previewCatalogPurchase(this.state, itemId);
 
     this.isBuying = itemId;
     this.buyError = null;
@@ -632,9 +759,9 @@ export class SushiClientController {
           this.clientReceivedAtMs = Date.now();
           this.markSceneArrival(item.id);
           this.celebrate(`Nyhet! ${item.name}`);
-          const preview = previewCatalogPurchase(res.state, itemId);
-          const feedback = preview?.educationalExplanation || item.effectDescription;
+          const feedback = purchasePreview?.educationalExplanation || item.effectDescription;
           this.announcement = `Köp genomfört: ${item.name} för ¥ ${item.priceYen}! ${feedback}`;
+          this.checkCompletion();
         } else {
           this.buyError = res.message;
           this.announcement = `Kunde inte köpa ${item.name}: ${res.message}`;
@@ -647,6 +774,53 @@ export class SushiClientController {
         this.isBuying = null;
         this.buyError = 'Ett nätverksfel uppstod vid köpet. Försök igen.';
         this.announcement = 'Kunde inte slutföra köpet på grund av anslutningsfel.';
+        this.host?.render();
+      }
+    }
+  }
+
+  public async buyProject(projectId: string): Promise<void> {
+    if (
+      !this.uid ||
+      !this.state ||
+      this.isBuying ||
+      this.isCollecting ||
+      this.isEquipping ||
+      this.syncing
+    )
+      return;
+    const project = getRestaurantProject(projectId);
+    if (!project) return;
+    const uid = this.uid,
+      generation = this.generation;
+    const key =
+      this.projectKeys.get(projectId) ??
+      `project_${Date.now()}_${Math.random().toString(36).slice(2, 10)}`;
+    this.projectKeys.set(projectId, key);
+    this.isBuying = `project:${projectId}`;
+    this.buildingProjectId = projectId;
+    this.projectError = null;
+    this.host?.render();
+    try {
+      const result = await purchaseRestaurantProject(uid, projectId, key, Date.now());
+      if (this.uid !== uid || this.generation !== generation) return;
+      this.projectKeys.delete(projectId);
+      if (result.state) {
+        this.state = result.state;
+        this.clientReceivedAtMs = Date.now();
+      }
+      if (result.success) {
+        this.celebrate(`${project.icon} ${project.name} är på plats!`);
+        this.announcement = `${project.name} är byggt och syns nu i restaurangen. Intäktstakten är oförändrad.`;
+      } else this.projectError = result.message;
+    } catch {
+      if (this.uid !== uid || this.generation !== generation) return;
+      this.projectError =
+        'Projektet kunde inte sparas. Försök igen; samma köp debiteras bara en gång.';
+    } finally {
+      if (this.uid === uid && this.generation === generation) {
+        this.isBuying = null;
+        this.buildingProjectId = null;
         this.host?.render();
       }
     }
@@ -853,7 +1027,8 @@ function renderSushiAuthenticatedStage(
     calc;
 
   const usedHoursStr = (currentUsedProductionMs / 3_600_000).toFixed(1);
-  const capHoursStr = state ? (state.capMs / 3_600_000).toFixed(0) : '8';
+  const capHoursStr = (state.capMs / 3_600_000).toFixed(0);
+  const extendedCap = state.capMs >= EXTENDED_CAP_MS;
   const ordersPerMinute = (count: number) => `${count} ${count === 1 ? 'order' : 'ordrar'}/min`;
 
   const bottleneckText =
@@ -876,35 +1051,18 @@ function renderSushiAuthenticatedStage(
       ? state.permanentGrants.filter((g) => SUSHI_UNLOCK_CATALOG.some((c) => c.id === g)).length
       : 0;
 
-  const nextGoal =
-    SUSHI_CATALOG.find(
-      (item) => !state.inventory.includes(item.id) && state.permanentGrants.includes(item.id),
-    ) ?? SUSHI_CATALOG.find((item) => !state.inventory.includes(item.id));
-  const goalUnlocked = nextGoal ? state.permanentGrants.includes(nextGoal.id) : false;
-  const goalWeek = nextGoal && courseWeeks.find((week) => week.id === nextGoal.targetWeekId);
-  const goalSummary =
-    goalWeek && courseProgressSnapshot
-      ? getWeekProgressSummary(courseProgressSnapshot, goalWeek)
-      : null;
-  const goalTotal = goalSummary
-    ? goalSummary.vocabTotal +
-      goalSummary.kanjiTotal +
-      goalSummary.dojoTotal +
-      goalSummary.quizTotal
-    : 0;
-  const goalDone = goalSummary
-    ? goalSummary.vocabDone +
-      goalSummary.kanjiDone +
-      goalSummary.dojoDone +
-      (goalSummary.quizScore ?? 0)
-    : 0;
-  const goalPercent = goalTotal > 0 ? Math.floor((goalDone / goalTotal) * 100) : null;
   const phrases = [
     { ja: 'いらっしゃいませ！', reading: 'Irasshaimase!', sv: 'Välkommen in!' },
     { ja: 'いただきます！', reading: 'Itadakimasu!', sv: 'Tack för maten — innan vi äter.' },
     { ja: 'おいしいです！', reading: 'Oishii desu!', sv: 'Det är gott!' },
   ];
-  const phrase = phrases[activeController.greetingIndex];
+  const phrase =
+    activeController.guestMode === 'welcome' ? phrases[activeController.greetingIndex] : undefined;
+  const guestDeck = getGuestStudyDeck(activeController.guestLessonNumber);
+  const guestCard =
+    activeController.guestMode === 'study' && activeController.greetingIndex >= 0
+      ? guestDeck[activeController.greetingIndex % guestDeck.length]
+      : undefined;
   const previewDecoration = getCatalogItem(activeController.previewDecorationId ?? '');
   const previewOwned = previewDecoration ? state.inventory.includes(previewDecoration.id) : false;
   const previewEquipped = previewDecoration?.slotType
@@ -992,7 +1150,7 @@ function renderSushiAuthenticatedStage(
           ${renderRestaurantScene(state, {
             onGreet: () => activeController.greet(),
             productionStopped: isCapped,
-            paused: activeController.activeOverlay !== null,
+            paused: activeController.activeOverlay !== null || activeController.showFinale,
             previewDecorationId: previewDecoration?.id,
             arrival: previewDecoration ? null : activeController.sceneArrival,
           })}
@@ -1067,38 +1225,19 @@ function renderSushiAuthenticatedStage(
               `
             : ''
         }
-        <aside class="sushi-next-goal" data-testid="sushi-next-goal">
-          <span class="sushi-goal-heading"
-            >${nextGoal ? 'Nästa mål' : 'Restaurangen är komplett!'}</span
-          >
-          ${
-            nextGoal
-              ? html`<button
-                  type="button"
-                  class="sushi-goal-action"
-                  data-testid="sushi-goal-action"
-                  @click=${() => (goalUnlocked ? activeController.openGoalShop() : handleNavigateToChapter(nextGoal.requiredLesson, nextGoal.targetWeekId))}
-                >
-                  <span
-                    class="sushi-atlas-sprite sushi-goal-sprite"
-                    aria-hidden="true"
-                    style=${spriteStyle(SUSHI_SPRITES[nextGoal.id])}
-                  ></span>
-                  <span
-                    ><strong>${nextGoal.name}</strong
-                    ><small
-                      >${goalUnlocked ? `¥ ${nextGoal.priceYen} · Öppna butik` : `Kapitel ${nextGoal.requiredLesson} · ${nextGoal.requiredTierLabel} (${nextGoal.requiredPercent} %)${goalPercent !== null ? ` · ${goalPercent} % klart` : ''}`}</small
-                    ></span
-                  >
-                </button>`
-              : html`<p>Alla 21 belöningar är dina.</p>`
-          }
-          <span class="sushi-goal-progress"
-            >${state.inventory.filter((id) => SUSHI_CATALOG.some((item) => item.id === id)).length}
-            / 21 belöningar köpta</span
-          >
-        </aside>
-        <div class="sushi-guest-hint">Tryck på en gäst · se japanska fraser</div>
+        ${renderCompanionGoal(
+          { ...state, uncollectedUnits: calc.currentUncollectedUnits },
+          activeController.goalMode,
+          courseProgressSnapshot,
+          {
+            chooseMode: (mode) => activeController.chooseGoal(mode),
+            openShop: (id) => activeController.openGoalShop(id),
+            openJournal: () => activeController.openJournal(),
+            study: handleNavigateToChapter,
+            replayFinale: () => activeController.openFinale(),
+          },
+        )}
+        <div class="sushi-guest-hint">Tryck på en gäst · öva japanska från kursen</div>
         ${
           phrase
             ? html`<aside
@@ -1128,6 +1267,79 @@ function renderSushiAuthenticatedStage(
                 <button type="button" class="pixel-btn" @click=${() => activeController.greet()}>
                   Nästa fras →
                 </button>
+                <button
+                  type="button"
+                  class="pixel-btn sushi-practice-start"
+                  data-testid="sushi-start-guest-practice"
+                  @click=${() => activeController.practiceGuestChapter()}
+                >
+                  Öva Kapitel ${activeController.guestLessonNumber} med gästen →
+                </button>
+              </aside>`
+            : ''
+        }
+        ${
+          guestCard
+            ? html`<aside
+                class="sushi-phrase-bubble sushi-guest-practice"
+                aria-label="Frivillig gästträning"
+                data-testid="sushi-guest-practice"
+              >
+                <button
+                  type="button"
+                  class="sushi-phrase-close"
+                  aria-label="Stäng samtal"
+                  @click=${() => activeController.dismissGreeting()}
+                >
+                  ×
+                </button>
+                <label class="sushi-practice-chapter"
+                  >Öva med gästen
+                  <select
+                    aria-label="Kapitel för gästträning"
+                    @change=${(event: Event) => activeController.practiceGuestChapter(Number((event.target as HTMLSelectElement).value))}
+                  >
+                    ${courseWeeks.map((week) => html`<option value=${String(week.lessonNumber)} .selected=${week.lessonNumber === activeController.guestLessonNumber}>Kapitel ${week.lessonNumber}</option>`)}
+                  </select></label
+                >
+                <p>${guestCard.questionSv}</p>
+                <strong lang="ja" data-testid="sushi-practice-prompt">${guestCard.promptJp}</strong>
+                ${
+                  activeController.guestAnswerRevealed
+                    ? html`<div class="sushi-practice-answer" data-testid="sushi-practice-answer">
+                        <span lang="ja">${guestCard.reading}</span>
+                        <p>${guestCard.answerSv}</p>
+                      </div>`
+                    : html`<button
+                        type="button"
+                        class="pixel-btn"
+                        data-testid="sushi-reveal-guest-answer"
+                        @click=${() => activeController.revealGuestAnswer()}
+                      >
+                        Visa betydelse
+                      </button>`
+                }
+                <div class="sushi-practice-actions">
+                  <button
+                    type="button"
+                    class="pixel-btn"
+                    @click=${(event: Event) => activeController.speakPhrase(guestCard.promptJp, event.currentTarget as HTMLElement)}
+                  >
+                    🔊 Lyssna</button
+                  ><button
+                    type="button"
+                    class="pixel-btn"
+                    data-testid="sushi-next-guest-example"
+                    @click=${() => activeController.greet()}
+                  >
+                    Nästa exempel →
+                  </button>
+                </div>
+                <small class="sushi-practice-source" data-testid="sushi-practice-source"
+                  >Ur kursen · Kapitel ${guestCard.lessonNumber} · ${guestCard.sourceTitleSv}</small
+                >
+                <small>Frivillig repetition · påverkar inte kursresultat eller yen.</small>
+                ${activeController.speechError ? html`<p role="status">${activeController.speechError}</p>` : ''}
               </aside>`
             : ''
         }
@@ -1155,14 +1367,16 @@ function renderSushiAuthenticatedStage(
                 <div class="sushi-cap-title-row">
                   <span>Produktionstid i perioden</span>
                   ${
-                    state && state.capMs >= 43_200_000
+                    extendedCap
                       ? html`<span
                           class="sushi-cap-badge extended"
-                          data-testid="sushi-cap-badge-12h"
-                          >12h Tak</span
+                          data-testid="sushi-cap-badge-extended"
+                          >${capHoursStr}h kassa</span
                         >`
-                      : html`<span class="sushi-cap-badge standard" data-testid="sushi-cap-badge-8h"
-                          >8h Tak</span
+                      : html`<span
+                          class="sushi-cap-badge standard"
+                          data-testid="sushi-cap-badge-standard"
+                          >${capHoursStr}h kassa</span
                         >`
                   }
                 </div>
@@ -1182,12 +1396,12 @@ function renderSushiAuthenticatedStage(
                 ></div>
               </div>
               ${
-                state && state.capMs >= 43_200_000
+                extendedCap
                   ? html`<div
                       class="sushi-cap-active-indicator"
                       data-testid="sushi-cap-active-badge"
                     >
-                      ✨ Ny produktionstid aktiv! (12 timmar max)
+                      ✨ Rymligare kassa · ${capHoursStr} timmars intäkter mellan hämtningar
                     </div>`
                   : ''
               }
@@ -1199,8 +1413,8 @@ function renderSushiAuthenticatedStage(
                         role="status"
                         data-testid="sushi-capped-badge"
                       >
-                        ⚠️ Kassan är full (${capHoursStr} timmar) — hämta intäkterna för att
-                        återuppta intjäningen.
+                        Kassan vilar efter ${capHoursStr} timmar. Dina intäkter finns kvar — hämta
+                        när det passar för att starta en ny period.
                       </div>
                     `
                   : ''
@@ -1376,7 +1590,7 @@ function renderSushiAuthenticatedStage(
                 const diffUnits = state
                   ? Math.max(0, item.priceUnits - state.balanceUnits)
                   : item.priceUnits;
-                const diffYen = unitsToWholeYen(diffUnits);
+                const diffYen = Math.ceil(diffUnits / 60_000);
 
                 let purchaseState: 'locked' | 'unaffordable' | 'affordable' | 'owned' = 'locked';
                 let cardStateClass = 'is-locked';
@@ -1627,10 +1841,16 @@ function renderSushiAuthenticatedStage(
           <div class="sushi-overlay-scroll-body">
             <div class="sushi-scene-badge">🍣 Personlig restaurang i drift</div>
             <p class="sushi-scene-desc">
-              Grundrestaurang startad med kökskapacitet ${state ? state.kitchenCapacity : 1} och
+              Restaurangen har kökskapacitet ${state ? state.kitchenCapacity : 1} och
               servicekapacitet ${state ? state.serviceCapacity : 2}. Restaurangen sparar automatiskt
               intäkter upp till ${capHoursStr} timmar även när du inte är inloggad.
             </p>
+            <p class="sushi-companion-intro">
+              Intjäningen börjar när din restaurang skapas. Grundkassan rymmer
+              ${DEFAULT_CAP_MS / 3_600_000} timmars produktion, så att du kan studera i din egen
+              takt.
+            </p>
+            ${renderChapterHonors(state, handleNavigateToChapter)}
             <div class="sushi-scene-equipment" data-testid="sushi-scene-equipment">
               <section class="sushi-menu" aria-label="Restaurangens meny" data-testid="sushi-menu">
                 <h3>På menyn</h3>
@@ -1672,7 +1892,7 @@ function renderSushiAuthenticatedStage(
                       class="sushi-scene-equipment-badge scene-cap-extension pixel-panel"
                       data-testid="scene-cap-extension"
                     >
-                      ⏰ 12h Produktionstak
+                      ⏰ ${capHoursStr}h produktionstid
                     </div>`
                   : ''
               }
@@ -1712,7 +1932,8 @@ function renderSushiAuthenticatedStage(
                       class="sushi-scene-equipment-badge scene-master-license pixel-panel"
                       data-testid="scene-master_license"
                     >
-                      📜 Mästarcertifiering (+5 ¥/order)
+                      📜 Mästarcertifiering
+                      (+${getCatalogItem('master_license')?.averageRevenueDelta ?? 0} ¥/order)
                     </div>`
                   : ''
               }
@@ -1792,8 +2013,32 @@ function renderSushiAuthenticatedStage(
               ${activeController.isEquipping ? html`<p role="status">Sparar dekorationsval…</p>` : ''}
               ${activeController.equipError ? html`<p role="alert" data-testid="sushi-equip-error">${activeController.equipError}</p>` : ''}
             </section>
+            ${renderRestaurantProjects(
+              state,
+              activeController.isBuying !== null ||
+                activeController.isCollecting ||
+                activeController.isEquipping,
+              activeController.buildingProjectId,
+              activeController.projectError,
+              {
+                buy: (id) => void activeController.buyProject(id),
+                study: handleNavigateToChapter,
+              },
+            )}
           </div>
         </div>
+
+        ${
+          activeController.showFinale
+            ? renderRestaurantFinale(
+                () => {
+                  activeController.dismissFinale();
+                  onBackToStudies();
+                },
+                () => activeController.dismissFinale(),
+              )
+            : ''
+        }
 
         <!-- Åtgärder och navigation -->
         <div class="sushi-stage-actions">

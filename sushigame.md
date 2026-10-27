@@ -2,11 +2,13 @@
 
 > **Purpose:** Project-specific guidance for the personal sushi restaurant game in the existing Japanese study web app.
 >
-> **Status:** Planning / design specification. Ticket 01 accounting rules and the provisional MVP catalog were approved by the product owner on 2026-10-22. This document does not mean the game is implemented or authorize implementing every feature at once.
+> **Status:** Historical product/design brief, amended for the locally implemented balance-version-2 audit remedies on 2026-10-27. Ticket 01 established accounting invariants and provisional version-1 values on 2026-10-22; those old balance values are not the current defaults.
 >
 > **Priority:** The Japanese study experience must remain functional, fast, and the primary purpose of the app.
 >
 > **Decision labels:** Existing project facts describe current code. Confirmed decisions describe the agreed game. Proposals and open questions require further balancing or decisions.
+
+> **Current balance-v2 decisions and precedence:** The 2026-10-27 audit-remediation request supersedes the former eight/twelve-hour caps and ¥300 starter price. The current contract is [Economy and balance model, version 2](docs/sushi-game/economy-balance-model.md): ¥50 first upgrade; 24h base / 48h extended cap; knife and counter each add +1 ¥/order; license adds +3, preserving final 90 ¥/min; 21 core purchases total ¥47,750. Four optional visual savings projects total ¥2,400,000 and do not gate core completion. Gold grants award permanent chapter honors without consuming decoration slots. Separate growth/personalization goals and optional source-linked chapter recall support the study companion. Existing saves migrate prospectively with a legacy revenue floor; no earned money or purchased benefit is revoked. Section 5.7 is explicitly historical version-1 arithmetic. Local implementation and modeled cadence evidence do not establish student satisfaction/retention, and these changes do not perform a live deployment.
 
 ## 1. Existing project facts
 
@@ -20,7 +22,7 @@ The app helps classmates study **Genki I, chapters 6-12**. The repository curren
 - **Progression:** `CourseProgressData` records mastered vocabulary, kanji, and conjugations, plus the best chapter quiz results. `getWeekProgressSummary` and `getWeekMedalTier` in `src/course/course-state.ts` calculate summaries and medals.
 - **Medals:** Bronze at 60%, silver at 80%, and gold at 100% of counted items. The calculation combines mastered vocabulary, kanji, conjugations, and the best quiz score; it is not simply a quiz pass percentage. Reuse the existing medal calculation rather than comparing rounded display percentages.
 - **Chapter identity:** Course data exposes `lessonNumber`. Chapter 9 is currently `week-4`; map requirements through `lessonNumber`, not by treating week IDs as chapter numbers.
-- **Backend gap:** The repository has Firebase Hosting and Firestore configuration, but no configured Cloud Functions implementation for a server-controlled game economy.
+- **Backend:** The repository now includes an authenticated callable game service in `functions/src/index.ts` and direct-client-write-denying restaurant rules. Their presence in this checkout is not evidence that they have been deployed to production.
 
 ### Current study trust and synchronization
 
@@ -32,7 +34,7 @@ The game accepts the existing study trust model. Server-controlled money does **
 
 ## 2. Confirmed game decisions
 
-1. **Theme and scope:** A compact, cozy sushi restaurant tycoon combining idle earnings and personal decoration. Each student owns one restaurant.
+1. **Theme and scope:** A compact, finite cozy study companion combining idle restaurant earnings, personal decoration, and visible chapter achievements. Each student owns one restaurant; optional visual projects extend personalization without becoming course requirements.
 2. **Own page within the app:** The game lives at `#/sushi`, with its own interface, without study menus. Simple navigation connects the restaurant and study pages. This is not a separate HTML application.
 3. **Access:** The game is available only to signed-in users through the existing Google sign-in. There is no guest game or local guest demo. Direct navigation while signed out must not expose a playable restaurant or restaurant data.
 4. **Loading and rendering:** Load game code and artwork only when the game page opens. Use image layers, lit-html, and CSS animations.
@@ -41,7 +43,7 @@ The game accepts the existing study trust model. Server-controlled money does **
 7. **Study gates:** Existing medals unlock purchase eligibility. Bronze unlocks the main chapter feature, silver an extra recipe or variant, and gold a decoration. There is no additional chapter-test requirement.
 8. **Permanent grants:** Once awarded, an unlock remains available even if current study progress decreases. Existing saved progress is recognized at first game initialization.
 9. **Capacity:** Kitchen and service are the only production bottlenecks in the first version.
-10. **Time and collection:** The earning rate is identical with the page open or closed. The starting limit is eight production hours between manual collections. Higher limits require chapter unlocks and a yen purchase.
+10. **Time and collection:** The earning rate is identical with the page open or closed. The balance-v2 starting limit is 24 production hours between manual collections. Chapter 7 bronze and a ¥1,800 purchase extend it to 48h. The old 8h/12h values remain explicit migration-test inputs, not defaults.
 11. **Placement:** Functional equipment uses fixed locations. Decorations are selected for fixed decoration slots and are purely visual.
 12. **Chapter 9 milestone:** The conveyor belt is one purchasable, predefined installation improving service capacity. There is no belt construction, routing, or segment-placement editor.
 13. **Trust boundary:** Accept the existing client-reported study progress, while the server controls restaurant time, income, collection, purchases, and permanent unlock records.
@@ -53,13 +55,13 @@ These decisions supersede earlier suggestions in the initial brief. Undecided co
 ## 3. Proposals that remain provisional
 
 - A warm 2D pixel-art style with a top-down or simple angled perspective. Image-layer rendering is decided; final art style and perspective are not.
-- Specific dishes, staff, decorations, production values, and prices.
-- Chapter requirements, prices, and durations of upgrades beyond the confirmed eight-hour starting cap.
+- Additional dishes, staff, decorations, production values, or prices beyond the current version-2 catalog and projects.
+- Further changes beyond the current balance-v2 24h/48h cap and catalog require evidence and another balance pass.
 - A five-star restaurant review or a special cosmetic as the chapter 12 goal.
 - A manually selected recipe menu in a later phase.
 - Classmate visits as a possible later feature, outside MVP.
 
-Section 5.6 supplies the selected provisional MVP defaults, approved for implementation and later playtesting, not final game balance. Other illustrative examples do not add items to that catalog.
+Section 5.6 now summarizes current balance-v2 values; the linked balance model contains the full 21-item catalog and optional project definitions. The original MVP values and open questions are historical context, not instructions to revert these remedies. Future tuning still requires student playtesting.
 
 ## 4. Core player loop
 
@@ -69,6 +71,8 @@ Section 5.6 supplies the selected provisional MVP defaults, approved for impleme
 4. Press **"Hämta intäkter"** to transfer income into spendable yen and start a new accrual period.
 5. Buy unlocked improvements or decorations with collected yen.
 6. See the restaurant change and return to the relevant study chapter for the next milestone.
+
+Balance v2 additionally provides a permanent seven-chapter honor display, separate production/personalization suggestions, optional reveal-and-next guest practice sourced from the course, and optional visual savings projects. Finishing all 21 core rewards is a clear completion moment; optional projects do not delay it.
 
 Keep these actions distinct:
 
@@ -113,13 +117,13 @@ Show the current bottleneck and actual income effect of a proposed purchase. A k
 | Seating and room appearance | Tables or a visual expansion                  | Visual progression; no independent seating bottleneck         |
 | Decorations                 | Lanterns, plants, wall art                    | Personalization only, with no income or appeal bonus          |
 
-Only eligible items can be purchased. Shop entries may show locked items and explain their requirements. Section 5.6 selects provisional items, prices, and effects; final balance remains open. The conveyor-belt milestone itself is confirmed.
+Only eligible items can be purchased. Shop entries show locked items and explain their requirements. Section 5.6 summarizes current items; the version-2 balance model defines full prices/effects and known cadence evidence. Further tuning remains possible after playtesting. The conveyor-belt milestone itself is unchanged.
 
 ### 5.4 Accrual and collection rules
 
 **Do not run a permanent server simulation loop.** Calculate accrued income from server-controlled elapsed time and validated restaurant state.
 
-- The starting cap is **eight production hours between collections**, online and offline alike.
+- The starting cap is **24 production hours between collections**, online and offline alike; the current cap purchase increases it to 48h.
 - New restaurants start their first accrual period when created. After reaching the cap, further time earns nothing until manual collection or a purchased higher cap provides additional production time.
 - Returning to the app, signing in, loading a save, refreshing, or buying something does not collect income or restart the period.
 - Only explicit **"Hämta intäkter"** transfers accrued income into spendable yen and starts a new period.
@@ -135,15 +139,15 @@ Use atomic, retry-safe operations for collection and purchases. Collection trans
 1. Account up to the server-controlled operation time using the previous production rate and cap. Only elapsed time within the remaining production allowance earns income. Preserve the cumulative used production time across accounting updates.
 2. At a successful purchase, debit the catalog price from spendable yen and apply the purchased effect atomically with that accounting. Uncollected income cannot pay for a purchase. Keep existing uncollected income and used production time unchanged by the effect itself.
 3. A production-rate change applies only to production after the purchase. Never recalculate previously earned income at the new rate. Buying a faster production rate while the register is full leaves production stopped.
-4. A higher cap applies immediately within the same collection period. Remaining production time becomes the new cap minus already used production time. For example, raising the cap from eight to twelve hours after eight hours of production provides four more hours from the purchase onward.
-5. Account through any stopped interval before applying a higher cap, advancing the accounting timestamp to the purchase time even when no income accrues. Stopped time is discarded: buying the upgrade after ten elapsed hours does not retrospectively pay for hours eight through ten or consume the four newly available hours.
+4. A higher cap applies immediately within the same collection period. Remaining production time becomes the new cap minus already used production time. Raising the current cap from 24h to 48h after 24 productive hours provides 24 more future hours.
+5. Account through any stopped interval before applying a higher cap, advancing the accounting timestamp to the purchase time even when no income accrues. Buying that upgrade after 26 elapsed hours does not retrospectively pay for hours 24–26 or consume the 24 newly available hours.
 6. Manual collection first accounts up to the collection time, transfers the entire uncollected amount (including fractional yen) into spendable yen, then sets uncollected income and used production time to zero. The new period starts at that server time with the currently purchased rate and cap. Excess waiting time never carries into it.
 
 Purchases, accounting updates, and decoration placement are not collections. The cap measures **production time**, not a fixed yen amount: a period spanning different rates contains the sum earned at each applicable rate.
 
 ### 5.5 Precision and rounding
 
-Use server-controlled integer milliseconds for elapsed and used production time; do not round partial minutes. For the provisional catalog's integer yen-per-minute rates, represent both money balances as integer accounting units of **1/60000 yen**. These are an internal representation of yen, not a second currency.
+Use server-controlled integer milliseconds for elapsed and used production time; do not round partial minutes. For the catalog's integer yen-per-minute rates, represent both money balances as integer accounting units of **1/60000 yen**. These are an internal representation of yen, not a second currency.
 
 ```text
 producedMs = min(max(0, nowMs - accountedAtMs), max(0, capMs - usedProductionMs))
@@ -156,21 +160,25 @@ Add `producedMs` to used production time and `earnedUnits` to uncollected income
 
 Whole-yen prices are checked and debited in the same exact units. Collection transfers all units to the spendable balance, including the remainder below one yen; the register then contains exactly zero. Round down only for display, never during accrual, purchase, or collection. For equal produced time at equal rates, splitting accounting or collection into multiple operations must not change total earned yen. Waiting beyond a cap is not produced time.
 
-### 5.6 Provisional MVP catalog
+### 5.6 Current catalog and historical MVP context
 
-**Approved as provisional implementation defaults on 2026-10-22, subject to later balance and playtesting.** Item choices, prices, capacities, the twelve-hour upgrade duration, and its chapter assignment are provisional. The eight-hour starting cap, tier policy, and chapter 9 conveyor-belt role remain confirmed decisions.
+**Balance v2 supersedes the provisional implementation values approved on 2026-10-22.** The current full catalog, migrations, optional projects, and cadence results are defined in [the current balance model](docs/sushi-game/economy-balance-model.md). The tier policy and chapter 9 conveyor-belt role remain unchanged.
 
-The starting restaurant has **0 spendable yen**, **0 uncollected yen**, kitchen capacity **1 order/minute**, service capacity **2 orders/minute**, and average revenue **10 yen/order**. It starts producing **10 yen/minute** immediately, with an **eight-hour** cap and zero used production time. No medal is needed to operate it.
+The starting restaurant has **0 spendable yen**, **0 uncollected yen**, kitchen capacity **1 order/minute**, service capacity **2 orders/minute**, and average revenue **10 yen/order**. It starts producing **10 yen/minute** immediately when created, with a **24-hour** cap and zero used production time. No medal is needed to operate it.
 
-| Item                      | Permanent medal requirement | Price    | Effect and location                                                                                                                           |
-| ------------------------- | --------------------------- | -------- | --------------------------------------------------------------------------------------------------------------------------------------------- |
-| Förbättrad beredningsbänk | Chapter 6 bronze            | 300 yen  | Kitchen +2 orders/minute, from 1 to 3; fixed prep-counter upgrade state. With starting service, income rises from 10 to 20 yen/minute.        |
-| Längre produktionstid     | Chapter 7 bronze            | 1800 yen | Raise the production-time cap from 8 to 12 hours, immediately under section 5.4. No rate change.                                              |
-| Transportband             | Chapter 9 bronze            | 3600 yen | Service +2 orders/minute, from 2 to 4; one predefined installation. With the prep-counter improvement, income rises from 20 to 30 yen/minute. |
-| Laxnigiri                 | Chapter 6 silver            | 600 yen  | Visible menu variation only; no revenue or capacity effect and no manual recipe-selection system.                                             |
-| Papperslykta              | Chapter 6 gold              | 300 yen  | Purely visual decoration for the single fixed wall slot.                                                                                      |
-| Krukväxt                  | Chapter 7 gold              | 450 yen  | Purely visual decoration for the single fixed floor slot.                                                                                     |
-| Vågmotiv                  | Chapter 9 gold              | 600 yen  | Purely visual alternative for the same wall slot as Papperslykta.                                                                             |
+| Item                      | Permanent medal requirement | Price     | Effect and location                                                                                                                    |
+| ------------------------- | --------------------------- | --------- | -------------------------------------------------------------------------------------------------------------------------------------- |
+| Förbättrad beredningsbänk | Chapter 6 bronze            | 50 yen    | Kitchen +2 orders/minute, from 1 to 3; fixed prep-counter upgrade state. With starting service, income rises from 10 to 20 yen/minute. |
+| Längre produktionstid     | Chapter 7 bronze            | 1800 yen  | Raise the production-time cap from 24 to 48 hours, prospectively under section 5.4. No rate change.                                    |
+| Precisionskniv            | Chapter 8 bronze            | 2400 yen  | Kitchen +1 order/minute and revenue +1 yen/order. With earlier upgrades, income rises from 20 to 22 yen/minute.                        |
+| Transportband             | Chapter 9 bronze            | 3600 yen  | Service +2 orders/minute; one predefined installation. With all earlier bronze upgrades, income rises from 22 to 44 yen/minute.        |
+| Utökad serveringsdisk     | Chapter 10 bronze           | 5400 yen  | Service +2 orders/minute and revenue +1 yen/order. With earlier upgrades, income rises from 44 to 48 yen/minute.                       |
+| Assisterande kock         | Chapter 11 bronze           | 7200 yen  | Kitchen +2 orders/minute. With earlier upgrades, income rises from 48 to 72 yen/minute.                                                |
+| Mästarcertifiering        | Chapter 12 bronze           | 10800 yen | Revenue +3 yen/order. With earlier upgrades, income rises from 72 to the final 90 yen/minute.                                          |
+| Laxnigiri                 | Chapter 6 silver            | 600 yen   | Visible menu variation only; no revenue or capacity effect and no manual recipe-selection system.                                      |
+| Papperslykta              | Chapter 6 gold              | 300 yen   | Purely visual decoration for the single fixed wall slot.                                                                               |
+| Krukväxt                  | Chapter 7 gold              | 450 yen   | Purely visual decoration for the single fixed floor slot.                                                                              |
+| Vågmotiv                  | Chapter 9 gold              | 600 yen   | Purely visual alternative for the same wall slot as Papperslykta.                                                                      |
 
 Every item has **one purchasable level** and may be bought once. There are no item prerequisites beyond the listed medal eligibility and sufficient collected funds. Higher chapter medal tiers satisfy lower-tier requirements. Use permanent grants and map chapters through `lessonNumber`, including chapter 9 / `week-4`.
 
@@ -178,9 +186,11 @@ Buying the conveyor belt before the prep-counter improvement raises service capa
 
 Each decoration slot holds at most one compatible owned item. Players may replace or remove a selected decoration without repurchasing it. Decorations do not change production or any economic value. Essential functional progression requires no gold medal or silver recipe purchase.
 
-At 10 yen/minute, the first improvement costs 30 minutes of production, followed by manual collection, provided chapter 6 bronze has been unlocked. Later prices are provisional: at 20 yen/minute, the cap upgrade costs 90 minutes of production and the conveyor belt costs 180 minutes, considered separately without other spending.
+At 10 yen/minute, the first improvement costs **five productive minutes**, followed by manual collection, provided chapter 6 bronze has been unlocked. The core catalog totals ¥47,750. Projects are optional, purely visual purchases outside that 21-item total: Läshörna ¥60,000 (chapter 6 bronze), Lyktkväll ¥180,000 (chapter 8), Japansk trädgård ¥540,000 (chapter 10), and Hanamifest ¥1,620,000 (chapter 12). They use existing permanent grants and collected funds without adding item prerequisites or altering study scores.
 
-### 5.7 Worked accounting examples
+### 5.7 Historical version-1 worked accounting examples
+
+**Historical fixture only:** The table below preserves the 2026-10-22 accounting examples at an explicit 8h base cap, 12h extension, and ¥300 prep-counter price. These are not balance-v2 defaults or current catalog operations. They remain useful test inputs for the unchanged prospective-accounting invariants. For current prices, caps, rate changes, and migration behavior, use the version-2 balance model linked above.
 
 Times below are measured from the start of a collection period. Amounts are exact yen, not rounded estimates. Each independent scenario starts with base production and the eight-hour cap. Except for the first-purchase example, it starts with **10000 previously collected yen** and the required permanent grants; pending income never funds a purchase. Linked rows continue the same scenario.
 
@@ -220,19 +230,19 @@ Do not modify study exercises, medal thresholds, or scoring to fit the game. Per
 
 ### 6.3 Chapter reward map
 
-The tier policy is confirmed: **bronze = main feature; silver = extra recipe or variant; gold = decoration**. There is no extra chapter-test gate. Specific reward items remain proposals except where marked confirmed.
+The tier policy remains **bronze = main feature; silver = visual recipe; gold = decoration plus permanent chapter honor**. There is no extra chapter-test gate. The following is the current implemented balance-v2 mapping.
 
-| Chapter | Bronze/main feature               | Status and intended effect                                                                                                             |
-| ------- | --------------------------------- | -------------------------------------------------------------------------------------------------------------------------------------- |
-| 6       | First restaurant improvement      | Confirmed role; provisional prep-counter improvement selected in section 5.6. The basic restaurant already operates before this medal. |
-| 7       | Longer production-time cap        | Provisional MVP selection: purchase a twelve-hour cap. Replaces the earlier staffing-improvement proposal for this catalog.            |
-| 8       | Additional recipes                | Proposed; menu variety and possible balanced revenue effects.                                                                          |
-| 9       | Conveyor belt                     | Confirmed; one predefined installation improving service capacity. Map through `lessonNumber: 9`, currently `week-4`.                  |
-| 10      | Restaurant expansion              | Proposed visual expansion and decoration room; no seating bottleneck.                                                                  |
-| 11      | Specialist chef or premium dishes | Proposed production or recipe improvement.                                                                                             |
-| 12      | Final milestone                   | Exact goal and reward remain open.                                                                                                     |
+| Chapter | Bronze/main feature          | Status and intended effect                                                                                                               |
+| ------- | ---------------------------- | ---------------------------------------------------------------------------------------------------------------------------------------- |
+| 6       | First restaurant improvement | Prep counter for ¥50, K +2. The basic restaurant already operates before this medal.                                                     |
+| 7       | Longer production-time cap   | ¥1,800 purchase extends the cap from 24h to 48h. Stored ID remains `cap_extension_12h` for compatibility.                                |
+| 8       | Precision knife              | K +1 and average revenue +1 yen/order.                                                                                                   |
+| 9       | Conveyor belt                | Confirmed; one predefined installation improving service capacity. Map through `lessonNumber: 9`, currently `week-4`.                    |
+| 10      | Extended service counter     | S +2 and average revenue +1 yen/order; no new seating bottleneck.                                                                        |
+| 11      | Assistant chef               | K +2.                                                                                                                                    |
+| 12      | Master license               | Average revenue +3 yen/order, ending the expected fresh route at 90 yen/minute; core completion remains separate from optional projects. |
 
-Section 5.6 selects the provisional MVP cap upgrade and silver/gold catalog. Other proposed chapter rewards are not additional MVP catalog entries; further rewards and final balancing remain open. Necessary functional progression must not require gold.
+The current balance model lists all seven recipes and seven decorations. All seven earned gold honors can remain visible without purchasing or equipping decorations; the two room-decoration slots are independent. Necessary functional progression must not require gold. Guest recall uses source-linked existing course examples and never awards money or mastery merely for revealing or advancing a card.
 
 ## 7. Restaurant scene and decoration
 
@@ -274,7 +284,7 @@ A return message may describe accumulated earnings, but must not imply they have
 
 ### 9.2 Required backend addition
 
-Reuse Firebase Authentication and Firestore. A small trusted backend, such as Firebase callable Cloud Functions, is required for server-controlled restaurant accounting and purchases. The repository does not already provide this game service.
+Reuse Firebase Authentication and Firestore. The repository now provides the authenticated callable game service in `functions/src/index.ts`. Server-controlled restaurant accounting and purchases must continue through it; local in-memory fixtures are not evidence of production availability.
 
 The service needs authenticated operations for initializing/loading a restaurant, reconciling study-based grants, explicitly collecting income, buying eligible items, and saving valid decoration choices. Derive identity from authenticated requests. Do not trust client-supplied prices, rates, balances, or elapsed times.
 
@@ -303,7 +313,7 @@ Production requirements:
 - Accrual, collection, and purchase accounting must be atomic where their state changes belong together and safe under retries and concurrent tabs.
 - Derive production from validated purchases. Keep awarded study grants when current course progress decreases.
 - Failed operations must not be reported as successful or replace authoritative state with an empty/local restaurant. Study-local fallback is not a safe fallback for game money mutations.
-- Version save data for future changes. There are no existing restaurant saves to migrate in this first version; preserve existing course storage.
+- Preserve course storage and migrate existing restaurant saves prospectively using `balanceVersion: 2`. Settle old rules first; preserve currency, grants, used time, and paid benefits. The current balance model defines the legacy revenue floor and explains why a later bonus can be absorbed by that floor rather than stacked twice.
 
 Developer-only mocked state is acceptable for isolated tests and prototypes. It does not create a guest mode or satisfy production persistence requirements.
 
@@ -315,8 +325,8 @@ Developer-only mocked state is acceptable for isolated tests and prototypes. It 
 - One personal restaurant with basic production immediately available.
 - A small image-layer/CSS scene with visible upgrade states.
 - Kitchen/service production, spendable yen, and a separate uncollected cash register.
-- Equal open/closed-page earning rates, the eight-hour starting cap, and explicit manual collection.
-- Purchasable improvements from the provisional catalog in section 5.6, including its chapter-gated cap upgrade.
+- Equal open/closed-page earning rates, the current 24-hour starting cap / 48-hour upgrade, and explicit manual collection.
+- Purchasable improvements from the current catalog in section 5.6 and linked balance model, including its chapter-gated cap upgrade.
 - Bronze/silver/gold integration, permanent grants, and recognition of existing saved progress.
 - The chapter 9 conveyor belt as one fixed installation.
 - A few purely visual decorations chosen for fixed slots.
@@ -324,13 +334,13 @@ Developer-only mocked state is acceptable for isolated tests and prototypes. It 
 
 **Later or optional:** A manual recipe menu, richer illustrative animations, and more cosmetic content.
 
-**Outside MVP:** Belt construction, freeform building, demand/seating simulation, pathfinding, individual customer AI, stock management, salaries, multiplayer restaurants, visits, leaderboards, trading, branches, prestige resets, daily quests, special customer dialogues, advertising, and microtransactions.
+**Outside MVP:** Belt construction, freeform building, demand/seating simulation, pathfinding, individual customer AI, stock management, salaries, multiplayer restaurants, visits, leaderboards, trading, branches, prestige resets, daily quests, advertising, and microtransactions. Optional source-linked chapter recall and finite visual projects were added by the balance-v2 audit remedies; they do not add a separate study-scoring system.
 
 ## 12. Implementation stages
 
 ### Stage A - Confirm integration and apply approved accounting choices
 
-Recheck the project facts against the code at implementation time. Identify the route/shell integration and plan separate restaurant storage and backend deployment. Ticket 01 resolved mid-period rate/cap behavior and precision on 2026-10-22; use sections 5.4-5.7 as the accounting contract and provisional catalog. Final balance and artwork remain open.
+These implementation stages preserve the original planning sequence. Recheck current code before repeating a stage: the route, backend, restaurant storage, and game now exist locally. Ticket 01 resolved prospective accounting and precision on 2026-10-22; current normative values are in sections 5.4–5.6 and the linked balance-v2 model. Section 5.7 preserves old numeric fixtures only. Production deployment remains a distinct release action.
 
 ### Stage B - Isolated vertical slice
 
@@ -359,10 +369,10 @@ Playtest with realistic class study intervals. Tune prices, production, and cap 
 - Initial saved progress grants the appropriate unlocks; a later decline does not revoke grants. Do not claim recovery of historical medals absent from saved data.
 - Direct changes to client-side restaurant money or unlock flags cannot authorize purchases. This does not claim that underlying study records are independently verified.
 - Identical restaurant configurations and elapsed time yield the same income with the page open or closed.
-- Without a cap upgrade, the initial period accrues at most eight production hours, then stops. Visits, logins, reloads, accounting updates, and purchases do not restart it. A purchased higher cap extends the same period while preserving used production time.
+- Without a cap upgrade, the current initial period accrues at most 24 production hours, then stops. Visits, logins, reloads, accounting updates, and purchases do not restart it. The purchased 48-hour cap extends the same period while preserving used production time. Explicit version-1 test fixtures may use the former 8h/12h limits.
 - **"Hämta intäkter"** transfers pending income exactly once, empties the register, and starts a fresh period. Excess time beyond the previous cap does not generate another payout.
 - Purchases use collected funds only, debit them once, and apply the intended effect. A cap upgrade requires both its chapter grant and yen.
-- Rate/cap changes follow sections 5.4-5.7: preserve prior earnings, apply changes prospectively, and discard stopped time. Test rate purchases at a full register and cap purchases before, exactly at, and after the old limit, followed by manual collection.
+- Rate/cap changes follow sections 5.4–5.6 and the current balance model: preserve prior earnings, apply changes prospectively, and discard stopped time. Test current purchases around 24h/48h boundaries and explicit version-1 migration fixtures around 8h/12h boundaries. Section 5.7 is historical arithmetic, not the current default.
 - Partial minutes and fractional yen survive accounting updates and collection. Equal produced time at equal rates earns the same exact total regardless of how accounting or collection is split; whole-yen display rounding does not alter balances.
 - Concurrent tabs, repeated submissions, reloads, and failed/retried requests do not duplicate collection, income, or purchases.
 - Decorations occupy fixed slots and do not affect income or production. The conveyor belt appears in its predefined location.
@@ -375,8 +385,8 @@ Use pure-logic tests for production and grants, backend/emulator tests for acces
 
 Do not silently turn these into final product rules:
 
-1. Final prices, production values, recipe effects, and purchase pacing after playtesting. Section 5.6 supplies provisional implementation defaults, including a purely visual silver recipe.
-2. Final chapter assignments, prices, and durations of cap upgrades beyond the confirmed eight-hour starting cap. The provisional MVP uses one chapter 7 bronze upgrade to twelve hours for 1800 yen.
+1. Further price, production, or pacing changes after real student playtesting. Current balance-v2 values are implemented local decisions rather than hypothetical version-1 placeholders; satisfaction and retention remain unmeasured.
+2. Further cap changes beyond the current 24h base / 48h chapter-7 upgrade for ¥1,800. The former eight/twelve-hour decisions are historical and superseded.
 3. Further main-feature and silver/gold rewards beyond the small provisional catalog in section 5.6.
 4. Final art style, perspective, artwork, and animation detail.
 5. The exact chapter 12 goal, such as a five-star review or special cosmetic.
@@ -394,7 +404,7 @@ The product owner approved prospective rate changes, immediate cap increases wit
 7. Award unlocks permanently and recognize existing saved progress where records support it.
 8. Keep decorations purely visual and in fixed slots. Do not introduce a conveyor-belt editor.
 9. Add the trusted backend and restaurant access rules before production release. Do not reuse course snapshot synchronization for money.
-10. Follow the approved accounting rules and worked examples in sections 5.4-5.7. Keep provisional catalog values distinct from confirmed product rules; final balance and further content remain open.
+10. Follow the accounting rules and balance-v2 contract in sections 5.4–5.6 and the linked model. Treat section 5.7 as explicit historical version-1 scenarios. Do not revert current values because an old test or planning ticket used different defaults; encode old fixtures explicitly when their behavior matters.
 11. Make incremental, reviewable changes and test the accounting, unlock, access, and integration requirements in section 13.
 12. Use artwork and learning content the project has the right to distribute. Update this brief when further decisions are approved.
 

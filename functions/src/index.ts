@@ -21,11 +21,11 @@ export const sushi = onCall({ region: 'europe-west1', maxInstances: 10 }, async 
   if (!data || typeof data !== 'object' || Array.isArray(data)) {
     throw new HttpsError('invalid-argument', 'Expected an operation.');
   }
-  const { operation, itemId, idempotencyKey } = data;
+  const { operation, itemId, projectId, idempotencyKey } = data;
   if (data.expectedUid !== uid) {
     throw new HttpsError('permission-denied', 'The account changed. Reload your restaurant.');
   }
-  if (!['load', 'collect', 'purchase', 'equip'].includes(operation)) {
+  if (!['load', 'collect', 'purchase', 'equip', 'project'].includes(operation)) {
     throw new HttpsError('invalid-argument', 'Unknown restaurant operation.');
   }
   const allowed =
@@ -33,9 +33,11 @@ export const sushi = onCall({ region: 'europe-west1', maxInstances: 10 }, async 
       ? ['operation', 'expectedUid']
       : operation === 'collect'
         ? ['operation', 'expectedUid', 'idempotencyKey']
-        : operation === 'equip'
-          ? ['operation', 'expectedUid', 'idempotencyKey', 'itemId', 'slot']
-          : ['operation', 'expectedUid', 'idempotencyKey', 'itemId'];
+        : operation === 'project'
+          ? ['operation', 'expectedUid', 'idempotencyKey', 'projectId']
+          : operation === 'equip'
+            ? ['operation', 'expectedUid', 'idempotencyKey', 'itemId', 'slot']
+            : ['operation', 'expectedUid', 'idempotencyKey', 'itemId'];
   if (Object.keys(data).some((key) => !allowed.includes(key))) {
     throw new HttpsError('invalid-argument', 'Restaurant state is determined by the server.');
   }
@@ -50,6 +52,12 @@ export const sushi = onCall({ region: 'europe-west1', maxInstances: 10 }, async 
     (typeof itemId !== 'string' || !/^[a-z0-9_]{1,64}$/.test(itemId))
   ) {
     throw new HttpsError('invalid-argument', 'A catalog item ID is required.');
+  }
+  if (
+    operation === 'project' &&
+    (typeof projectId !== 'string' || !/^[a-z0-9_]{1,64}$/.test(projectId))
+  ) {
+    throw new HttpsError('invalid-argument', 'A restaurant project ID is required.');
   }
   const restaurantRef = db.doc(`users/${uid}/sushi/restaurant`);
   if (
@@ -95,6 +103,13 @@ export const sushi = onCall({ region: 'europe-west1', maxInstances: 10 }, async 
     // Separate operation/item namespaces prevent a reused key from authorizing another action.
     if (operation === 'collect')
       return service.collectRevenue(uid, `collect:${idempotencyKey}`, now);
+    if (operation === 'project')
+      return service.purchaseRestaurantProject(
+        uid,
+        projectId,
+        `project:${projectId}:${idempotencyKey}`,
+        now,
+      );
     return service.purchaseCatalogItem(uid, itemId, `purchase:${itemId}:${idempotencyKey}`, now);
   });
 });

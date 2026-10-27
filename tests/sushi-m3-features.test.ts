@@ -70,6 +70,7 @@ async function renderLoadedShell(...args: Parameters<typeof renderSushiShell>) {
 
 function createMockState(overrides: Partial<SushiRestaurantState> = {}): SushiRestaurantState {
   return {
+    balanceVersion: 2,
     id: 'test-user',
     kitchenCapacity: 1,
     serviceCapacity: 2,
@@ -91,7 +92,7 @@ function createMockState(overrides: Partial<SushiRestaurantState> = {}): SushiRe
   };
 }
 
-test('Milestone 3 Master Catalog: 21 items with exact prices and total 48,000 yen', () => {
+test('Milestone 3 Master Catalog: 21 items with exact prices and total 47,750 yen', () => {
   assert.equal(SUSHI_CATALOG.length, 21, 'Must have exactly 21 master catalog items');
 
   const bronzeItems = SUSHI_CATALOG.filter((i) => i.requiredTier === 'bronze');
@@ -105,14 +106,14 @@ test('Milestone 3 Master Catalog: 21 items with exact prices and total 48,000 ye
   const totalYen = SUSHI_CATALOG.reduce((acc, item) => acc + item.priceYen, 0);
   const totalUnits = SUSHI_CATALOG.reduce((acc, item) => acc + item.priceUnits, 0);
 
-  assert.equal(totalYen, 48_000, 'Total catalog investment must be exactly 48,000 Yen');
-  assert.equal(totalUnits, 2_880_000_000, 'Total internal units must be exactly 2,880,000,000');
+  assert.equal(totalYen, 47_750, 'Total catalog investment must be exactly 47,750 Yen');
+  assert.equal(totalUnits, 2_865_000_000, 'Total internal units must be exactly 2,865,000,000');
 
   const bronzeYen = bronzeItems.reduce((acc, i) => acc + i.priceYen, 0);
   const silverYen = silverItems.reduce((acc, i) => acc + i.priceYen, 0);
   const goldYen = goldItems.reduce((acc, i) => acc + i.priceYen, 0);
 
-  assert.equal(bronzeYen, 31_500, 'Bronze upgrades total exactly 31,500 Yen');
+  assert.equal(bronzeYen, 31_250, 'Bronze upgrades total exactly 31,250 Yen');
   assert.equal(silverYen, 11_400, 'Silver recipes total exactly 11,400 Yen');
   assert.equal(goldYen, 5_100, 'Gold decor totals exactly 5,100 Yen');
 
@@ -344,8 +345,8 @@ test('Milestone 3 Equipment Badges: Renders exact balanced capacities and revenu
     );
     assert.ok(html.includes('Souschef (+2 kök)'), 'Souschef badge shows +2 kök');
     assert.ok(
-      html.includes('Mästarcertifiering (+5 ¥/order)'),
-      'Mästarcertifiering badge shows +5 ¥/order',
+      html.includes('Mästarcertifiering (+3 ¥/order)'),
+      'Mästarcertifiering badge shows +3 ¥/order',
     );
     for (const id of ['precision_knife', 'service_counter', 'sous_chef', 'master_license']) {
       assert.ok(html.includes(`data-testid="scene-${id}"`), `Badge testid scene-${id} is uniform`);

@@ -1,3 +1,8 @@
+import {
+  createLegacyEconomyState,
+  LEGACY_CAP_MS,
+  LEGACY_EXTENDED_CAP_MS,
+} from './helpers/legacy-sushi-economy.ts';
 import test from 'node:test';
 import assert from 'node:assert/strict';
 import {
@@ -9,15 +14,8 @@ import {
   unitsToYenDecimal,
   yenToUnits,
   canAfford,
-  createInitialEconomyState,
 } from '../src/course/sushi-game/economy.ts';
-import {
-  YEN_UNIT_MULTIPLIER,
-  DEFAULT_CAP_MS,
-  EXTENDED_CAP_MS,
-  MS_PER_HOUR,
-  MS_PER_MINUTE,
-} from '../src/course/sushi-game/types.ts';
+import { YEN_UNIT_MULTIPLIER, MS_PER_HOUR, MS_PER_MINUTE } from '../src/course/sushi-game/types.ts';
 
 // -----------------------------------------------------------------------------
 // T01: Two-Capacity Rate Formula & Bottlenecks
@@ -52,7 +50,7 @@ test('T01: calculateProductionRate calculates min(kitchen, service) and identifi
 // T02: Accrual with 0 ms elapsed
 // -----------------------------------------------------------------------------
 test('T02: calculateAccrual with 0 ms elapsed yields 0 produced ms and zero earnings', () => {
-  const state = createInitialEconomyState(1_000_000);
+  const state = createLegacyEconomyState(1_000_000);
   const result = calculateAccrual(state, 1_000_000);
 
   assert.equal(result.elapsedMs, 0);
@@ -68,7 +66,7 @@ test('T02: calculateAccrual with 0 ms elapsed yields 0 produced ms and zero earn
 // T03: Clock Drift / Backward Timestamp Anomaly
 // -----------------------------------------------------------------------------
 test('T03: calculateAccrual clamps backward clock drift safely', () => {
-  const state = createInitialEconomyState(5_000_000);
+  const state = createLegacyEconomyState(5_000_000);
   // nowMs is before accountedAtMs
   const result = calculateAccrual(state, 4_900_000);
 
@@ -82,7 +80,7 @@ test('T03: calculateAccrual clamps backward clock drift safely', () => {
 // T04: Partial minute & millisecond unit precision
 // -----------------------------------------------------------------------------
 test('T04: calculateAccrual handles partial minutes with exact 1/60000th unit math', () => {
-  const state = createInitialEconomyState(0); // 10 yen/min = 10 units/ms
+  const state = createLegacyEconomyState(0); // 10 yen/min = 10 units/ms
 
   // 1 ms elapsed
   const r1 = calculateAccrual(state, 1);
@@ -107,7 +105,7 @@ test('T04: calculateAccrual handles partial minutes with exact 1/60000th unit ma
 // T05: Exact 1 minute elapsed
 // -----------------------------------------------------------------------------
 test('T05: calculateAccrual for exact 1 minute produces exactly yenPerMinute in whole yen', () => {
-  const state = createInitialEconomyState(0);
+  const state = createLegacyEconomyState(0);
   const result = calculateAccrual(state, MS_PER_MINUTE);
 
   assert.equal(result.producedMs, 60_000);
@@ -119,7 +117,7 @@ test('T05: calculateAccrual for exact 1 minute produces exactly yenPerMinute in 
 // T06: 30 minutes elapsed (First Purchase Prelude)
 // -----------------------------------------------------------------------------
 test('T06: calculateAccrual for 30 minutes at base rate yields 300 yen (18,000,000 units)', () => {
-  const state = createInitialEconomyState(0);
+  const state = createLegacyEconomyState(0);
   const result = calculateAccrual(state, 30 * MS_PER_MINUTE);
 
   assert.equal(result.producedMs, 1_800_000);
@@ -131,8 +129,8 @@ test('T06: calculateAccrual for 30 minutes at base rate yields 300 yen (18,000,0
 // T07: Exact 8-hour cap reached
 // -----------------------------------------------------------------------------
 test('T07: calculateAccrual reaches exact 8-hour cap at 28,800,000 ms', () => {
-  const state = createInitialEconomyState(0);
-  const result = calculateAccrual(state, DEFAULT_CAP_MS);
+  const state = createLegacyEconomyState(0);
+  const result = calculateAccrual(state, LEGACY_CAP_MS);
 
   assert.equal(result.producedMs, 28_800_000);
   assert.equal(result.excessMs, 0);
@@ -140,14 +138,14 @@ test('T07: calculateAccrual reaches exact 8-hour cap at 28,800,000 ms', () => {
   assert.equal(result.remainingCapMs, 0);
   assert.equal(result.earnedUnits, 288_000_000); // 480 min * 10 yen * 60,000 = 288,000,000
   assert.equal(unitsToWholeYen(result.earnedUnits), 4800);
-  assert.equal(result.updatedState.usedProductionMs, DEFAULT_CAP_MS);
+  assert.equal(result.updatedState.usedProductionMs, LEGACY_CAP_MS);
 });
 
 // -----------------------------------------------------------------------------
 // T08: 9 hours elapsed (1 hour excess discarded)
 // -----------------------------------------------------------------------------
 test('T08: calculateAccrual for 9 hours discards 1 hour excess and keeps cap at 8h', () => {
-  const state = createInitialEconomyState(0);
+  const state = createLegacyEconomyState(0);
   const nineHoursMs = 9 * MS_PER_HOUR;
   const result = calculateAccrual(state, nineHoursMs);
 
@@ -157,7 +155,7 @@ test('T08: calculateAccrual for 9 hours discards 1 hour excess and keeps cap at 
   assert.equal(result.isCapped, true);
   assert.equal(result.earnedUnits, 288_000_000);
   assert.equal(unitsToWholeYen(result.earnedUnits), 4800);
-  assert.equal(result.updatedState.usedProductionMs, DEFAULT_CAP_MS);
+  assert.equal(result.updatedState.usedProductionMs, LEGACY_CAP_MS);
   assert.equal(result.updatedState.accountedAtMs, nineHoursMs);
 });
 
@@ -165,14 +163,14 @@ test('T08: calculateAccrual for 9 hours discards 1 hour excess and keeps cap at 
 // T09: 72 hours long absence
 // -----------------------------------------------------------------------------
 test('T09: calculateAccrual for 72 hours absence caps at 4,800 yen and discards 64 hours', () => {
-  const state = createInitialEconomyState(0);
+  const state = createLegacyEconomyState(0);
   const seventyTwoHoursMs = 72 * MS_PER_HOUR;
   const result = calculateAccrual(state, seventyTwoHoursMs);
 
-  assert.equal(result.producedMs, DEFAULT_CAP_MS);
+  assert.equal(result.producedMs, LEGACY_CAP_MS);
   assert.equal(result.excessMs, 64 * MS_PER_HOUR);
   assert.equal(unitsToWholeYen(result.earnedUnits), 4800);
-  assert.equal(result.updatedState.usedProductionMs, DEFAULT_CAP_MS);
+  assert.equal(result.updatedState.usedProductionMs, LEGACY_CAP_MS);
   assert.equal(result.updatedState.accountedAtMs, seventyTwoHoursMs);
 });
 
@@ -180,7 +178,7 @@ test('T09: calculateAccrual for 72 hours absence caps at 4,800 yen and discards 
 // T10: Manual Collection flushes uncollected to spendable balance
 // -----------------------------------------------------------------------------
 test('T10: collectEarnings transfers pending units to balanceUnits and resets timers', () => {
-  const state = createInitialEconomyState(0);
+  const state = createLegacyEconomyState(0);
   const after30m = 30 * MS_PER_MINUTE; // 300 yen pending
 
   const collection = collectEarnings(state, after30m);
@@ -198,7 +196,7 @@ test('T10: collectEarnings transfers pending units to balanceUnits and resets ti
 // T11: Idempotent Collection at 0 pending revenue
 // -----------------------------------------------------------------------------
 test('T11: collectEarnings on empty register is safe and idempotent', () => {
-  const state = createInitialEconomyState(1_000_000, {
+  const state = createLegacyEconomyState(1_000_000, {
     balanceUnits: 50_000_000,
     uncollectedUnits: 0,
   });
@@ -215,7 +213,7 @@ test('T11: collectEarnings on empty register is safe and idempotent', () => {
 // T12: Fractional preservation across 6,000 collections vs single collection
 // -----------------------------------------------------------------------------
 test('T12: 6,000 split 1 ms accrual-collections preserve exact fractional units (zero drift)', () => {
-  let state = createInitialEconomyState(0); // 10 yen/min = 10 units/ms
+  let state = createLegacyEconomyState(0); // 10 yen/min = 10 units/ms
 
   // Perform 6,000 steps of 1 ms accrual and collect
   for (let i = 1; i <= 6000; i++) {
@@ -229,7 +227,7 @@ test('T12: 6,000 split 1 ms accrual-collections preserve exact fractional units 
   assert.equal(state.uncollectedUnits, 0);
 
   // Compare with a single 6,000 ms accrual and collect
-  const singleState = createInitialEconomyState(0);
+  const singleState = createLegacyEconomyState(0);
   const singleCol = collectEarnings(singleState, 6000);
   assert.equal(singleCol.newBalanceUnits, 60_000);
   assert.equal(state.balanceUnits, singleCol.newBalanceUnits); // Exactly identical!
@@ -240,7 +238,7 @@ test('T12: 6,000 split 1 ms accrual-collections preserve exact fractional units 
 // -----------------------------------------------------------------------------
 test('T13: Section 5.7 Scenario 2 - Mid-period rate upgrade applies prospectively', () => {
   // Start with 10,000 yen spendable = 600,000,000 units
-  let state = createInitialEconomyState(0, {
+  let state = createLegacyEconomyState(0, {
     balanceUnits: yenToUnits(10_000),
   });
 
@@ -280,7 +278,7 @@ test('T13: Section 5.7 Scenario 2 - Mid-period rate upgrade applies prospectivel
 // -----------------------------------------------------------------------------
 test('T14: Section 5.7 Scenario 3 - Collection at T=03:00 after upgrade yields 12,100 yen', () => {
   // Continuing state from T13 at T=3h
-  const state = createInitialEconomyState(3 * MS_PER_HOUR, {
+  const state = createLegacyEconomyState(3 * MS_PER_HOUR, {
     balanceUnits: yenToUnits(9700),
     uncollectedUnits: yenToUnits(2400),
     usedProductionMs: 3 * MS_PER_HOUR,
@@ -293,7 +291,7 @@ test('T14: Section 5.7 Scenario 3 - Collection at T=03:00 after upgrade yields 1
   assert.equal(unitsToWholeYen(col.newBalanceUnits), 12_100);
   assert.equal(col.updatedState.uncollectedUnits, 0);
   assert.equal(col.updatedState.usedProductionMs, 0);
-  assert.equal(col.updatedState.capMs, DEFAULT_CAP_MS);
+  assert.equal(col.updatedState.capMs, LEGACY_CAP_MS);
 });
 
 // -----------------------------------------------------------------------------
@@ -301,7 +299,7 @@ test('T14: Section 5.7 Scenario 3 - Collection at T=03:00 after upgrade yields 1
 // -----------------------------------------------------------------------------
 test('T15: Section 5.7 Scenario 4 - Purchase at full register leaves production stopped', () => {
   // Start with 10,000 yen spendable
-  let state = createInitialEconomyState(0, {
+  let state = createLegacyEconomyState(0, {
     balanceUnits: yenToUnits(10_000),
   });
 
@@ -319,7 +317,7 @@ test('T15: Section 5.7 Scenario 4 - Purchase at full register leaves production 
   state = upg.updatedState;
   assert.equal(unitsToWholeYen(state.balanceUnits), 9700);
   assert.equal(unitsToWholeYen(state.uncollectedUnits), 4800); // 8h productive time
-  assert.equal(state.usedProductionMs, DEFAULT_CAP_MS); // Exactly 8h used
+  assert.equal(state.usedProductionMs, LEGACY_CAP_MS); // Exactly 8h used
 
   // Verify production remains stopped
   const t11h = 11 * MS_PER_HOUR;
@@ -336,13 +334,13 @@ test('T15: Section 5.7 Scenario 4 - Purchase at full register leaves production 
 test('T16: Section 5.7 Scenario 5 - Cap upgrade on full register grants 4 future hours from purchase', () => {
   // Continuing from T15 at T=10:00:
   // balance: 9,700 yen; uncollected: 4,800 yen; usedMs: 8h; kitchen: 3; service: 2 (rate 20 yen/min)
-  let state = createInitialEconomyState(10 * MS_PER_HOUR, {
+  let state = createLegacyEconomyState(10 * MS_PER_HOUR, {
     balanceUnits: yenToUnits(9700),
     uncollectedUnits: yenToUnits(4800),
-    usedProductionMs: DEFAULT_CAP_MS, // 8h
+    usedProductionMs: LEGACY_CAP_MS, // 8h
     kitchenCapacity: 3,
     serviceCapacity: 2,
-    capMs: DEFAULT_CAP_MS,
+    capMs: LEGACY_CAP_MS,
   });
 
   // Buy Cap Upgrade (1,800 yen) at T=10:00
@@ -350,7 +348,7 @@ test('T16: Section 5.7 Scenario 5 - Cap upgrade on full register grants 4 future
   const upg = applyProspectiveUpgrade(state, t10h, {
     itemId: 'cap_extension_1',
     priceYen: 1800,
-    newCapMs: EXTENDED_CAP_MS, // 12h
+    newCapMs: LEGACY_EXTENDED_CAP_MS, // 12h
   });
 
   assert.equal(upg.success, true);
@@ -359,8 +357,8 @@ test('T16: Section 5.7 Scenario 5 - Cap upgrade on full register grants 4 future
   state = upg.updatedState;
   assert.equal(unitsToWholeYen(state.balanceUnits), 7900); // 9,700 - 1,800
   assert.equal(unitsToWholeYen(state.uncollectedUnits), 4800); // Preserved
-  assert.equal(state.usedProductionMs, DEFAULT_CAP_MS); // Still 8h used
-  assert.equal(state.capMs, EXTENDED_CAP_MS); // New cap: 12h
+  assert.equal(state.usedProductionMs, LEGACY_CAP_MS); // Still 8h used
+  assert.equal(state.capMs, LEGACY_EXTENDED_CAP_MS); // New cap: 12h
 
   // At T=11:00 (1 hour after purchase at 20 yen/min = +1,200 yen)
   const t11h = 11 * MS_PER_HOUR;
@@ -385,11 +383,11 @@ test('T16: Section 5.7 Scenario 5 - Cap upgrade on full register grants 4 future
 // T17: Section 5.7 Scenario 6: Collection on 12-hour cap
 // -----------------------------------------------------------------------------
 test('T17: Section 5.7 Scenario 6 - Subsequent collection on 12-hour cap transfers 9,600 yen', () => {
-  const state = createInitialEconomyState(14 * MS_PER_HOUR, {
+  const state = createLegacyEconomyState(14 * MS_PER_HOUR, {
     balanceUnits: yenToUnits(7900),
     uncollectedUnits: yenToUnits(9600),
-    usedProductionMs: EXTENDED_CAP_MS,
-    capMs: EXTENDED_CAP_MS,
+    usedProductionMs: LEGACY_EXTENDED_CAP_MS,
+    capMs: LEGACY_EXTENDED_CAP_MS,
     kitchenCapacity: 3,
     serviceCapacity: 2,
   });
@@ -399,14 +397,14 @@ test('T17: Section 5.7 Scenario 6 - Subsequent collection on 12-hour cap transfe
   assert.equal(unitsToWholeYen(col.newBalanceUnits), 17_500); // 7,900 + 9,600
   assert.equal(col.updatedState.uncollectedUnits, 0);
   assert.equal(col.updatedState.usedProductionMs, 0);
-  assert.equal(col.updatedState.capMs, EXTENDED_CAP_MS); // Cap remains 12h
+  assert.equal(col.updatedState.capMs, LEGACY_EXTENDED_CAP_MS); // Cap remains 12h
 });
 
 // -----------------------------------------------------------------------------
 // T18: Section 5.7 Scenario 7: Cap purchase before old limit
 // -----------------------------------------------------------------------------
 test('T18: Section 5.7 Scenario 7 - Cap purchase at T=02:00 yields 10 remaining production hours', () => {
-  let state = createInitialEconomyState(0, {
+  let state = createLegacyEconomyState(0, {
     balanceUnits: yenToUnits(10_000),
   });
 
@@ -415,7 +413,7 @@ test('T18: Section 5.7 Scenario 7 - Cap purchase at T=02:00 yields 10 remaining 
   const upg = applyProspectiveUpgrade(state, t2h, {
     itemId: 'cap_extension_1',
     priceYen: 1800,
-    newCapMs: EXTENDED_CAP_MS,
+    newCapMs: LEGACY_EXTENDED_CAP_MS,
   });
 
   assert.equal(upg.success, true);
@@ -438,7 +436,7 @@ test('T18: Section 5.7 Scenario 7 - Cap purchase at T=02:00 yields 10 remaining 
 // T19: Section 5.7 Scenario 8: Cap purchase exactly at old limit
 // -----------------------------------------------------------------------------
 test('T19: Section 5.7 Scenario 8 - Cap purchase at T=08:00 grants 4 future hours to T=12:00', () => {
-  let state = createInitialEconomyState(0, {
+  let state = createLegacyEconomyState(0, {
     balanceUnits: yenToUnits(10_000),
   });
 
@@ -447,7 +445,7 @@ test('T19: Section 5.7 Scenario 8 - Cap purchase at T=08:00 grants 4 future hour
   const upg = applyProspectiveUpgrade(state, t8h, {
     itemId: 'cap_extension_1',
     priceYen: 1800,
-    newCapMs: EXTENDED_CAP_MS,
+    newCapMs: LEGACY_EXTENDED_CAP_MS,
   });
 
   assert.equal(upg.success, true);
@@ -476,7 +474,7 @@ test('T19: Section 5.7 Scenario 8 - Cap purchase at T=08:00 grants 4 future hour
 // -----------------------------------------------------------------------------
 test('T20: Conveyor belt upgrade respects kitchen bottleneck; insufficient funds safely rejected', () => {
   // 1. Conveyor belt bought first: kitchen 1, service becomes 4 -> rate stays 10 yen/min!
-  const state = createInitialEconomyState(0, {
+  const state = createLegacyEconomyState(0, {
     balanceUnits: yenToUnits(5000),
   });
 
@@ -503,7 +501,7 @@ test('T20: Conveyor belt upgrade respects kitchen bottleneck; insufficient funds
   assert.equal(rate.bottleneck, 'kitchen');
 
   // 2. Insufficient funds rejected
-  const brokeState = createInitialEconomyState(0, {
+  const brokeState = createLegacyEconomyState(0, {
     balanceUnits: yenToUnits(100), // Only 100 yen
   });
 

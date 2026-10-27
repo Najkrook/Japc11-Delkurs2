@@ -915,7 +915,8 @@ export const week2Lesson7: CourseWeek = {
       sv: '[räkneord för personer]',
       en: '[counter for people]',
       category: 'expression',
-      noteSv: '1 och 2 personer är oregelbundna (ひとり, ふたり). Från 3 används ～にん (さんにん, よにん...).',
+      noteSv:
+        '1 och 2 personer är oregelbundna (ひとり, ふたり). Från 3 används ～にん (さんにん, よにん...).',
       exampleJp: 'クラスに学生が十人います。',
       exampleSv: 'Det finns tio studenter i klassen.',
     },

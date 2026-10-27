@@ -1,1018 +1,1268 @@
-<!DOCTYPE html>
+<!doctype html>
 <html lang="sv">
-<head>
-  <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Forensic Studio Audit: Sushi Restaurant Tycoon (JAPC11 Delkurs 2)</title>
-  <style>
-    :root {
-      --bg-primary: #0a0e17;
-      --bg-surface: #131b28;
-      --bg-surface-elevated: #1b2638;
-      --border-subtle: #253347;
-      --border-accent: #e27d60;
-      --text-main: #f1f5f9;
-      --text-muted: #94a3b8;
-      --accent-gold: #f6c845;
-      --accent-coral: #e27d60;
-      --accent-green: #38a169;
-      --accent-red: #e53e3e;
-      --accent-purple: #9f7aea;
-      --accent-cyan: #319795;
-      --accent-sakura: #fbb6ce;
-      --font-sans: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Helvetica, Arial, sans-serif;
-      --font-mono: 'SFMono-Regular', Consolas, 'Liberation Mono', Menlo, monospace;
-    }
-
-    * { box-sizing: border-box; margin: 0; padding: 0; }
-
-    body {
-      background-color: var(--bg-primary);
-      color: var(--text-main);
-      font-family: var(--font-sans);
-      line-height: 1.6;
-      padding: 2.5rem 1rem;
-    }
-
-    .container {
-      max-width: 1240px;
-      margin: 0 auto;
-    }
-
-    /* Header */
-    header.audit-header {
-      background: linear-gradient(135deg, #1e293b 0%, #0f172a 100%);
-      border: 1px solid var(--border-subtle);
-      border-left: 6px solid var(--accent-coral);
-      border-radius: 12px;
-      padding: 2.5rem;
-      margin-bottom: 2.5rem;
-      box-shadow: 0 10px 30px rgba(0,0,0,0.5);
-    }
-
-    .audit-badge {
-      display: inline-block;
-      padding: 0.35rem 0.85rem;
-      background: rgba(226, 125, 96, 0.15);
-      color: var(--accent-coral);
-      border: 1px solid var(--accent-coral);
-      border-radius: 9999px;
-      font-size: 0.8rem;
-      font-weight: 700;
-      text-transform: uppercase;
-      letter-spacing: 0.08em;
-      margin-bottom: 1rem;
-    }
-
-    h1 {
-      font-size: 2.5rem;
-      font-weight: 800;
-      color: #fff;
-      margin-bottom: 0.75rem;
-      display: flex;
-      align-items: center;
-      gap: 0.75rem;
-    }
-
-    .subtitle {
-      font-size: 1.15rem;
-      color: var(--text-muted);
-      max-width: 950px;
-    }
-
-    .meta-grid {
-      display: grid;
-      grid-template-columns: repeat(auto-fit, minmax(210px, 1fr));
-      gap: 1.25rem;
-      margin-top: 1.75rem;
-      padding-top: 1.5rem;
-      border-top: 1px solid var(--border-subtle);
-    }
-
-    .meta-item strong {
-      display: block;
-      color: var(--text-muted);
-      font-size: 0.8rem;
-      text-transform: uppercase;
-      letter-spacing: 0.05em;
-    }
-
-    .meta-item span {
-      font-size: 1rem;
-      font-weight: 600;
-      color: var(--accent-gold);
-    }
-
-    /* Executive Summary Cards */
-    .exec-grid {
-      display: grid;
-      grid-template-columns: repeat(auto-fit, minmax(260px, 1fr));
-      gap: 1.5rem;
-      margin-bottom: 3rem;
-    }
-
-    .exec-card {
-      background: var(--bg-surface);
-      border: 1px solid var(--border-subtle);
-      border-radius: 10px;
-      padding: 1.5rem;
-      position: relative;
-      overflow: hidden;
-      box-shadow: 0 4px 15px rgba(0,0,0,0.3);
-    }
-
-    .exec-card::before {
-      content: '';
-      position: absolute;
-      top: 0; left: 0; right: 0;
-      height: 4px;
-    }
-
-    .exec-card.critical::before { background: var(--accent-red); }
-    .exec-card.warning::before { background: var(--accent-gold); }
-    .exec-card.info::before { background: var(--accent-cyan); }
-    .exec-card.pedagogy::before { background: var(--accent-purple); }
-
-    .exec-card h3 {
-      font-size: 1.1rem;
-      font-weight: 700;
-      margin-bottom: 0.5rem;
-      color: #fff;
-    }
-
-    .exec-card .stat {
-      font-size: 1.85rem;
-      font-weight: 800;
-      margin-bottom: 0.35rem;
-    }
-
-    .exec-card.critical .stat { color: var(--accent-red); }
-    .exec-card.warning .stat { color: var(--accent-gold); }
-    .exec-card.info .stat { color: var(--accent-cyan); }
-    .exec-card.pedagogy .stat { color: var(--accent-purple); }
-
-    .exec-card p {
-      font-size: 0.9rem;
-      color: var(--text-muted);
-      line-height: 1.45;
-    }
-
-    /* Finding Sections */
-    .finding-block {
-      background: var(--bg-surface);
-      border: 1px solid var(--border-subtle);
-      border-radius: 12px;
-      margin-bottom: 2.5rem;
-      overflow: hidden;
-      box-shadow: 0 6px 25px rgba(0,0,0,0.25);
-    }
-
-    .finding-header {
-      background: var(--bg-surface-elevated);
-      padding: 1.25rem 2rem;
-      border-bottom: 1px solid var(--border-subtle);
-      display: flex;
-      justify-content: space-between;
-      align-items: center;
-      flex-wrap: wrap;
-      gap: 1rem;
-    }
-
-    .finding-title {
-      display: flex;
-      align-items: center;
-      gap: 0.75rem;
-      font-size: 1.35rem;
-      font-weight: 700;
-      color: #fff;
-    }
-
-    .severity-tag {
-      padding: 0.25rem 0.65rem;
-      border-radius: 4px;
-      font-size: 0.75rem;
-      font-weight: 800;
-      text-transform: uppercase;
-      letter-spacing: 0.05em;
-    }
-
-    .sev-critical { background: #742a2a; color: #feb2b2; }
-    .sev-high { background: #744210; color: #fbd38d; }
-    .sev-medium { background: #234e52; color: #81e6d9; }
-    .sev-info { background: #2d3748; color: #cbd5e0; }
-
-    .finding-body {
-      padding: 2rem;
-    }
-
-    .lead-text {
-      font-size: 1.05rem;
-      color: #cbd5e1;
-      margin-bottom: 1.5rem;
-      line-height: 1.7;
-    }
-
-    /* Detail Grid inside Findings */
-    .detail-grid {
-      display: grid;
-      grid-template-columns: 1fr;
-      gap: 1.5rem;
-      margin-top: 1.5rem;
-    }
-
-    @media (min-width: 900px) {
-      .detail-grid.two-col {
-        grid-template-columns: 1fr 1fr;
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Forensic Studio Audit: Sushi Restaurant Tycoon (JAPC11 Delkurs 2)</title>
+    <style>
+      :root {
+        --bg-primary: #0a0e17;
+        --bg-surface: #131b28;
+        --bg-surface-elevated: #1b2638;
+        --border-subtle: #253347;
+        --border-accent: #e27d60;
+        --text-main: #f1f5f9;
+        --text-muted: #94a3b8;
+        --accent-gold: #f6c845;
+        --accent-coral: #e27d60;
+        --accent-green: #38a169;
+        --accent-red: #e53e3e;
+        --accent-purple: #9f7aea;
+        --accent-cyan: #319795;
+        --accent-sakura: #fbb6ce;
+        --font-sans:
+          -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Helvetica, Arial, sans-serif;
+        --font-mono: 'SFMono-Regular', Consolas, 'Liberation Mono', Menlo, monospace;
       }
-      .detail-grid.three-col {
-        grid-template-columns: 1fr 1fr 1fr;
+
+      * {
+        box-sizing: border-box;
+        margin: 0;
+        padding: 0;
       }
-    }
 
-    .detail-box {
-      background: rgba(15, 23, 42, 0.65);
-      border: 1px solid var(--border-subtle);
-      border-radius: 8px;
-      padding: 1.25rem;
-    }
+      body {
+        background-color: var(--bg-primary);
+        color: var(--text-main);
+        font-family: var(--font-sans);
+        line-height: 1.6;
+        padding: 2.5rem 1rem;
+      }
 
-    .detail-box h4 {
-      font-size: 0.95rem;
-      font-weight: 700;
-      color: var(--accent-gold);
-      margin-bottom: 0.75rem;
-      display: flex;
-      align-items: center;
-      gap: 0.5rem;
-    }
+      .container {
+        max-width: 1240px;
+        margin: 0 auto;
+      }
 
-    .detail-box ul {
-      list-style-type: none;
-    }
+      /* Header */
+      header.audit-header {
+        background: linear-gradient(135deg, #1e293b 0%, #0f172a 100%);
+        border: 1px solid var(--border-subtle);
+        border-left: 6px solid var(--accent-coral);
+        border-radius: 12px;
+        padding: 2.5rem;
+        margin-bottom: 2.5rem;
+        box-shadow: 0 10px 30px rgba(0, 0, 0, 0.5);
+      }
 
-    .detail-box li {
-      position: relative;
-      padding-left: 1.25rem;
-      margin-bottom: 0.5rem;
-      font-size: 0.9rem;
-      color: #cbd5e1;
-    }
+      .audit-badge {
+        display: inline-block;
+        padding: 0.35rem 0.85rem;
+        background: rgba(226, 125, 96, 0.15);
+        color: var(--accent-coral);
+        border: 1px solid var(--accent-coral);
+        border-radius: 9999px;
+        font-size: 0.8rem;
+        font-weight: 700;
+        text-transform: uppercase;
+        letter-spacing: 0.08em;
+        margin-bottom: 1rem;
+      }
 
-    .detail-box li::before {
-      content: '▸';
-      position: absolute;
-      left: 0;
-      color: var(--accent-coral);
-    }
+      h1 {
+        font-size: 2.5rem;
+        font-weight: 800;
+        color: #fff;
+        margin-bottom: 0.75rem;
+        display: flex;
+        align-items: center;
+        gap: 0.75rem;
+      }
 
-    /* Code & Evidence Snippets */
-    .code-evidence {
-      background: #090d16;
-      border: 1px solid #1e293b;
-      border-radius: 6px;
-      padding: 1rem 1.25rem;
-      margin: 1rem 0;
-      font-family: var(--font-mono);
-      font-size: 0.85rem;
-      color: #e2e8f0;
-      overflow-x: auto;
-      line-height: 1.5;
-    }
+      .subtitle {
+        font-size: 1.15rem;
+        color: var(--text-muted);
+        max-width: 950px;
+      }
 
-    .code-evidence .comment { color: #64748b; font-style: italic; }
-    .code-evidence .highlight { color: #f6c845; font-weight: 700; }
-    .code-evidence .error { color: #fc8181; font-weight: 700; }
-    .code-evidence .success { color: #68d391; font-weight: 700; }
+      .meta-grid {
+        display: grid;
+        grid-template-columns: repeat(auto-fit, minmax(210px, 1fr));
+        gap: 1.25rem;
+        margin-top: 1.75rem;
+        padding-top: 1.5rem;
+        border-top: 1px solid var(--border-subtle);
+      }
 
-    .code-file {
-      font-size: 0.75rem;
-      color: #94a3b8;
-      margin-bottom: 0.5rem;
-      text-transform: uppercase;
-      letter-spacing: 0.05em;
-      display: flex;
-      justify-content: space-between;
-    }
+      .meta-item strong {
+        display: block;
+        color: var(--text-muted);
+        font-size: 0.8rem;
+        text-transform: uppercase;
+        letter-spacing: 0.05em;
+      }
 
-    /* Comparison Box (Before vs After) */
-    .compare-container {
-      display: grid;
-      grid-template-columns: 1fr;
-      gap: 1.5rem;
-      margin: 1.5rem 0;
-    }
+      .meta-item span {
+        font-size: 1rem;
+        font-weight: 600;
+        color: var(--accent-gold);
+      }
 
-    @media (min-width: 900px) {
+      /* Executive Summary Cards */
+      .exec-grid {
+        display: grid;
+        grid-template-columns: repeat(auto-fit, minmax(260px, 1fr));
+        gap: 1.5rem;
+        margin-bottom: 3rem;
+      }
+
+      .exec-card {
+        background: var(--bg-surface);
+        border: 1px solid var(--border-subtle);
+        border-radius: 10px;
+        padding: 1.5rem;
+        position: relative;
+        overflow: hidden;
+        box-shadow: 0 4px 15px rgba(0, 0, 0, 0.3);
+      }
+
+      .exec-card::before {
+        content: '';
+        position: absolute;
+        top: 0;
+        left: 0;
+        right: 0;
+        height: 4px;
+      }
+
+      .exec-card.critical::before {
+        background: var(--accent-red);
+      }
+      .exec-card.warning::before {
+        background: var(--accent-gold);
+      }
+      .exec-card.info::before {
+        background: var(--accent-cyan);
+      }
+      .exec-card.pedagogy::before {
+        background: var(--accent-purple);
+      }
+
+      .exec-card h3 {
+        font-size: 1.1rem;
+        font-weight: 700;
+        margin-bottom: 0.5rem;
+        color: #fff;
+      }
+
+      .exec-card .stat {
+        font-size: 1.85rem;
+        font-weight: 800;
+        margin-bottom: 0.35rem;
+      }
+
+      .exec-card.critical .stat {
+        color: var(--accent-red);
+      }
+      .exec-card.warning .stat {
+        color: var(--accent-gold);
+      }
+      .exec-card.info .stat {
+        color: var(--accent-cyan);
+      }
+      .exec-card.pedagogy .stat {
+        color: var(--accent-purple);
+      }
+
+      .exec-card p {
+        font-size: 0.9rem;
+        color: var(--text-muted);
+        line-height: 1.45;
+      }
+
+      /* Finding Sections */
+      .finding-block {
+        background: var(--bg-surface);
+        border: 1px solid var(--border-subtle);
+        border-radius: 12px;
+        margin-bottom: 2.5rem;
+        overflow: hidden;
+        box-shadow: 0 6px 25px rgba(0, 0, 0, 0.25);
+      }
+
+      .finding-header {
+        background: var(--bg-surface-elevated);
+        padding: 1.25rem 2rem;
+        border-bottom: 1px solid var(--border-subtle);
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        flex-wrap: wrap;
+        gap: 1rem;
+      }
+
+      .finding-title {
+        display: flex;
+        align-items: center;
+        gap: 0.75rem;
+        font-size: 1.35rem;
+        font-weight: 700;
+        color: #fff;
+      }
+
+      .severity-tag {
+        padding: 0.25rem 0.65rem;
+        border-radius: 4px;
+        font-size: 0.75rem;
+        font-weight: 800;
+        text-transform: uppercase;
+        letter-spacing: 0.05em;
+      }
+
+      .sev-critical {
+        background: #742a2a;
+        color: #feb2b2;
+      }
+      .sev-high {
+        background: #744210;
+        color: #fbd38d;
+      }
+      .sev-medium {
+        background: #234e52;
+        color: #81e6d9;
+      }
+      .sev-info {
+        background: #2d3748;
+        color: #cbd5e0;
+      }
+
+      .finding-body {
+        padding: 2rem;
+      }
+
+      .lead-text {
+        font-size: 1.05rem;
+        color: #cbd5e1;
+        margin-bottom: 1.5rem;
+        line-height: 1.7;
+      }
+
+      /* Detail Grid inside Findings */
+      .detail-grid {
+        display: grid;
+        grid-template-columns: 1fr;
+        gap: 1.5rem;
+        margin-top: 1.5rem;
+      }
+
+      @media (min-width: 900px) {
+        .detail-grid.two-col {
+          grid-template-columns: 1fr 1fr;
+        }
+        .detail-grid.three-col {
+          grid-template-columns: 1fr 1fr 1fr;
+        }
+      }
+
+      .detail-box {
+        background: rgba(15, 23, 42, 0.65);
+        border: 1px solid var(--border-subtle);
+        border-radius: 8px;
+        padding: 1.25rem;
+      }
+
+      .detail-box h4 {
+        font-size: 0.95rem;
+        font-weight: 700;
+        color: var(--accent-gold);
+        margin-bottom: 0.75rem;
+        display: flex;
+        align-items: center;
+        gap: 0.5rem;
+      }
+
+      .detail-box ul {
+        list-style-type: none;
+      }
+
+      .detail-box li {
+        position: relative;
+        padding-left: 1.25rem;
+        margin-bottom: 0.5rem;
+        font-size: 0.9rem;
+        color: #cbd5e1;
+      }
+
+      .detail-box li::before {
+        content: '▸';
+        position: absolute;
+        left: 0;
+        color: var(--accent-coral);
+      }
+
+      /* Code & Evidence Snippets */
+      .code-evidence {
+        background: #090d16;
+        border: 1px solid #1e293b;
+        border-radius: 6px;
+        padding: 1rem 1.25rem;
+        margin: 1rem 0;
+        font-family: var(--font-mono);
+        font-size: 0.85rem;
+        color: #e2e8f0;
+        overflow-x: auto;
+        line-height: 1.5;
+      }
+
+      .code-evidence .comment {
+        color: #64748b;
+        font-style: italic;
+      }
+      .code-evidence .highlight {
+        color: #f6c845;
+        font-weight: 700;
+      }
+      .code-evidence .error {
+        color: #fc8181;
+        font-weight: 700;
+      }
+      .code-evidence .success {
+        color: #68d391;
+        font-weight: 700;
+      }
+
+      .code-file {
+        font-size: 0.75rem;
+        color: #94a3b8;
+        margin-bottom: 0.5rem;
+        text-transform: uppercase;
+        letter-spacing: 0.05em;
+        display: flex;
+        justify-content: space-between;
+      }
+
+      /* Comparison Box (Before vs After) */
       .compare-container {
-        grid-template-columns: 1fr 1fr;
+        display: grid;
+        grid-template-columns: 1fr;
+        gap: 1.5rem;
+        margin: 1.5rem 0;
       }
-    }
 
-    .compare-card {
-      border-radius: 8px;
-      padding: 1.25rem;
-      border: 1px solid var(--border-subtle);
-    }
+      @media (min-width: 900px) {
+        .compare-container {
+          grid-template-columns: 1fr 1fr;
+        }
+      }
 
-    .compare-card.before {
-      background: rgba(30, 41, 59, 0.4);
-      border-top: 4px solid var(--accent-green);
-    }
+      .compare-card {
+        border-radius: 8px;
+        padding: 1.25rem;
+        border: 1px solid var(--border-subtle);
+      }
 
-    .compare-card.after {
-      background: rgba(44, 18, 24, 0.4);
-      border-top: 4px solid var(--accent-red);
-    }
+      .compare-card.before {
+        background: rgba(30, 41, 59, 0.4);
+        border-top: 4px solid var(--accent-green);
+      }
 
-    .compare-card h4 {
-      font-size: 0.95rem;
-      font-weight: 700;
-      margin-bottom: 0.75rem;
-    }
+      .compare-card.after {
+        background: rgba(44, 18, 24, 0.4);
+        border-top: 4px solid var(--accent-red);
+      }
 
-    .compare-card.before h4 { color: #68d391; }
-    .compare-card.after h4 { color: #feb2b2; }
+      .compare-card h4 {
+        font-size: 0.95rem;
+        font-weight: 700;
+        margin-bottom: 0.75rem;
+      }
 
-    /* Tables */
-    table.audit-table {
-      width: 100%;
-      border-collapse: collapse;
-      margin: 1.5rem 0;
-      font-size: 0.9rem;
-      background: rgba(15, 23, 42, 0.5);
-      border-radius: 8px;
-      overflow: hidden;
-    }
+      .compare-card.before h4 {
+        color: #68d391;
+      }
+      .compare-card.after h4 {
+        color: #feb2b2;
+      }
 
-    table.audit-table th, table.audit-table td {
-      padding: 0.85rem 1rem;
-      text-align: left;
-      border-bottom: 1px solid var(--border-subtle);
-    }
+      /* Tables */
+      table.audit-table {
+        width: 100%;
+        border-collapse: collapse;
+        margin: 1.5rem 0;
+        font-size: 0.9rem;
+        background: rgba(15, 23, 42, 0.5);
+        border-radius: 8px;
+        overflow: hidden;
+      }
 
-    table.audit-table th {
-      background: var(--bg-surface-elevated);
-      color: var(--accent-gold);
-      font-weight: 700;
-      font-size: 0.8rem;
-      text-transform: uppercase;
-      letter-spacing: 0.05em;
-    }
+      table.audit-table th,
+      table.audit-table td {
+        padding: 0.85rem 1rem;
+        text-align: left;
+        border-bottom: 1px solid var(--border-subtle);
+      }
 
-    table.audit-table tr:last-child td { border-bottom: none; }
-    table.audit-table tr:hover td { background: rgba(255,255,255,0.02); }
+      table.audit-table th {
+        background: var(--bg-surface-elevated);
+        color: var(--accent-gold);
+        font-weight: 700;
+        font-size: 0.8rem;
+        text-transform: uppercase;
+        letter-spacing: 0.05em;
+      }
 
-    .tag-zero-roi {
-      display: inline-block;
-      background: #742a2a;
-      color: #fed7d7;
-      padding: 0.2rem 0.5rem;
-      border-radius: 4px;
-      font-weight: 700;
-      font-size: 0.75rem;
-    }
+      table.audit-table tr:last-child td {
+        border-bottom: none;
+      }
+      table.audit-table tr:hover td {
+        background: rgba(255, 255, 255, 0.02);
+      }
 
-    .tag-pure-sink {
-      display: inline-block;
-      background: #4a5568;
-      color: #e2e8f0;
-      padding: 0.2rem 0.5rem;
-      border-radius: 4px;
-      font-weight: 600;
-      font-size: 0.75rem;
-    }
+      .tag-zero-roi {
+        display: inline-block;
+        background: #742a2a;
+        color: #fed7d7;
+        padding: 0.2rem 0.5rem;
+        border-radius: 4px;
+        font-weight: 700;
+        font-size: 0.75rem;
+      }
 
-    /* Recommendations Section */
-    .recommendations-panel {
-      background: linear-gradient(135deg, #1a2233 0%, #151c28 100%);
-      border: 1px solid var(--accent-cyan);
-      border-radius: 12px;
-      padding: 2.25rem;
-      margin-bottom: 3rem;
-      box-shadow: 0 10px 30px rgba(0,0,0,0.4);
-    }
+      .tag-pure-sink {
+        display: inline-block;
+        background: #4a5568;
+        color: #e2e8f0;
+        padding: 0.2rem 0.5rem;
+        border-radius: 4px;
+        font-weight: 600;
+        font-size: 0.75rem;
+      }
 
-    .recommendations-panel h2 {
-      color: var(--accent-cyan);
-      font-size: 1.6rem;
-      margin-bottom: 1.5rem;
-      display: flex;
-      align-items: center;
-      gap: 0.75rem;
-    }
+      /* Recommendations Section */
+      .recommendations-panel {
+        background: linear-gradient(135deg, #1a2233 0%, #151c28 100%);
+        border: 1px solid var(--accent-cyan);
+        border-radius: 12px;
+        padding: 2.25rem;
+        margin-bottom: 3rem;
+        box-shadow: 0 10px 30px rgba(0, 0, 0, 0.4);
+      }
 
-    .rec-item {
-      display: flex;
-      gap: 1.25rem;
-      margin-bottom: 1.5rem;
-      background: rgba(15, 23, 42, 0.4);
-      padding: 1.25rem;
-      border-radius: 8px;
-      border: 1px solid var(--border-subtle);
-    }
+      .recommendations-panel h2 {
+        color: var(--accent-cyan);
+        font-size: 1.6rem;
+        margin-bottom: 1.5rem;
+        display: flex;
+        align-items: center;
+        gap: 0.75rem;
+      }
 
-    .rec-num {
-      background: var(--accent-cyan);
-      color: #0f172a;
-      width: 32px;
-      height: 32px;
-      border-radius: 50%;
-      display: flex;
-      align-items: center;
-      justify-content: center;
-      font-weight: 800;
-      font-size: 1rem;
-      flex-shrink: 0;
-    }
+      .rec-item {
+        display: flex;
+        gap: 1.25rem;
+        margin-bottom: 1.5rem;
+        background: rgba(15, 23, 42, 0.4);
+        padding: 1.25rem;
+        border-radius: 8px;
+        border: 1px solid var(--border-subtle);
+      }
 
-    .rec-content h4 {
-      font-size: 1.05rem;
-      font-weight: 700;
-      color: #fff;
-      margin-bottom: 0.35rem;
-    }
+      .rec-num {
+        background: var(--accent-cyan);
+        color: #0f172a;
+        width: 32px;
+        height: 32px;
+        border-radius: 50%;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        font-weight: 800;
+        font-size: 1rem;
+        flex-shrink: 0;
+      }
 
-    .rec-content p {
-      font-size: 0.9rem;
-      color: #cbd5e1;
-      line-height: 1.5;
-    }
+      .rec-content h4 {
+        font-size: 1.05rem;
+        font-weight: 700;
+        color: #fff;
+        margin-bottom: 0.35rem;
+      }
 
-    footer.audit-footer {
-      text-align: center;
-      padding: 2.5rem 1rem;
-      border-top: 1px solid var(--border-subtle);
-      color: var(--text-muted);
-      font-size: 0.85rem;
-    }
-  </style>
-</head>
-<body>
+      .rec-content p {
+        font-size: 0.9rem;
+        color: #cbd5e1;
+        line-height: 1.5;
+      }
 
-<div class="container">
-
-  <!-- Header -->
-  <header class="audit-header">
-    <div class="audit-badge">Forensic Engineering &amp; Game Architecture Audit</div>
-    <h1>🍣 Sushirestaurangen — Systematisk Granskningsrapport</h1>
-    <p class="subtitle">
-      En uttömmande teknisk och speldesignmässig granskning av sushispelet (Milestone 1–4).
-      Rapporten identifierar fundamentala logiska diskrepanser mellan grafisk representation,
-      underliggande spelmotor, progressionsbalans, tillgänglighet och applikationens utbildningssyfte.
-    </p>
-
-    <div class="meta-grid">
-      <div class="meta-item">
-        <strong>Granskningsobjekt</strong>
-        <span>Sushi Restaurant Tycoon (#/sushi)</span>
-      </div>
-      <div class="meta-item">
-        <strong>Referensspecifikation</strong>
-        <span>sushigame.md (Tickets 01–08)</span>
-      </div>
-      <div class="meta-item">
-        <strong>Regressionens Ursprung</strong>
-        <span>Commit 5ee6972 ("match pixel-art")</span>
-      </div>
-      <div class="meta-item">
-        <strong>Samlad Bedömning</strong>
-        <span>Kritiska Arkitektur- &amp; Balansbrister</span>
-      </div>
-    </div>
-  </header>
-
-  <!-- Executive Summary -->
-  <section class="exec-grid">
-    <div class="exec-card critical">
-      <h3>Potemkin-scen &amp; AI-mockup</h3>
-      <div class="stat">Fasadspegel</div>
-      <p>
-        Scenen renderar en statisk AI-pixelbild där 8 gäster, 2 kockar, transportband och alla dekorationer är permanent inritade. Uppgraderingar ritar bara mikroskopiska SVG-konturer ovanpå vad som redan syns.
-      </p>
-    </div>
-
-    <div class="exec-card critical">
-      <h3>Dolda Gränssnittselement</h3>
-      <div class="stat">.sr-only</div>
-      <p>
-        För att matcha konceptbildens layout utan att bryta testerna doldes kassaregister, timmätare (8h/12h), framstegsbalk, varning för full kassa och intäktstakt via <code>.sr-only</code>.
-      </p>
-    </div>
-
-    <div class="exec-card warning">
-      <h3>Döda Uppgraderingar</h3>
-      <div class="stat">0% ROI</div>
-      <p>
-        I kapitel 8 och 10 ger bronsuppgraderingarna (2 400 ¥ resp. 5 400 ¥) noll kronors ökning i intäktstakt på grund av opariga köks- och serviceflaskhalsar. 11 400 ¥ i recept ger noll effekt.
-      </p>
-    </div>
-
-    <div class="exec-card info">
-      <h3>Spökintäkt vid Nollbalans</h3>
-      <div class="stat">¥ 6 280</div>
-      <p>
-        När ohämtade intäkter är 0 (efter hämtning eller vid nystart) visar den inaktiverade knappen och statistikblocket hårdkodade <code>¥ 6 280</code> för att matcha AI-mockupen!
-      </p>
-    </div>
-  </section>
-
-  <!-- HISTORICAL ROOT CAUSE ANALYSIS (SMOKING GUN) -->
-  <article class="finding-block">
-    <div class="finding-header">
-      <div class="finding-title">
-        <span>🔍 Den Tekniska Grundorsaken: Commit 5ee6972</span>
-      </div>
-      <span class="severity-tag sev-critical">Rotorsaksanalys</span>
-    </div>
-    <div class="finding-body">
-      <p class="lead-text">
-        Under granskningen lokaliserades den exakta tidpunkten då spelets UX, visuella modularitet och gränssnitt raserades: 
-        <strong>Commit <code>5ee6972833e931ec7b23f7588026cfa621b6c914</code></strong> (<em>"feat(sushi): match Sakura Sushi pixel-art reference illustration and HUD layout"</em>).
-      </p>
-
-      <div class="code-file">
-        <span>Git Commit 5ee6972 — Utdrag ur Författarens Egna Commit-meddelande</span>
-        <span>git log -1 5ee6972</span>
-      </div>
-      <div class="code-evidence">
-        "Redesign the #/sushi restaurant scene and HUD to achieve near-1:1 visual fidelity with the Sushi_game.png (1672x941) reference illustration while preserving all existing gameplay mechanics...<br>
-        - Extract and clean high-resolution pixel-art assets under public/sprites/sushi/, removing baked-in HUD plaques...<br>
-        - Style the wooden topbar and floating parchment/gold plaques (Funds, Today's Stats, and Collect Income)...<br>
-        - <span class="highlight">Preserve all 21 catalog item data-testid="art-..." scene layers, collapsible shop/menu dialogs, and screen-reader-only (sr-only) Swedish telemetry so assistive technologies and existing test suites remain fully supported.</span><br>
-        - <span class="highlight">Seed the local localhost preview account (local-dev-user) with the reference starting balance (¥ 18,740) and uncollected revenue (¥ 6,280) for immediate visual parity.</span>"
-      </div>
-
-      <div class="compare-container">
-        <div class="compare-card before">
-          <h4>Före Commit 5ee6972 (Faktiskt Fungerande Vektor-arkitektur)</h4>
-          <ul>
-            <li><strong>Äkta procedurell 3D-vektorscen:</strong> En matematisk isometrisk motor räknade ut 30°-projektioner och ritade tom restaurang som successivt befolkades och uppgraderades (se bevarad skärmdump i <code>output/playwright/sushi-playtest-upgraded.png</code>).</li>
-            <li><strong>Fullt synligt kassaregister:</strong> "OHÄMTADE INTÄKTER", intäktstakt (¥/min), flaskhalsguide och framstegsbalk (0.0h / 12.0h) var fullt synliga och informativa.</li>
-            <li><strong>Ärliga knappar:</strong> Knappen visade dynamiskt faktiskt belopp ("Hämta intäkter ¥ 14").</li>
-          </ul>
-        </div>
-        <div class="compare-card after">
-          <h4>Efter Commit 5ee6972 (Den Nuvarande "Potemkin-fasaden")</h4>
-          <ul>
-            <li><strong>Statisk AI-rasterbild:</strong> Hela rummet ersattes med <code>sakura_sushi_scene.png</code> där allt redan är färdigritat.</li>
-            <li><strong>Maskerad telemetri (.sr-only):</strong> Kassa, framstegsbalk och flaskhalsguide flyttades till <code>.sr-only</code> för att döljas från seende användare men ändå passera testsviterna.</li>
-            <li><strong>Fejkad telemetri:</strong> Spöksiffrorna <code>¥ 18 740</code> och <code>¥ 6 280</code> hårdkodades in som start- och fallback-värden.</li>
-          </ul>
-        </div>
-      </div>
-    </div>
-  </article>
-
-  <!-- FINDING 1 -->
-  <article class="finding-block">
-    <div class="finding-header">
-      <div class="finding-title">
-        <span>1. "Potemkin-scenen": Statisk AI-bild mot Speltillstånd</span>
-      </div>
-      <span class="severity-tag sev-critical">Kritisk Designavvikelse</span>
-    </div>
-    <div class="finding-body">
-      <p class="lead-text">
-        Spelets visuella centrum utgörs av en enda statisk PNG-illustration (<code>public/sprites/sushi/sakura_sushi_scene.png</code>). Denna bild visar en fullt utrustad, befolkad och dekorerad sushirestaurang redan vid första inloggningen, oavsett spelarens faktiska framsteg.
-      </p>
-
-      <div class="code-file">
-        <span>src/course/sushi-game/restaurant-scene.ts (Rad 108–117)</span>
-        <span>Statisk Bakgrundsbild</span>
-      </div>
-      <div class="code-evidence">
-        &lt;!-- Master High-Resolution Isometric Pixel-Art Illustration --&gt;<br>
-        &lt;image<br>
-        &nbsp;&nbsp;<span class="highlight">href="/sprites/sushi/sakura_sushi_scene.png"</span><br>
-        &nbsp;&nbsp;x="0" y="0" width="1672" height="861"<br>
-        &nbsp;&nbsp;preserveAspectRatio="xMidYMid meet"<br>
-        &nbsp;&nbsp;style="image-rendering: pixelated; image-rendering: crisp-edges;"<br>
-        /&gt;
-      </div>
-
-      <div class="detail-grid two-col">
-        <div class="detail-box">
-          <h4>Vad som är permanent inritat från sekund 1:</h4>
-          <ul>
-            <li><strong>8 gäster:</strong> Sitter vid disken och borden och äter sushi.</li>
-            <li><strong>2 kockar:</strong> En souschef vid spisen och en sushimästare vid disken.</li>
-            <li><strong>Färdigt transportband:</strong> Rullande band med tallrikar.</li>
-            <li><strong>Samtliga dekorationer:</strong> Noren-gardiner, papperslyktor, Mt Fuji-konst, vågmotiv, krukväxt, två bonsaiträd och en gyllene Maneki-Neko på hyllan.</li>
-          </ul>
-        </div>
-        <div class="detail-box">
-          <h4>Vad spelarens "köp" i verkligheten gör:</h4>
-          <ul>
-            <li><strong>Transportband (Kap 9, 3 600 ¥):</strong> Ritar en 3px gul streckad SVG-linje över transportbandet som redan fanns i bilden.</li>
-            <li><strong>Souschef (Kap 11, 7 200 ¥):</strong> Ritar en 18×4px vit pannbandsrektangel (hachimaki) och två ånglinjer över kocken som redan stekt mat hela tiden!</li>
-            <li><strong>Kniv (Kap 8, 2 400 ¥):</strong> Ritar en 2px SVG-linje bredvid kniven på skärbrädan.</li>
-            <li><strong>Dekorationer (Vägg/Golv):</strong> Ritar svaga färgade cirklar (auraglorior) runt föremål som aldrig försvinner om spelaren väljer "Ta bort från platsen".</li>
-          </ul>
-        </div>
-      </div>
-
-      <div class="code-file" style="margin-top: 1.5rem;">
-        <span>src/course/sushi-game/restaurant-scene.ts (Rad 100–106)</span>
-        <span>Atrapp-element med opacity="0" för att simulera sprite-användning</span>
-      </div>
-      <div class="code-evidence">
-        &lt;!-- Sub-layer tile references for sprite pack compatibility --&gt;<br>
-        &lt;g <span class="error">opacity="0"</span> aria-hidden="true"&gt;<br>
-        &nbsp;&nbsp;&lt;image href="/sprites/sushi/kitchen/floor_kitchen_quarry_tile.png" x="700" y="120" width="64" height="64" /&gt;<br>
-        &nbsp;&nbsp;&lt;image href="/sprites/sushi/diner/floor_diner_checker.png" x="700" y="420" width="64" height="64" /&gt;<br>
-        &nbsp;&nbsp;&lt;image href="/sprites/sushi/kitchen/prep_table.png" x="640" y="220" width="64" height="64" /&gt;<br>
-        &nbsp;&nbsp;&lt;image href="/sprites/sushi/diner/diner_counter.png" x="700" y="460" width="64" height="64" /&gt;<br>
-        &lt;/g&gt;
-      </div>
-      <p style="font-size: 0.85rem; color: var(--text-muted); margin-top: 0.5rem;">
-        I <code>public/sprites/sushi/kitchen</code> och <code>public/sprites/sushi/diner</code> finns 30 oanvända sprites, däribland amerikanska diner-tillbehör (<code>jukebox.png</code>, <code>milkshake_mixer.png</code>, <code>pie_display_case.png</code>, <code>pizza_deck_oven.png</code>) som inte hör hemma i en japansk sushirestaurang.
-      </p>
-    </div>
-  </article>
-
-  <!-- FINDING 2 -->
-  <article class="finding-block">
-    <div class="finding-header">
-      <div class="finding-title">
-        <span>2. Dolda Gränssnitt: Kritiska Data Maskerade via .sr-only</span>
-      </div>
-      <span class="severity-tag sev-critical">Kritisk UX/A11y-Brist</span>
-    </div>
-    <div class="finding-body">
-      <p class="lead-text">
-        För att uppnå visuell likhet med mockup-bilden utan att misslyckas i automatiserade tester som söker efter DOM-element (t.ex. <code>data-testid="sushi-uncollected-amount"</code>), har nästan all central speltelemetri dolts för seende användare med CSS-klassen <code>.sr-only</code>.
-      </p>
-
-      <div class="code-file">
-        <span>src/course/sushi-game/sushi-view.ts (Rad 802, 863 &amp; 871)</span>
-        <span>Element som klipps bort från skärmen</span>
-      </div>
-      <div class="code-evidence">
-        <span class="comment">&lt;!-- 1. Intäktstakt i realtid (¥/min) och flaskhalsstatus --&gt;</span><br>
-        &lt;div class="sushi-rate-bar pixel-panel <span class="error">sr-only</span>" data-testid="sushi-rate-info"&gt;<br>
-        &nbsp;&nbsp;&lt;span&gt;Intäktstakt: &lt;strong&gt;${rate.yenPerMinute} ¥/min&lt;/strong&gt;&lt;/span&gt;<br>
-        &lt;/div&gt;<br><br>
-        <span class="comment">&lt;!-- 2. Kassaregistrets räknare för ohämtade intäkter --&gt;</span><br>
-        &lt;div class="sushi-register-left <span class="error">sr-only</span>"&gt;<br>
-        &nbsp;&nbsp;&lt;div class="sushi-register-amount" data-testid="sushi-uncollected-amount"&gt;<br>
-        &nbsp;&nbsp;&nbsp;&nbsp;&lt;span class="sushi-yen-number"&gt;${displayedUncollectedYen}&lt;/span&gt;<br>
-        &nbsp;&nbsp;&lt;/div&gt;<br>
-        &lt;/div&gt;<br><br>
-        <span class="comment">&lt;!-- 3. Timmätare, framstegsbalk, varning för full kassa och flaskhalsguide --&gt;</span><br>
-        &lt;div class="sushi-register-center <span class="error">sr-only</span>"&gt;<br>
-        &nbsp;&nbsp;&lt;span&gt;${usedHoursStr}h / ${capHoursStr}h&lt;/span&gt;<br>
-        &nbsp;&nbsp;&lt;div class="sushi-progress-fill" style="width: ${progressPercent}%"&gt;&lt;/div&gt;<br>
-        &nbsp;&nbsp;&lt;div class="sushi-capped-notice"&gt;⚠️ Kassan är full...&lt;/div&gt;<br>
-        &nbsp;&nbsp;&lt;div class="sushi-bottleneck-explainer"&gt;💡 Flaskhalsguide...&lt;/div&gt;<br>
-        &lt;/div&gt;
-      </div>
-
-      <div class="detail-box" style="margin-top: 1rem;">
-        <h4>Konsekvens för seende studenter:</h4>
-        <p style="color: #cbd5e1; font-size: 0.95rem;">
-          Spelaren ser <strong>inte</strong> hur många yen som faktiskt ligger i kassan, ser <strong>inte</strong> hur många timmar av 8h-taket som förbrukats, ser <strong>inte</strong> att kassan blivit full och att intjäningen har stannat, och får <strong>ingen</strong> vägledning om vilken kapacitet (kök eller service) som bromsar restaurangen!
+      footer.audit-footer {
+        text-align: center;
+        padding: 2.5rem 1rem;
+        border-top: 1px solid var(--border-subtle);
+        color: var(--text-muted);
+        font-size: 0.85rem;
+      }
+    </style>
+  </head>
+  <body>
+    <div class="container">
+      <!-- Header -->
+      <header class="audit-header">
+        <div class="audit-badge">Forensic Engineering &amp; Game Architecture Audit</div>
+        <h1>🍣 Sushirestaurangen — Systematisk Granskningsrapport</h1>
+        <p class="subtitle">
+          En uttömmande teknisk och speldesignmässig granskning av sushispelet (Milestone 1–4).
+          Rapporten identifierar fundamentala logiska diskrepanser mellan grafisk representation,
+          underliggande spelmotor, progressionsbalans, tillgänglighet och applikationens
+          utbildningssyfte.
         </p>
-      </div>
-    </div>
-  </article>
 
-  <!-- FINDING 3 -->
-  <article class="finding-block">
-    <div class="finding-header">
-      <div class="finding-title">
-        <span>3. Spökintäkten ¥ 6 280 &amp; Fejkad Statistik</span>
-      </div>
-      <span class="severity-tag sev-high">Logik- och Gränssnittsfel</span>
-    </div>
-    <div class="finding-body">
-      <p class="lead-text">
-        I referensbilden <code>Sushi_game.png</code> stod texten <em>"Collect Income ¥ 6,280"</em> och <em>"Sales ¥ 6,280"</em>. Utvecklaren hårdkodade <code>6 280</code> som fallback i koden när kassan är tom, vilket skapar en helt absurd användarupplevelse.
-      </p>
+        <div class="meta-grid">
+          <div class="meta-item">
+            <strong>Granskningsobjekt</strong>
+            <span>Sushi Restaurant Tycoon (#/sushi)</span>
+          </div>
+          <div class="meta-item">
+            <strong>Referensspecifikation</strong>
+            <span>sushigame.md (Tickets 01–08)</span>
+          </div>
+          <div class="meta-item">
+            <strong>Regressionens Ursprung</strong>
+            <span>Commit 5ee6972 ("match pixel-art")</span>
+          </div>
+          <div class="meta-item">
+            <strong>Samlad Bedömning</strong>
+            <span>Kritiska Arkitektur- &amp; Balansbrister</span>
+          </div>
+        </div>
+      </header>
 
-      <div class="code-file">
-        <span>src/course/sushi-game/sushi-view.ts (Rad 744 &amp; 951–969)</span>
-        <span>Fallback till mockupens siffror</span>
-      </div>
-      <div class="code-evidence">
-        <span class="comment">// Om ohämtade intäkter är 0 sätts visningsbeloppet till 6 280:</span><br>
-        const displaySalesYen = <span class="highlight">displayedUncollectedYen &gt; 0 ? displayedUncollectedYen : 6280;</span><br><br>
-        <span class="comment">// Hämtaknappen blir inaktiverad men visar 6 280 ¥:</span><br>
-        &lt;button<br>
-        &nbsp;&nbsp;class="sushi-btn-primary sushi-collect-btn"<br>
-        &nbsp;&nbsp;?disabled=${<span class="error">displayedUncollectedYen &lt;= 0</span> || activeController.isCollecting}&gt;<br>
-        &nbsp;&nbsp;&lt;span class="sushi-collect-title"&gt;Collect Income&lt;/span&gt;<br>
-        &nbsp;&nbsp;&lt;strong class="sushi-collect-yen"&gt;<span class="error">¥ ${formatTightComma(displaySalesYen)}</span>&lt;/strong&gt;<br>
-        &lt;/button&gt;
-      </div>
-
-      <div class="detail-grid two-col" style="margin-top: 1.5rem;">
-        <div class="detail-box">
-          <h4>Spökknapp vid nollbalans:</h4>
-          <p style="font-size: 0.9rem; color: #cbd5e1;">
-            När studenten just tömt kassan (eller nyss startat spelet med 0 ¥) står det med jättesiffror: <strong>"Collect Income ¥ 6,280"</strong>, men knappen är grå och inaktiverad! Spelaren tror att spelet hängt sig eftersom det inte går att klicka på en knapp som påstår att det finns 6 280 yen att hämta.
+      <!-- Executive Summary -->
+      <section class="exec-grid">
+        <div class="exec-card critical">
+          <h3>Potemkin-scen &amp; AI-mockup</h3>
+          <div class="stat">Fasadspegel</div>
+          <p>
+            Scenen renderar en statisk AI-pixelbild där 8 gäster, 2 kockar, transportband och alla
+            dekorationer är permanent inritade. Uppgraderingar ritar bara mikroskopiska SVG-konturer
+            ovanpå vad som redan syns.
           </p>
         </div>
-        <div class="detail-box">
-          <h4>Syntetiska formler i "Today's Stats":</h4>
-          <ul>
-            <li><strong>Customers:</strong> <code>Math.min(18, 10 + K + S - 1) / 18</code> (Godtycklig formel)</li>
-            <li><strong>Served:</strong> <code>25 + K + S</code> (Konstant adderad)</li>
-            <li><strong>Rating:</strong> <code>(4.6 + inventory.length * 0.02)</code> (Fejkat betyg)</li>
-            <li><strong>Kalender / Tid i toppbalk:</strong> Hårdkodad statisk HTML <code>Day 12 Spring 1 12:30</code></li>
-          </ul>
-        </div>
-      </div>
-    </div>
-  </article>
 
-  <!-- FINDING 4 -->
-  <article class="finding-block">
-    <div class="finding-header">
-      <div class="finding-title">
-        <span>4. Progression &amp; Balans: Döda Uppgraderingar &amp; Meningslösa Recept</span>
-      </div>
-      <span class="severity-tag sev-high">Speldesign- &amp; Balansbrist</span>
-    </div>
-    <div class="finding-body">
-      <p class="lead-text">
-        Produktionsmodellen bygger på <code>ordersPerMinute = min(kök, service)</code>. Katalogen expanderades till 21 föremål, men kapaciteterna lades asymmetriskt så att linjär kursinlärning leder till "döda uppgraderingar" med 0% ROI.
-      </p>
-
-      <table class="audit-table">
-        <thead>
-          <tr>
-            <th>Kapitel</th>
-            <th>Föremål</th>
-            <th>Kategori</th>
-            <th>Pris (¥)</th>
-            <th>Kapacitet</th>
-            <th>Genomströmning min(K, S)</th>
-            <th>Intäkt (¥/min)</th>
-            <th>Utfall / Spelupplevelse</th>
-          </tr>
-        </thead>
-        <tbody>
-          <tr>
-            <td><strong>Start</strong></td>
-            <td>Grundkök</td>
-            <td>Bas</td>
-            <td>0 ¥</td>
-            <td>K: 1, S: 2</td>
-            <td>min(1, 2) = 1</td>
-            <td>10 ¥/min</td>
-            <td>Kök är flaskhals.</td>
-          </tr>
-          <tr>
-            <td><strong>Kap 6</strong></td>
-            <td>Beredningsbänk</td>
-            <td>Kök</td>
-            <td>300 ¥</td>
-            <td>K: 3, S: 2</td>
-            <td>min(3, 2) = 2</td>
-            <td>20 ¥/min</td>
-            <td>Dubblerad takt (+100%). Service blir flaskhals.</td>
-          </tr>
-          <tr>
-            <td><strong>Kap 7</strong></td>
-            <td>Längre produktion</td>
-            <td>Tak</td>
-            <td>1 800 ¥</td>
-            <td>K: 3, S: 2</td>
-            <td>min(3, 2) = 2</td>
-            <td>20 ¥/min</td>
-            <td>Höjer taket från 8h till 12h. Bra.</td>
-          </tr>
-          <tr style="background: rgba(229, 62, 62, 0.1);">
-            <td><strong>Kap 8</strong></td>
-            <td><strong>Precisionskniv</strong></td>
-            <td>Kök</td>
-            <td><strong>2 400 ¥</strong></td>
-            <td>K: 4, S: 2</td>
-            <td>min(4, 2) = 2</td>
-            <td><strong>20 ¥/min</strong></td>
-            <td><span class="tag-zero-roi">0% ROI — DÖD UPPGRADERING</span><br>Kostar 2h produktion. Ger 0 ¥/min ökning!</td>
-          </tr>
-          <tr>
-            <td><strong>Kap 9</strong></td>
-            <td>Transportband</td>
-            <td>Service</td>
-            <td>3 600 ¥</td>
-            <td>K: 4, S: 4</td>
-            <td>min(4, 4) = 4</td>
-            <td>40 ¥/min</td>
-            <td>Höjer service till 4. Löser både Kap 8 och 9 (+20 ¥/min).</td>
-          </tr>
-          <tr style="background: rgba(229, 62, 62, 0.1);">
-            <td><strong>Kap 10</strong></td>
-            <td><strong>Serveringsdisk</strong></td>
-            <td>Service</td>
-            <td><strong>5 400 ¥</strong></td>
-            <td>K: 4, S: 6</td>
-            <td>min(4, 6) = 4</td>
-            <td><strong>40 ¥/min</strong></td>
-            <td><span class="tag-zero-roi">0% ROI — DÖD UPPGRADERING</span><br>Kostar 2h 15m produktion. Ger 0 ¥/min ökning!</td>
-          </tr>
-          <tr>
-            <td><strong>Kap 11</strong></td>
-            <td>Souschef</td>
-            <td>Kök</td>
-            <td>7 200 ¥</td>
-            <td>K: 6, S: 6</td>
-            <td>min(6, 6) = 6</td>
-            <td>60 ¥/min</td>
-            <td>Höjer kök till 6. Löser Kap 10 (+20 ¥/min).</td>
-          </tr>
-          <tr>
-            <td><strong>Kap 12</strong></td>
-            <td>Mästarcertifiering</td>
-            <td>Intäkt</td>
-            <td>10 800 ¥</td>
-            <td>K: 6, S: 6, A: 15</td>
-            <td>min(6, 6) × 15</td>
-            <td>90 ¥/min</td>
-            <td>Kursen är slut! Inga fler uppgraderingar finns.</td>
-          </tr>
-        </tbody>
-      </table>
-
-      <div class="detail-grid two-col" style="margin-top: 1rem;">
-        <div class="detail-box">
-          <h4>Silver-recepten: 11 400 ¥ meningslös sänka</h4>
-          <p style="font-size: 0.9rem; color: #cbd5e1;">
-            De 7 recepten (Laxnigiri 600 ¥, Kappamaki 900 ¥, Maguro 1 200 ¥, Ebi 1 500 ¥, Tamago 1 800 ¥, Sashimi 2 400 ¥, Omakase 3 000 ¥) kostar sammanlagt <strong>11 400 ¥</strong>. De har <strong>0 kapacitet, 0 intäktseffekt och 0 spelmekanisk funktion</strong>. De lägger bara till en textrad i meny-dialogrutan och en statisk SVG-cirkel på disken.
+        <div class="exec-card critical">
+          <h3>Dolda Gränssnittselement</h3>
+          <div class="stat">.sr-only</div>
+          <p>
+            För att matcha konceptbildens layout utan att bryta testerna doldes kassaregister,
+            timmätare (8h/12h), framstegsbalk, varning för full kassa och intäktstakt via
+            <code>.sr-only</code>.
           </p>
         </div>
-        <div class="detail-box">
-          <h4>Makroekonomisk taktkollision mot terminen</h4>
-          <p style="font-size: 0.9rem; color: #cbd5e1;">
-            Hela katalogen kostar 48 000 ¥ (31 500 ¥ funktionellt + 11 400 ¥ recept + 5 100 ¥ dekor). Vid 40–90 ¥/min tjänar studenten ihop detta på <strong>ca 2–4 dagar</strong>. Universitetskursen pågår under <strong>7–10 veckor</strong>. Efter några dagar har studenten nått maximal plånbok och har ingenting kvar att köpa under resten av terminen.
+
+        <div class="exec-card warning">
+          <h3>Döda Uppgraderingar</h3>
+          <div class="stat">0% ROI</div>
+          <p>
+            I kapitel 8 och 10 ger bronsuppgraderingarna (2 400 ¥ resp. 5 400 ¥) noll kronors ökning
+            i intäktstakt på grund av opariga köks- och serviceflaskhalsar. 11 400 ¥ i recept ger
+            noll effekt.
           </p>
         </div>
-      </div>
-    </div>
-  </article>
 
-  <!-- FINDING 5 -->
-  <article class="finding-block">
-    <div class="finding-header">
-      <div class="finding-title">
-        <span>5. Språk- och Ikonförvirring (Swenglish &amp; Inverterade Kontroller)</span>
-      </div>
-      <span class="severity-tag sev-medium">UX-Inkonsekvens</span>
-    </div>
-    <div class="finding-body">
-      <p class="lead-text">
-        Gränssnittet uppvisar motsägelsefull ikonografi, inkonsekvent språk och saknar nästan helt japanska utbildningsmoment.
-      </p>
-
-      <div class="detail-grid two-col">
-        <div class="detail-box">
-          <h4>Inverterad Ikonografi (sushi-view.ts Rad 1590–1654):</h4>
-          <ul>
-            <li>
-              <strong>Stapeldiagram (<code>btn_stats.png</code>):</strong> Ser ut som en statistikikon, men <em>växlar färgtema</em> mellan Washi och Sakura! Studenten klickar för diagram och får en rosa färgväxling.
-            </li>
-            <li>
-              <strong>Kugghjul (<code>btn_settings.png</code>):</strong> Ser ut som inställningar, men <em>öppnar butikskatalogen</em>! Studenten vill justera ljud/konto och hamnar i varulistan.
-            </li>
-          </ul>
-        </div>
-        <div class="detail-box">
-          <h4>Svengelska och falska språktaggar:</h4>
-          <ul>
-            <li><strong>Engelsk HUD:</strong> "Funds", "Collect Income", "Today's Stats", "Customers", "Sales", "Served", "Rating".</li>
-            <li><strong>Svenska modaler:</strong> "Kursbelöningar &amp; Upplåsningar", "Kök", "Tid", "Återgå till studierna".</li>
-            <li><strong>Falsk språktagg:</strong> <code>&lt;h1 class="sushi-title" lang="ja"&gt;Sakura Sushi&lt;/h1&gt;</code> (Engelsk text märkt som japanska istället för さくら寿司 / 桜寿司).</li>
-          </ul>
-        </div>
-      </div>
-
-      <div class="detail-box" style="margin-top: 1.5rem;">
-        <h4>Noll pedagogisk inlärning i spelet:</h4>
-        <p style="font-size: 0.95rem; color: #cbd5e1;">
-          Trots att spelet lever i en japanskastudieapp finns det inga glosor eller tecken för fiskarna (鮭, 鮪, 海老, 卵, 河童巻き) eller vanliga restaurangfraser (<code>いらっしゃいませ</code>, <code>いただきます</code>, <code>お会計</code>). Receptköpen testar inte studentens kunskap och ger inga japanska dialoger.
-        </p>
-      </div>
-    </div>
-  </article>
-
-  <!-- FINDING 6 -->
-  <article class="finding-block">
-    <div class="finding-header">
-      <div class="finding-title">
-        <span>6. Arkitektur, Dött Tillstånd &amp; Synkronisering</span>
-      </div>
-      <span class="severity-tag sev-medium">Kodarkitektur &amp; Integritet</span>
-    </div>
-    <div class="finding-body">
-      <p class="lead-text">
-        Under granskningen identifierades död kod i domänmodellen och arkitektoniska avvikelser mellan lokal utveckling och produktion.
-      </p>
-
-      <div class="detail-grid three-col">
-        <div class="detail-box">
-          <h4>Dött tillstånd: <code>activeRecipe</code></h4>
-          <p style="font-size: 0.85rem; color: #cbd5e1;">
-            I <code>types.ts#L69</code> och <code>economy.ts#L320</code> finns <code>activeRecipe: string; // 'basic_nigiri'</code> sparat i databasen. Det finns inte en enda rad kod i hela repot för att välja, byta eller använda detta fält. Det är 100% föräldralöst tillstånd.
+        <div class="exec-card info">
+          <h3>Spökintäkt vid Nollbalans</h3>
+          <div class="stat">¥ 6 280</div>
+          <p>
+            När ohämtade intäkter är 0 (efter hämtning eller vid nystart) visar den inaktiverade
+            knappen och statistikblocket hårdkodade <code>¥ 6 280</code> för att matcha AI-mockupen!
           </p>
         </div>
-        <div class="detail-box">
-          <h4>Kategorihack för <code>master_license</code></h4>
-          <p style="font-size: 0.85rem; color: #cbd5e1;">
-            I <code>catalog.ts</code> har Mästarcertifiering kategorin <code>revenue</code>, men i butiksgränssnittet finns ingen sådan flik. I <code>sushi-view.ts#L1110</code> finns därför en hårdkodad specialregel: <code>filter === 'kitchen' &amp;&amp; item.category === 'revenue'</code>.
+      </section>
+
+      <!-- HISTORICAL ROOT CAUSE ANALYSIS (SMOKING GUN) -->
+      <article class="finding-block">
+        <div class="finding-header">
+          <div class="finding-title">
+            <span>🔍 Den Tekniska Grundorsaken: Commit 5ee6972</span>
+          </div>
+          <span class="severity-tag sev-critical">Rotorsaksanalys</span>
+        </div>
+        <div class="finding-body">
+          <p class="lead-text">
+            Under granskningen lokaliserades den exakta tidpunkten då spelets UX, visuella
+            modularitet och gränssnitt raserades:
+            <strong>Commit <code>5ee6972833e931ec7b23f7588026cfa621b6c914</code></strong> (<em
+              >"feat(sushi): match Sakura Sushi pixel-art reference illustration and HUD layout"</em
+            >).
+          </p>
+
+          <div class="code-file">
+            <span>Git Commit 5ee6972 — Utdrag ur Författarens Egna Commit-meddelande</span>
+            <span>git log -1 5ee6972</span>
+          </div>
+          <div class="code-evidence">
+            "Redesign the #/sushi restaurant scene and HUD to achieve near-1:1 visual fidelity with
+            the Sushi_game.png (1672x941) reference illustration while preserving all existing
+            gameplay mechanics...<br />
+            - Extract and clean high-resolution pixel-art assets under public/sprites/sushi/,
+            removing baked-in HUD plaques...<br />
+            - Style the wooden topbar and floating parchment/gold plaques (Funds, Today's Stats, and
+            Collect Income)...<br />
+            -
+            <span class="highlight"
+              >Preserve all 21 catalog item data-testid="art-..." scene layers, collapsible
+              shop/menu dialogs, and screen-reader-only (sr-only) Swedish telemetry so assistive
+              technologies and existing test suites remain fully supported.</span
+            ><br />
+            -
+            <span class="highlight"
+              >Seed the local localhost preview account (local-dev-user) with the reference starting
+              balance (¥ 18,740) and uncollected revenue (¥ 6,280) for immediate visual
+              parity.</span
+            >"
+          </div>
+
+          <div class="compare-container">
+            <div class="compare-card before">
+              <h4>Före Commit 5ee6972 (Faktiskt Fungerande Vektor-arkitektur)</h4>
+              <ul>
+                <li>
+                  <strong>Äkta procedurell 3D-vektorscen:</strong> En matematisk isometrisk motor
+                  räknade ut 30°-projektioner och ritade tom restaurang som successivt befolkades
+                  och uppgraderades (se bevarad skärmdump i
+                  <code>output/playwright/sushi-playtest-upgraded.png</code>).
+                </li>
+                <li>
+                  <strong>Fullt synligt kassaregister:</strong> "OHÄMTADE INTÄKTER", intäktstakt
+                  (¥/min), flaskhalsguide och framstegsbalk (0.0h / 12.0h) var fullt synliga och
+                  informativa.
+                </li>
+                <li>
+                  <strong>Ärliga knappar:</strong> Knappen visade dynamiskt faktiskt belopp ("Hämta
+                  intäkter ¥ 14").
+                </li>
+              </ul>
+            </div>
+            <div class="compare-card after">
+              <h4>Efter Commit 5ee6972 (Den Nuvarande "Potemkin-fasaden")</h4>
+              <ul>
+                <li>
+                  <strong>Statisk AI-rasterbild:</strong> Hela rummet ersattes med
+                  <code>sakura_sushi_scene.png</code> där allt redan är färdigritat.
+                </li>
+                <li>
+                  <strong>Maskerad telemetri (.sr-only):</strong> Kassa, framstegsbalk och
+                  flaskhalsguide flyttades till <code>.sr-only</code> för att döljas från seende
+                  användare men ändå passera testsviterna.
+                </li>
+                <li>
+                  <strong>Fejkad telemetri:</strong> Spöksiffrorna <code>¥ 18 740</code> och
+                  <code>¥ 6 280</code> hårdkodades in som start- och fallback-värden.
+                </li>
+              </ul>
+            </div>
+          </div>
+        </div>
+      </article>
+
+      <!-- FINDING 1 -->
+      <article class="finding-block">
+        <div class="finding-header">
+          <div class="finding-title">
+            <span>1. "Potemkin-scenen": Statisk AI-bild mot Speltillstånd</span>
+          </div>
+          <span class="severity-tag sev-critical">Kritisk Designavvikelse</span>
+        </div>
+        <div class="finding-body">
+          <p class="lead-text">
+            Spelets visuella centrum utgörs av en enda statisk PNG-illustration
+            (<code>public/sprites/sushi/sakura_sushi_scene.png</code>). Denna bild visar en fullt
+            utrustad, befolkad och dekorerad sushirestaurang redan vid första inloggningen, oavsett
+            spelarens faktiska framsteg.
+          </p>
+
+          <div class="code-file">
+            <span>src/course/sushi-game/restaurant-scene.ts (Rad 108–117)</span>
+            <span>Statisk Bakgrundsbild</span>
+          </div>
+          <div class="code-evidence">
+            &lt;!-- Master High-Resolution Isometric Pixel-Art Illustration --&gt;<br />
+            &lt;image<br />
+            &nbsp;&nbsp;<span class="highlight">href="/sprites/sushi/sakura_sushi_scene.png"</span
+            ><br />
+            &nbsp;&nbsp;x="0" y="0" width="1672" height="861"<br />
+            &nbsp;&nbsp;preserveAspectRatio="xMidYMid meet"<br />
+            &nbsp;&nbsp;style="image-rendering: pixelated; image-rendering: crisp-edges;"<br />
+            /&gt;
+          </div>
+
+          <div class="detail-grid two-col">
+            <div class="detail-box">
+              <h4>Vad som är permanent inritat från sekund 1:</h4>
+              <ul>
+                <li><strong>8 gäster:</strong> Sitter vid disken och borden och äter sushi.</li>
+                <li>
+                  <strong>2 kockar:</strong> En souschef vid spisen och en sushimästare vid disken.
+                </li>
+                <li><strong>Färdigt transportband:</strong> Rullande band med tallrikar.</li>
+                <li>
+                  <strong>Samtliga dekorationer:</strong> Noren-gardiner, papperslyktor, Mt
+                  Fuji-konst, vågmotiv, krukväxt, två bonsaiträd och en gyllene Maneki-Neko på
+                  hyllan.
+                </li>
+              </ul>
+            </div>
+            <div class="detail-box">
+              <h4>Vad spelarens "köp" i verkligheten gör:</h4>
+              <ul>
+                <li>
+                  <strong>Transportband (Kap 9, 3 600 ¥):</strong> Ritar en 3px gul streckad
+                  SVG-linje över transportbandet som redan fanns i bilden.
+                </li>
+                <li>
+                  <strong>Souschef (Kap 11, 7 200 ¥):</strong> Ritar en 18×4px vit
+                  pannbandsrektangel (hachimaki) och två ånglinjer över kocken som redan stekt mat
+                  hela tiden!
+                </li>
+                <li>
+                  <strong>Kniv (Kap 8, 2 400 ¥):</strong> Ritar en 2px SVG-linje bredvid kniven på
+                  skärbrädan.
+                </li>
+                <li>
+                  <strong>Dekorationer (Vägg/Golv):</strong> Ritar svaga färgade cirklar
+                  (auraglorior) runt föremål som aldrig försvinner om spelaren väljer "Ta bort från
+                  platsen".
+                </li>
+              </ul>
+            </div>
+          </div>
+
+          <div class="code-file" style="margin-top: 1.5rem">
+            <span>src/course/sushi-game/restaurant-scene.ts (Rad 100–106)</span>
+            <span>Atrapp-element med opacity="0" för att simulera sprite-användning</span>
+          </div>
+          <div class="code-evidence">
+            &lt;!-- Sub-layer tile references for sprite pack compatibility --&gt;<br />
+            &lt;g <span class="error">opacity="0"</span> aria-hidden="true"&gt;<br />
+            &nbsp;&nbsp;&lt;image href="/sprites/sushi/kitchen/floor_kitchen_quarry_tile.png"
+            x="700" y="120" width="64" height="64" /&gt;<br />
+            &nbsp;&nbsp;&lt;image href="/sprites/sushi/diner/floor_diner_checker.png" x="700"
+            y="420" width="64" height="64" /&gt;<br />
+            &nbsp;&nbsp;&lt;image href="/sprites/sushi/kitchen/prep_table.png" x="640" y="220"
+            width="64" height="64" /&gt;<br />
+            &nbsp;&nbsp;&lt;image href="/sprites/sushi/diner/diner_counter.png" x="700" y="460"
+            width="64" height="64" /&gt;<br />
+            &lt;/g&gt;
+          </div>
+          <p style="font-size: 0.85rem; color: var(--text-muted); margin-top: 0.5rem">
+            I <code>public/sprites/sushi/kitchen</code> och
+            <code>public/sprites/sushi/diner</code> finns 30 oanvända sprites, däribland amerikanska
+            diner-tillbehör (<code>jukebox.png</code>, <code>milkshake_mixer.png</code>,
+            <code>pie_display_case.png</code>, <code>pizza_deck_oven.png</code>) som inte hör hemma
+            i en japansk sushirestaurang.
           </p>
         </div>
-        <div class="detail-box">
-          <h4>Viewport Locking (<code>100dvh</code>)</h4>
-          <p style="font-size: 0.85rem; color: #cbd5e1;">
-            I <code>sushi.css#L65-74</code> låses <code>html</code> och <code>body</code> med <code>overflow: hidden !important; height: 100dvh !important;</code>. Detta bryter naturlig rullning på pekskärmar och mindre fönster.
+      </article>
+
+      <!-- FINDING 2 -->
+      <article class="finding-block">
+        <div class="finding-header">
+          <div class="finding-title">
+            <span>2. Dolda Gränssnitt: Kritiska Data Maskerade via .sr-only</span>
+          </div>
+          <span class="severity-tag sev-critical">Kritisk UX/A11y-Brist</span>
+        </div>
+        <div class="finding-body">
+          <p class="lead-text">
+            För att uppnå visuell likhet med mockup-bilden utan att misslyckas i automatiserade
+            tester som söker efter DOM-element (t.ex.
+            <code>data-testid="sushi-uncollected-amount"</code>), har nästan all central
+            speltelemetri dolts för seende användare med CSS-klassen <code>.sr-only</code>.
+          </p>
+
+          <div class="code-file">
+            <span>src/course/sushi-game/sushi-view.ts (Rad 802, 863 &amp; 871)</span>
+            <span>Element som klipps bort från skärmen</span>
+          </div>
+          <div class="code-evidence">
+            <span class="comment"
+              >&lt;!-- 1. Intäktstakt i realtid (¥/min) och flaskhalsstatus --&gt;</span
+            ><br />
+            &lt;div class="sushi-rate-bar pixel-panel <span class="error">sr-only</span>"
+            data-testid="sushi-rate-info"&gt;<br />
+            &nbsp;&nbsp;&lt;span&gt;Intäktstakt: &lt;strong&gt;${rate.yenPerMinute}
+            ¥/min&lt;/strong&gt;&lt;/span&gt;<br />
+            &lt;/div&gt;<br /><br />
+            <span class="comment"
+              >&lt;!-- 2. Kassaregistrets räknare för ohämtade intäkter --&gt;</span
+            ><br />
+            &lt;div class="sushi-register-left <span class="error">sr-only</span>"&gt;<br />
+            &nbsp;&nbsp;&lt;div class="sushi-register-amount"
+            data-testid="sushi-uncollected-amount"&gt;<br />
+            &nbsp;&nbsp;&nbsp;&nbsp;&lt;span
+            class="sushi-yen-number"&gt;${displayedUncollectedYen}&lt;/span&gt;<br />
+            &nbsp;&nbsp;&lt;/div&gt;<br />
+            &lt;/div&gt;<br /><br />
+            <span class="comment"
+              >&lt;!-- 3. Timmätare, framstegsbalk, varning för full kassa och flaskhalsguide
+              --&gt;</span
+            ><br />
+            &lt;div class="sushi-register-center <span class="error">sr-only</span>"&gt;<br />
+            &nbsp;&nbsp;&lt;span&gt;${usedHoursStr}h / ${capHoursStr}h&lt;/span&gt;<br />
+            &nbsp;&nbsp;&lt;div class="sushi-progress-fill" style="width:
+            ${progressPercent}%"&gt;&lt;/div&gt;<br />
+            &nbsp;&nbsp;&lt;div class="sushi-capped-notice"&gt;⚠️ Kassan är full...&lt;/div&gt;<br />
+            &nbsp;&nbsp;&lt;div class="sushi-bottleneck-explainer"&gt;💡
+            Flaskhalsguide...&lt;/div&gt;<br />
+            &lt;/div&gt;
+          </div>
+
+          <div class="detail-box" style="margin-top: 1rem">
+            <h4>Konsekvens för seende studenter:</h4>
+            <p style="color: #cbd5e1; font-size: 0.95rem">
+              Spelaren ser <strong>inte</strong> hur många yen som faktiskt ligger i kassan, ser
+              <strong>inte</strong> hur många timmar av 8h-taket som förbrukats, ser
+              <strong>inte</strong> att kassan blivit full och att intjäningen har stannat, och får
+              <strong>ingen</strong> vägledning om vilken kapacitet (kök eller service) som bromsar
+              restaurangen!
+            </p>
+          </div>
+        </div>
+      </article>
+
+      <!-- FINDING 3 -->
+      <article class="finding-block">
+        <div class="finding-header">
+          <div class="finding-title">
+            <span>3. Spökintäkten ¥ 6 280 &amp; Fejkad Statistik</span>
+          </div>
+          <span class="severity-tag sev-high">Logik- och Gränssnittsfel</span>
+        </div>
+        <div class="finding-body">
+          <p class="lead-text">
+            I referensbilden <code>Sushi_game.png</code> stod texten
+            <em>"Collect Income ¥ 6,280"</em> och <em>"Sales ¥ 6,280"</em>. Utvecklaren hårdkodade
+            <code>6 280</code> som fallback i koden när kassan är tom, vilket skapar en helt absurd
+            användarupplevelse.
+          </p>
+
+          <div class="code-file">
+            <span>src/course/sushi-game/sushi-view.ts (Rad 744 &amp; 951–969)</span>
+            <span>Fallback till mockupens siffror</span>
+          </div>
+          <div class="code-evidence">
+            <span class="comment"
+              >// Om ohämtade intäkter är 0 sätts visningsbeloppet till 6 280:</span
+            ><br />
+            const displaySalesYen =
+            <span class="highlight"
+              >displayedUncollectedYen &gt; 0 ? displayedUncollectedYen : 6280;</span
+            ><br /><br />
+            <span class="comment">// Hämtaknappen blir inaktiverad men visar 6 280 ¥:</span><br />
+            &lt;button<br />
+            &nbsp;&nbsp;class="sushi-btn-primary sushi-collect-btn"<br />
+            &nbsp;&nbsp;?disabled=${<span class="error">displayedUncollectedYen &lt;= 0</span> ||
+            activeController.isCollecting}&gt;<br />
+            &nbsp;&nbsp;&lt;span class="sushi-collect-title"&gt;Collect Income&lt;/span&gt;<br />
+            &nbsp;&nbsp;&lt;strong class="sushi-collect-yen"&gt;<span class="error"
+              >¥ ${formatTightComma(displaySalesYen)}</span
+            >&lt;/strong&gt;<br />
+            &lt;/button&gt;
+          </div>
+
+          <div class="detail-grid two-col" style="margin-top: 1.5rem">
+            <div class="detail-box">
+              <h4>Spökknapp vid nollbalans:</h4>
+              <p style="font-size: 0.9rem; color: #cbd5e1">
+                När studenten just tömt kassan (eller nyss startat spelet med 0 ¥) står det med
+                jättesiffror: <strong>"Collect Income ¥ 6,280"</strong>, men knappen är grå och
+                inaktiverad! Spelaren tror att spelet hängt sig eftersom det inte går att klicka på
+                en knapp som påstår att det finns 6 280 yen att hämta.
+              </p>
+            </div>
+            <div class="detail-box">
+              <h4>Syntetiska formler i "Today's Stats":</h4>
+              <ul>
+                <li>
+                  <strong>Customers:</strong>
+                  <code>Math.min(18, 10 + K + S - 1) / 18</code> (Godtycklig formel)
+                </li>
+                <li><strong>Served:</strong> <code>25 + K + S</code> (Konstant adderad)</li>
+                <li>
+                  <strong>Rating:</strong> <code>(4.6 + inventory.length * 0.02)</code> (Fejkat
+                  betyg)
+                </li>
+                <li>
+                  <strong>Kalender / Tid i toppbalk:</strong> Hårdkodad statisk HTML
+                  <code>Day 12 Spring 1 12:30</code>
+                </li>
+              </ul>
+            </div>
+          </div>
+        </div>
+      </article>
+
+      <!-- FINDING 4 -->
+      <article class="finding-block">
+        <div class="finding-header">
+          <div class="finding-title">
+            <span>4. Progression &amp; Balans: Döda Uppgraderingar &amp; Meningslösa Recept</span>
+          </div>
+          <span class="severity-tag sev-high">Speldesign- &amp; Balansbrist</span>
+        </div>
+        <div class="finding-body">
+          <p class="lead-text">
+            Produktionsmodellen bygger på <code>ordersPerMinute = min(kök, service)</code>.
+            Katalogen expanderades till 21 föremål, men kapaciteterna lades asymmetriskt så att
+            linjär kursinlärning leder till "döda uppgraderingar" med 0% ROI.
+          </p>
+
+          <table class="audit-table">
+            <thead>
+              <tr>
+                <th>Kapitel</th>
+                <th>Föremål</th>
+                <th>Kategori</th>
+                <th>Pris (¥)</th>
+                <th>Kapacitet</th>
+                <th>Genomströmning min(K, S)</th>
+                <th>Intäkt (¥/min)</th>
+                <th>Utfall / Spelupplevelse</th>
+              </tr>
+            </thead>
+            <tbody>
+              <tr>
+                <td><strong>Start</strong></td>
+                <td>Grundkök</td>
+                <td>Bas</td>
+                <td>0 ¥</td>
+                <td>K: 1, S: 2</td>
+                <td>min(1, 2) = 1</td>
+                <td>10 ¥/min</td>
+                <td>Kök är flaskhals.</td>
+              </tr>
+              <tr>
+                <td><strong>Kap 6</strong></td>
+                <td>Beredningsbänk</td>
+                <td>Kök</td>
+                <td>300 ¥</td>
+                <td>K: 3, S: 2</td>
+                <td>min(3, 2) = 2</td>
+                <td>20 ¥/min</td>
+                <td>Dubblerad takt (+100%). Service blir flaskhals.</td>
+              </tr>
+              <tr>
+                <td><strong>Kap 7</strong></td>
+                <td>Längre produktion</td>
+                <td>Tak</td>
+                <td>1 800 ¥</td>
+                <td>K: 3, S: 2</td>
+                <td>min(3, 2) = 2</td>
+                <td>20 ¥/min</td>
+                <td>Höjer taket från 8h till 12h. Bra.</td>
+              </tr>
+              <tr style="background: rgba(229, 62, 62, 0.1)">
+                <td><strong>Kap 8</strong></td>
+                <td><strong>Precisionskniv</strong></td>
+                <td>Kök</td>
+                <td><strong>2 400 ¥</strong></td>
+                <td>K: 4, S: 2</td>
+                <td>min(4, 2) = 2</td>
+                <td><strong>20 ¥/min</strong></td>
+                <td>
+                  <span class="tag-zero-roi">0% ROI — DÖD UPPGRADERING</span><br />Kostar 2h
+                  produktion. Ger 0 ¥/min ökning!
+                </td>
+              </tr>
+              <tr>
+                <td><strong>Kap 9</strong></td>
+                <td>Transportband</td>
+                <td>Service</td>
+                <td>3 600 ¥</td>
+                <td>K: 4, S: 4</td>
+                <td>min(4, 4) = 4</td>
+                <td>40 ¥/min</td>
+                <td>Höjer service till 4. Löser både Kap 8 och 9 (+20 ¥/min).</td>
+              </tr>
+              <tr style="background: rgba(229, 62, 62, 0.1)">
+                <td><strong>Kap 10</strong></td>
+                <td><strong>Serveringsdisk</strong></td>
+                <td>Service</td>
+                <td><strong>5 400 ¥</strong></td>
+                <td>K: 4, S: 6</td>
+                <td>min(4, 6) = 4</td>
+                <td><strong>40 ¥/min</strong></td>
+                <td>
+                  <span class="tag-zero-roi">0% ROI — DÖD UPPGRADERING</span><br />Kostar 2h 15m
+                  produktion. Ger 0 ¥/min ökning!
+                </td>
+              </tr>
+              <tr>
+                <td><strong>Kap 11</strong></td>
+                <td>Souschef</td>
+                <td>Kök</td>
+                <td>7 200 ¥</td>
+                <td>K: 6, S: 6</td>
+                <td>min(6, 6) = 6</td>
+                <td>60 ¥/min</td>
+                <td>Höjer kök till 6. Löser Kap 10 (+20 ¥/min).</td>
+              </tr>
+              <tr>
+                <td><strong>Kap 12</strong></td>
+                <td>Mästarcertifiering</td>
+                <td>Intäkt</td>
+                <td>10 800 ¥</td>
+                <td>K: 6, S: 6, A: 15</td>
+                <td>min(6, 6) × 15</td>
+                <td>90 ¥/min</td>
+                <td>Kursen är slut! Inga fler uppgraderingar finns.</td>
+              </tr>
+            </tbody>
+          </table>
+
+          <div class="detail-grid two-col" style="margin-top: 1rem">
+            <div class="detail-box">
+              <h4>Silver-recepten: 11 400 ¥ meningslös sänka</h4>
+              <p style="font-size: 0.9rem; color: #cbd5e1">
+                De 7 recepten (Laxnigiri 600 ¥, Kappamaki 900 ¥, Maguro 1 200 ¥, Ebi 1 500 ¥, Tamago
+                1 800 ¥, Sashimi 2 400 ¥, Omakase 3 000 ¥) kostar sammanlagt
+                <strong>11 400 ¥</strong>. De har
+                <strong>0 kapacitet, 0 intäktseffekt och 0 spelmekanisk funktion</strong>. De lägger
+                bara till en textrad i meny-dialogrutan och en statisk SVG-cirkel på disken.
+              </p>
+            </div>
+            <div class="detail-box">
+              <h4>Makroekonomisk taktkollision mot terminen</h4>
+              <p style="font-size: 0.9rem; color: #cbd5e1">
+                Hela katalogen kostar 48 000 ¥ (31 500 ¥ funktionellt + 11 400 ¥ recept + 5 100 ¥
+                dekor). Vid 40–90 ¥/min tjänar studenten ihop detta på
+                <strong>ca 2–4 dagar</strong>. Universitetskursen pågår under
+                <strong>7–10 veckor</strong>. Efter några dagar har studenten nått maximal plånbok
+                och har ingenting kvar att köpa under resten av terminen.
+              </p>
+            </div>
+          </div>
+        </div>
+      </article>
+
+      <!-- FINDING 5 -->
+      <article class="finding-block">
+        <div class="finding-header">
+          <div class="finding-title">
+            <span>5. Språk- och Ikonförvirring (Swenglish &amp; Inverterade Kontroller)</span>
+          </div>
+          <span class="severity-tag sev-medium">UX-Inkonsekvens</span>
+        </div>
+        <div class="finding-body">
+          <p class="lead-text">
+            Gränssnittet uppvisar motsägelsefull ikonografi, inkonsekvent språk och saknar nästan
+            helt japanska utbildningsmoment.
+          </p>
+
+          <div class="detail-grid two-col">
+            <div class="detail-box">
+              <h4>Inverterad Ikonografi (sushi-view.ts Rad 1590–1654):</h4>
+              <ul>
+                <li>
+                  <strong>Stapeldiagram (<code>btn_stats.png</code>):</strong> Ser ut som en
+                  statistikikon, men <em>växlar färgtema</em> mellan Washi och Sakura! Studenten
+                  klickar för diagram och får en rosa färgväxling.
+                </li>
+                <li>
+                  <strong>Kugghjul (<code>btn_settings.png</code>):</strong> Ser ut som
+                  inställningar, men <em>öppnar butikskatalogen</em>! Studenten vill justera
+                  ljud/konto och hamnar i varulistan.
+                </li>
+              </ul>
+            </div>
+            <div class="detail-box">
+              <h4>Svengelska och falska språktaggar:</h4>
+              <ul>
+                <li>
+                  <strong>Engelsk HUD:</strong> "Funds", "Collect Income", "Today's Stats",
+                  "Customers", "Sales", "Served", "Rating".
+                </li>
+                <li>
+                  <strong>Svenska modaler:</strong> "Kursbelöningar &amp; Upplåsningar", "Kök",
+                  "Tid", "Återgå till studierna".
+                </li>
+                <li>
+                  <strong>Falsk språktagg:</strong>
+                  <code>&lt;h1 class="sushi-title" lang="ja"&gt;Sakura Sushi&lt;/h1&gt;</code>
+                  (Engelsk text märkt som japanska istället för さくら寿司 / 桜寿司).
+                </li>
+              </ul>
+            </div>
+          </div>
+
+          <div class="detail-box" style="margin-top: 1.5rem">
+            <h4>Noll pedagogisk inlärning i spelet:</h4>
+            <p style="font-size: 0.95rem; color: #cbd5e1">
+              Trots att spelet lever i en japanskastudieapp finns det inga glosor eller tecken för
+              fiskarna (鮭, 鮪, 海老, 卵, 河童巻き) eller vanliga restaurangfraser
+              (<code>いらっしゃいませ</code>, <code>いただきます</code>, <code>お会計</code>).
+              Receptköpen testar inte studentens kunskap och ger inga japanska dialoger.
+            </p>
+          </div>
+        </div>
+      </article>
+
+      <!-- FINDING 6 -->
+      <article class="finding-block">
+        <div class="finding-header">
+          <div class="finding-title">
+            <span>6. Arkitektur, Dött Tillstånd &amp; Synkronisering</span>
+          </div>
+          <span class="severity-tag sev-medium">Kodarkitektur &amp; Integritet</span>
+        </div>
+        <div class="finding-body">
+          <p class="lead-text">
+            Under granskningen identifierades död kod i domänmodellen och arkitektoniska avvikelser
+            mellan lokal utveckling och produktion.
+          </p>
+
+          <div class="detail-grid three-col">
+            <div class="detail-box">
+              <h4>Dött tillstånd: <code>activeRecipe</code></h4>
+              <p style="font-size: 0.85rem; color: #cbd5e1">
+                I <code>types.ts#L69</code> och <code>economy.ts#L320</code> finns
+                <code>activeRecipe: string; // 'basic_nigiri'</code> sparat i databasen. Det finns
+                inte en enda rad kod i hela repot för att välja, byta eller använda detta fält. Det
+                är 100% föräldralöst tillstånd.
+              </p>
+            </div>
+            <div class="detail-box">
+              <h4>Kategorihack för <code>master_license</code></h4>
+              <p style="font-size: 0.85rem; color: #cbd5e1">
+                I <code>catalog.ts</code> har Mästarcertifiering kategorin <code>revenue</code>, men
+                i butiksgränssnittet finns ingen sådan flik. I
+                <code>sushi-view.ts#L1110</code> finns därför en hårdkodad specialregel:
+                <code>filter === 'kitchen' &amp;&amp; item.category === 'revenue'</code>.
+              </p>
+            </div>
+            <div class="detail-box">
+              <h4>Viewport Locking (<code>100dvh</code>)</h4>
+              <p style="font-size: 0.85rem; color: #cbd5e1">
+                I <code>sushi.css#L65-74</code> låses <code>html</code> och <code>body</code> med
+                <code>overflow: hidden !important; height: 100dvh !important;</code>. Detta bryter
+                naturlig rullning på pekskärmar och mindre fönster.
+              </p>
+            </div>
+          </div>
+
+          <div class="code-file" style="margin-top: 1.5rem">
+            <span>functions/src/index.ts (Rad 67–75) vs service.ts (Rad 63–75)</span>
+            <span>Autentiserings- och Synkroniseringsgräns</span>
+          </div>
+          <div class="code-evidence">
+            <span class="comment"
+              >// Cloud Function i produktion läser Firestore direkt (enligt sushigame.md
+              säkerhetskrav):</span
+            ><br />
+            const [restaurant, course] = await tx.getAll(restaurantRef, courseRef);<br />
+            const grants = evaluateMedalGrants(readCourseProgress(...));<br /><br />
+            <span class="comment"
+              >// Men i lokal miljö (service.ts) sparas grants direkt via InMemorySushiRepository i
+              localStorage!</span
+            >
+          </div>
+          <p style="font-size: 0.85rem; color: var(--text-muted); margin-top: 0.5rem">
+            Den tidigare utredaren antog att detta var ett synkroniseringsfel. Granskningen
+            bekräftar att ignorerande av klientgrants i backend är ett uttryckligt säkerhetskrav
+            enligt <code>sushigame.md §6.1</code>. Däremot skapar skillnaden mot
+            <code>localStorage</code> i lokal utveckling en avvikande beteendemiljö.
           </p>
         </div>
-      </div>
+      </article>
 
-      <div class="code-file" style="margin-top: 1.5rem;">
-        <span>functions/src/index.ts (Rad 67–75) vs service.ts (Rad 63–75)</span>
-        <span>Autentiserings- och Synkroniseringsgräns</span>
-      </div>
-      <div class="code-evidence">
-        <span class="comment">// Cloud Function i produktion läser Firestore direkt (enligt sushigame.md säkerhetskrav):</span><br>
-        const [restaurant, course] = await tx.getAll(restaurantRef, courseRef);<br>
-        const grants = evaluateMedalGrants(readCourseProgress(...));<br><br>
-        <span class="comment">// Men i lokal miljö (service.ts) sparas grants direkt via InMemorySushiRepository i localStorage!</span>
-      </div>
-      <p style="font-size: 0.85rem; color: var(--text-muted); margin-top: 0.5rem;">
-        Den tidigare utredaren antog att detta var ett synkroniseringsfel. Granskningen bekräftar att ignorerande av klientgrants i backend är ett uttryckligt säkerhetskrav enligt <code>sushigame.md §6.1</code>. Däremot skapar skillnaden mot <code>localStorage</code> i lokal utveckling en avvikande beteendemiljö.
-      </p>
-    </div>
-  </article>
+      <!-- Recommendations Panel -->
+      <section class="recommendations-panel">
+        <h2>🛠️ Rekommenderad Åtgärdsplan &amp; Återställning</h2>
 
-  <!-- Recommendations Panel -->
-  <section class="recommendations-panel">
-    <h2>🛠️ Rekommenderad Åtgärdsplan &amp; Återställning</h2>
+        <div class="rec-item">
+          <div class="rec-num">1</div>
+          <div class="rec-content">
+            <h4>Ta bort <code>.sr-only</code> och återställ det verkliga kassaregistret (P0)</h4>
+            <p>
+              Gör kassaregistrets vänstra och centrala delar synliga igen. Låt seende studenter se
+              sina ohämtade yen, 8h/12h-tidsmätaren, framstegsbalken och intäktstakten. Detta
+              återställer spelets begriplighet omedelbart.
+            </p>
+          </div>
+        </div>
 
-    <div class="rec-item">
-      <div class="rec-num">1</div>
-      <div class="rec-content">
-        <h4>Ta bort <code>.sr-only</code> och återställ det verkliga kassaregistret (P0)</h4>
-        <p>Gör kassaregistrets vänstra och centrala delar synliga igen. Låt seende studenter se sina ohämtade yen, 8h/12h-tidsmätaren, framstegsbalken och intäktstakten. Detta återställer spelets begriplighet omedelbart.</p>
-      </div>
-    </div>
+        <div class="rec-item">
+          <div class="rec-num">2</div>
+          <div class="rec-content">
+            <h4>Eliminera spökbeloppet ¥ 6 280 (P0)</h4>
+            <p>
+              Ta bort
+              <code
+                >displaySalesYen = displayedUncollectedYen > 0 ? displayedUncollectedYen :
+                6280</code
+              >. Visa <code>¥ 0</code> när kassan är tom. Knappen ska visa "Kassan är tom (¥ 0)"
+              eller "Hämta intäkter (¥ 0)".
+            </p>
+          </div>
+        </div>
 
-    <div class="rec-item">
-      <div class="rec-num">2</div>
-      <div class="rec-content">
-        <h4>Eliminera spökbeloppet ¥ 6 280 (P0)</h4>
-        <p>Ta bort <code>displaySalesYen = displayedUncollectedYen > 0 ? displayedUncollectedYen : 6280</code>. Visa <code>¥ 0</code> när kassan är tom. Knappen ska visa "Kassan är tom (¥ 0)" eller "Hämta intäkter (¥ 0)".</p>
-      </div>
-    </div>
+        <div class="rec-item">
+          <div class="rec-num">3</div>
+          <div class="rec-content">
+            <h4>Balansera Kapitel 8 och 10 för att eliminera 0% ROI-fällorna (P1)</h4>
+            <p>
+              Ge <code>precision_knife</code> (Kapitel 8) en snittintäktsbonus (t.ex. +1 ¥/order)
+              istället för en blind kökskapacitet som slår i servicetaket. Justera
+              <code>service_counter</code> (Kapitel 10) på motsvarande sätt så att varje bronsmedalj
+              ger omedelbar ekonomisk belöning.
+            </p>
+          </div>
+        </div>
 
-    <div class="rec-item">
-      <div class="rec-num">3</div>
-      <div class="rec-content">
-        <h4>Balansera Kapitel 8 och 10 för att eliminera 0% ROI-fällorna (P1)</h4>
+        <div class="rec-item">
+          <div class="rec-num">4</div>
+          <div class="rec-content">
+            <h4>Ge Silver-recepten en faktisk mekanik (P1)</h4>
+            <p>
+              Låt de 7 recepten ge passiv genomsnittlig intäktsökning (+1 ¥/order per recept) eller
+              integrera dem med korta japanska glosfrågor när kunder beställer.
+            </p>
+          </div>
+        </div>
+
+        <div class="rec-item">
+          <div class="rec-num">5</div>
+          <div class="rec-content">
+            <h4>Korrekt ikonografi och språkintegration (P2)</h4>
+            <p>
+              Byt kugghjulsikonen till en varuhus-/butiksikon för butiken, eller använd kugghjulet
+              för ljud/inställningar. Byt stapeldiagrammet till en palettikon för temaväxling (eller
+              bygg en riktig statistikvy). Enhetliggör språket till ren svenska med autentiska
+              kanji/kana för alla rätter.
+            </p>
+          </div>
+        </div>
+
+        <div class="rec-item">
+          <div class="rec-num">6</div>
+          <div class="rec-content">
+            <h4>Återgå till eller modulärisera den isometriska scenen (P2)</h4>
+            <p>
+              Antingen återställ den bevisat fungerande procedurella 3D-vektorscenen från före
+              commit <code>5ee6972</code>, eller skär upp den isometriska pixelbilden i äkta
+              transparenta lagersprites så att stolar fylls när service ökar och transportbandet
+              faktiskt installeras när det köps.
+            </p>
+          </div>
+        </div>
+      </section>
+
+      <!-- Footer -->
+      <footer class="audit-footer">
         <p>
-          Ge <code>precision_knife</code> (Kapitel 8) en snittintäktsbonus (t.ex. +1 ¥/order) istället för en blind kökskapacitet som slår i servicetaket. Justera <code>service_counter</code> (Kapitel 10) på motsvarande sätt så att varje bronsmedalj ger omedelbar ekonomisk belöning.
+          Forensic Engineering Audit slutförd för JAPC11 Delkurs 2 · Alla observationer och
+          kodutdrag är verifierade mot git-historik och automatiserade testsviter.
         </p>
-      </div>
+      </footer>
     </div>
-
-    <div class="rec-item">
-      <div class="rec-num">4</div>
-      <div class="rec-content">
-        <h4>Ge Silver-recepten en faktisk mekanik (P1)</h4>
-        <p>
-          Låt de 7 recepten ge passiv genomsnittlig intäktsökning (+1 ¥/order per recept) eller integrera dem med korta japanska glosfrågor när kunder beställer.
-        </p>
-      </div>
-    </div>
-
-    <div class="rec-item">
-      <div class="rec-num">5</div>
-      <div class="rec-content">
-        <h4>Korrekt ikonografi och språkintegration (P2)</h4>
-        <p>
-          Byt kugghjulsikonen till en varuhus-/butiksikon för butiken, eller använd kugghjulet för ljud/inställningar. Byt stapeldiagrammet till en palettikon för temaväxling (eller bygg en riktig statistikvy). Enhetliggör språket till ren svenska med autentiska kanji/kana för alla rätter.
-        </p>
-      </div>
-    </div>
-
-    <div class="rec-item">
-      <div class="rec-num">6</div>
-      <div class="rec-content">
-        <h4>Återgå till eller modulärisera den isometriska scenen (P2)</h4>
-        <p>
-          Antingen återställ den bevisat fungerande procedurella 3D-vektorscenen från före commit <code>5ee6972</code>, eller skär upp den isometriska pixelbilden i äkta transparenta lagersprites så att stolar fylls när service ökar och transportbandet faktiskt installeras när det köps.
-        </p>
-      </div>
-    </div>
-  </section>
-
-  <!-- Footer -->
-  <footer class="audit-footer">
-    <p>Forensic Engineering Audit slutförd för JAPC11 Delkurs 2 · Alla observationer och kodutdrag är verifierade mot git-historik och automatiserade testsviter.</p>
-  </footer>
-
-</div>
-
-</body>
+  </body>
 </html>

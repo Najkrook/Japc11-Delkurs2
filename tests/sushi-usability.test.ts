@@ -62,13 +62,39 @@ test('goal shows chapter progress, purchase state and completion without inventi
   leaveSushiView();
   await repo.set({ ...state, permanentGrants: ['prep_counter'] });
   goal = await render(null);
-  assert.match(goal, /¥ 300 · Öppna butik/);
+  assert.match(goal, /¥ 50 · Öppna butik/);
+  assert.match(goal, /Ger \+10 ¥\/min direkt \(10 → 20\)/);
 
   leaveSushiView();
-  await repo.set({ ...state, permanentGrants: ['prep_counter'], inventory: ['prep_counter'] });
+  await repo.set({
+    ...state,
+    permanentGrants: ['prep_counter'],
+    inventory: ['prep_counter'],
+    kitchenCapacity: 3,
+  });
   goal = await render(null);
-  assert.match(goal, /Laxnigiri/);
+  assert.match(goal, /Bygg vidare/);
+  assert.match(goal, /Inred/);
+  assert.doesNotMatch(goal, /Laxnigiri/);
+  assert.match(goal, /Precisionskniv/);
+  assert.match(goal, /Kapitel 8 · Brons/);
+  assert.match(goal, /Ger \+2 ¥\/min direkt \(20 → 22\)/);
   assert.match(goal, /1 \/ 21 belöningar köpta/);
+
+  // With nonsequential grants, useful service relief wins over a cheap cosmetic
+  // and the knife's smaller revenue increase at the existing service bottleneck.
+  leaveSushiView();
+  await repo.set({
+    ...state,
+    inventory: ['prep_counter'],
+    kitchenCapacity: 3,
+    permanentGrants: ['prep_counter', 'salmon_nigiri', 'precision_knife', 'conveyor_belt'],
+    balanceUnits: 4_000 * 60_000,
+  });
+  goal = await render(null);
+  assert.match(goal, /Transportband/);
+  assert.match(goal, /Ger \+10 ¥\/min direkt \(20 → 30\)/);
+  assert.doesNotMatch(goal, /Laxnigiri/);
 
   leaveSushiView();
   await repo.set({
@@ -127,6 +153,7 @@ test('purchase previews reflect current kitchen and service bottlenecks', () => 
     'precision_knife',
   )!;
   assert.equal(knife.newKitchenCapacity, 5);
-  assert.equal(knife.yenDelta, 0);
-  assert.match(knife.educationalExplanation, /servicen kan bara hantera 2/);
+  assert.equal(knife.yenDelta, 2);
+  assert.match(knife.educationalExplanation, /från 10 till 11 ¥\/order/);
+  assert.match(knife.educationalExplanation, /från 20 till 22 ¥\/min/);
 });

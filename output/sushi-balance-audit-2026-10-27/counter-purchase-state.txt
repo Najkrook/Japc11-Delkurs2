@@ -1,0 +1,77 @@
+Browser tab: 1, Title: "JAPC11 · Delkurs 2 — Genki I (Kapitel 6–12)", URL: "http://127.0.0.1:5176/?sushi=1#/sushi".
+1 AXWebArea JAPC11 · Delkurs 2 — Genki I (Kapitel 6–12), URL: 127.0.0.1:5176/?sushi=1#/sushi
+	2 container
+		3 heading Sakura Sushi 🍣 Sushirestaurang, Value: 1
+			4 text Sakura Sushi 🍣 Sushirestaurang
+		5 button B Balance audit · counter (Logga ut), Help: Inloggad som Balance audit · counter · Klicka för att logga ut
+			6 text B
+			7 text Balance audit · counter
+			8 text (Logga ut)
+		9 button 🌸 Sakura, Help: Slå på Sakura / Kawaii-tema
+		10 button (collapsed) Meny, Help: Öppna meny och inredning, Secondary Actions: Expand
+		11 button (expanded) Butik, Help: Öppna butik och upplåsningar, Secondary Actions: Collapse
+		12 button ← Tillbaka till studierna, Help: Tillbaka till studierna
+		13 container Personlig sushirestaurang
+			14 container
+				15 heading Välkommen, Balance audit · counter!, Value: 2
+					16 text Välkommen,  Balance audit · counter !
+				17 text Disponibelt saldo: ¥  0
+				18 text Din restaurang producerar och tjänar yen i realtid. Hämta intäkterna till ditt disponibla saldo.
+				19 container
+					20 text 40  ¥/min
+				21 text Intäktstakt: Kök:  4 ordrar/min  · Service:  6 ordrar/min  ·  Kök (Flaskhals)
+				22 text Ny kursbelöning upplåst!
+				23 container
+					24 text Förbättrad beredningsbänk, Laxnigiri, Papperslykta, Längre produktionstid, Kappamaki (Gurkrulle), Krukväxt, Precisionskniv, Maguronigiri (Tonfisk), Noren-gardin, Transportband, Ebinigiri (Räka), Vågmotiv, Utökad serveringsdisk, Tamagonigiri (Ägg), Andon-golvlykta, Assisterande kock, Sashimi Moriawase, Sakura Bonsai, Mästarcertifiering, Omakase-meny, Gyllene Maneki-Neko  · Finns nu i butiken.
+				25 button Stäng notis om ny upplåsning
+			26 container
+				27 image Din sushirestaurang Isometrisk vy snett uppifrån genom restaurangens öppna hörn, med två väggar och synligt trägolv. Förbättrad beredningsbänk . Transportband installerat . Precisionskniv vid beredningsbänken. Uppgraderad serveringsdisk., Help: Isometrisk vy snett uppifrån genom restaurangens öppna hörn, med två väggar och synligt trägolv. Förbättrad beredningsbänk. Transportband installerat. Precisionskniv vid beredningsbänken. Uppgraderad serveringsdisk.
+				28 button Se japanska fraser med gästen
+				29 button Se japanska fraser med gästen
+				30 button Se japanska fraser med gästen
+				31 text Din lilla sushibar Utökat kök  ·  Transportband
+			32 container
+				33 text Nästa mål
+				34 button Laxnigiri ¥ 600 · Öppna butik
+					35 text Laxnigiri
+					36 text ¥ 600 · Öppna butik
+				37 text 5  / 21 belöningar köpta
+			38 text Tryck på en gäst · se japanska fraser
+			39 container Kassa och ohämtade intäkter
+				40 text OHÄMTADE INTÄKTER 6 12h Tak 0.0 h /  12 h
+				41 progress indicator Description: Produktionstid i perioden, Value: 0
+				42 text ✨ Ny produktionstid aktiv! (12 timmar max)
+				43 button (collapsed) Produktion ▾, Secondary Actions: Expand
+					44 text Produktion
+					45 text  ▾
+				46 button Hämta 6 intjänade yen till ditt disponibla saldo
+					47 text Hämta intäkter ¥ 
+					80 text 6
+			48 container Kursbelöningar och upplåsningar
+				49 heading Kursbelöningar & Upplåsningar, Value: 3
+					50 text Kursbelöningar & Upplåsningar
+				51 text 21  /  21  upplåsta
+				52 button Stäng butiksfönstret
+				53 tab group Kategorifilter
+					54 tab (selectable, settable, boolean) Alla, Value: 0
+					55 tab (selectable, settable, boolean) Kök, Value: 0
+					56 tab (selected, settable, boolean) Service, Value: 1
+					57 tab (selectable, settable, boolean) Tid, Value: 0
+					58 tab (selectable, settable, boolean) Recept, Value: 0
+					59 tab (selectable, settable, boolean) Dekoration, Value: 0
+				60 text Dina studieresultat och kapitelmedaljer i Genki låser upp permanenta köpmöjligheter i butiken. Upplåsning ger inte gratis föremål, men gör dem tillgängliga att köpa för intjänade yen.
+				61 container
+					62 text Transportband Service Ny!
+				63 text Ökar servicekapaciteten med 2 ordrar per minut.
+				64 text ✓ Ägd Köpt (¥  3600 )
+				65 text Aktiv i restaurangen
+				66 button (disabled) Ägd
+				67 container
+					68 text Utökad serveringsdisk Service Ny!
+				69 text Ökar servicekapaciteten med 2 ordrar per minut.
+				81 text ✓ Ägd Köpt (¥  5400 )
+				82 text Aktiv i restaurangen
+				83 button (disabled) Ägd
+			78 text Köp genomfört: Utökad serveringsdisk för ¥ 5400! Detta köp ökar servicekapaciteten till 8 ordrar/min, men köket producerar bara 4 ordrar/min. Eftersom intäkten styrs av min(kök, service), förblir intäktstakten 40 ¥/min tills du uppgraderar köket.
+
+The focused UI element is 1 AXWebArea JAPC11 · Delkurs 2 — Genki I (Kapitel 6–12), URL: 127.0.0.1:5176/?sushi=1#/sushi

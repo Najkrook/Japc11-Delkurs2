@@ -16,6 +16,8 @@ import { courseWeeks } from '../../src/course/data/index.ts';
 import type { SushiRestaurantState } from '../../src/course/sushi-game/types.ts';
 import type { CollectRevenueResult } from '../../src/course/sushi-game/domain-service.ts';
 import type { PurchaseItemResult } from '../../src/course/sushi-game/catalog.ts';
+import type { PurchaseRestaurantProjectResult } from '../../src/course/sushi-game/projects.ts';
+import { DEFAULT_CAP_MS, EXTENDED_CAP_MS } from '../../src/course/sushi-game/types.ts';
 
 test('authenticated callable persists authoritative economy, medals and concurrent retries', async () => {
   assert.equal(process.env.GCLOUD_PROJECT, 'demo-japc11-delkurs2');
@@ -108,7 +110,7 @@ test('authenticated callable persists authoritative economy, medals and concurre
     // Start at an exact stopped cap to avoid timing tolerance in the concurrency assertion.
     await ref.update({
       accountedAtMs: Date.now(),
-      usedProductionMs: 28_800_000,
+      usedProductionMs: DEFAULT_CAP_MS,
       uncollectedUnits: 48_000_000,
       balanceUnits: 0,
     });
@@ -135,13 +137,13 @@ test('authenticated callable persists authoritative economy, medals and concurre
     assert.ok(buys.every((result) => result.success));
     assert.equal(buys.filter((result) => result.success && !result.wasAlreadyProcessed).length, 1);
     const bought = (await ref.get()).data() as SushiRestaurantState;
-    assert.equal(bought.balanceUnits, 30_000_000);
+    assert.equal(bought.balanceUnits, 45_000_000);
     assert.deepEqual(bought.inventory, ['prep_counter']);
     assert.equal(bought.kitchenCapacity, 3);
     // Cap upgrade only resumes future production; stopped hours are never credited retroactively.
     await ref.update({
       balanceUnits: 120_000_000,
-      usedProductionMs: 28_800_000,
+      usedProductionMs: DEFAULT_CAP_MS,
       uncollectedUnits: 1234,
       accountedAtMs: Date.now() - 3_600_000,
     });
@@ -152,8 +154,8 @@ test('authenticated callable persists authoritative economy, medals and concurre
     });
     assert.ok(cap.success);
     if (cap.success) {
-      assert.equal(cap.state.capMs, 43_200_000);
-      assert.equal(cap.state.usedProductionMs, 28_800_000);
+      assert.equal(cap.state.capMs, EXTENDED_CAP_MS);
+      assert.equal(cap.state.usedProductionMs, DEFAULT_CAP_MS);
       assert.equal(cap.state.uncollectedUnits, 1234);
     }
     // A fresh session loads the persisted restaurant, independent of browser local storage.
@@ -243,6 +245,91 @@ test('authenticated callable persists authoritative economy, medals and concurre
       assert.equal(decorated[key], economyBefore[key]);
     const isolated = await outsider.call<SushiRestaurantState>({ operation: 'load' });
     assert.deepEqual(isolated.equipped, { wallSlot: null, floorSlot: null });
+
+    // Optional projects use the same authenticated, server-priced atomic boundary.
+    await assert.rejects(
+      owner.call({
+        operation: 'project',
+        projectId: 'study_nook',
+        idempotencyKey: 'spoof-price',
+        priceUnits: 1,
+      }),
+      /determined by the server/,
+    );
+    await assert.rejects(
+      owner.call({
+        operation: 'project',
+        projectId: '../invalid',
+        idempotencyKey: 'invalid-project',
+      }),
+      /restaurant project ID/,
+    );
+    const lockedProject = await outsider.call<PurchaseRestaurantProjectResult>({
+      operation: 'project',
+      projectId: 'study_nook',
+      idempotencyKey: 'locked-project',
+    });
+    assert.equal(lockedProject.success, false);
+    if (!lockedProject.success) assert.equal(lockedProject.reason, 'PROJECT_LOCKED');
+    await ref.update({ balanceUnits: 100_000 * 60_000 });
+    const projects = await Promise.all(
+      Array.from({ length: 4 }, () =>
+        owner.call<PurchaseRestaurantProjectResult>({
+          operation: 'project',
+          projectId: 'study_nook',
+          idempotencyKey: 'project-retry',
+        }),
+      ),
+    );
+    assert.ok(projects.every((result) => result.success));
+    assert.equal(
+      projects.filter((result) => result.success && !result.wasAlreadyProcessed).length,
+      1,
+    );
+    const projected = (await ref.get()).data() as SushiRestaurantState;
+    assert.deepEqual(projected.completedProjects, ['study_nook']);
+    assert.equal(projected.balanceUnits, 40_000 * 60_000);
+    assert.equal(projected.kitchenCapacity, decorated.kitchenCapacity);
+    assert.equal(projected.serviceCapacity, decorated.serviceCapacity);
+    assert.equal(projected.averageRevenuePerOrder, decorated.averageRevenuePerOrder);
+    assert.equal(projected.capMs, decorated.capMs);
+    const duplicateProject = await owner.call<PurchaseRestaurantProjectResult>({
+      operation: 'project',
+      projectId: 'study_nook',
+      idempotencyKey: 'project-new-key',
+    });
+    assert.equal(duplicateProject.success, false);
+    if (!duplicateProject.success) assert.equal(duplicateProject.reason, 'ALREADY_COMPLETED');
+
+    // Persisted pre-audit restaurants settle old production before adopting new rates/caps.
+    await ref.set({
+      ...projected,
+      balanceVersion: 1,
+      kitchenCapacity: 4,
+      serviceCapacity: 2,
+      averageRevenuePerOrder: 10,
+      inventory: ['prep_counter', 'precision_knife'],
+      permanentGrants: ['prep_counter', 'precision_knife'],
+      balanceUnits: 0,
+      uncollectedUnits: 13,
+      usedProductionMs: 0,
+      capMs: 8 * 3_600_000,
+      accountedAtMs: Date.now() - 30 * 3_600_000,
+      periodStartMs: Date.now() - 30 * 3_600_000,
+    });
+    const migrated = await owner.call<SushiRestaurantState>({ operation: 'load' });
+    assert.equal(migrated.balanceVersion, 2);
+    assert.equal(migrated.capMs, DEFAULT_CAP_MS);
+    assert.equal(migrated.averageRevenuePerOrder, 11);
+    assert.equal(migrated.usedProductionMs, 8 * 3_600_000);
+    assert.equal(migrated.uncollectedUnits, 20 * 8 * 60 * 60_000 + 13);
+    const migratedAgain = await owner.call<SushiRestaurantState>({ operation: 'load' });
+    assert.equal(
+      migratedAgain.uncollectedUnits - migrated.uncollectedUnits,
+      22 * (migratedAgain.accountedAtMs - migrated.accountedAtMs),
+    );
+    assert.equal(migratedAgain.averageRevenuePerOrder, 11);
+    assert.equal(migratedAgain.balanceUnits, 0);
   } finally {
     await Promise.all(apps.map(deleteApp));
     await adminDb.terminate();

@@ -1,3 +1,8 @@
+import {
+  createLegacyEconomyState,
+  LEGACY_CAP_MS,
+  LEGACY_EXTENDED_CAP_MS,
+} from './helpers/legacy-sushi-economy.ts';
 import test from 'node:test';
 import assert from 'node:assert/strict';
 import {
@@ -9,15 +14,8 @@ import {
   unitsToYenDecimal,
   yenToUnits,
   canAfford,
-  createInitialEconomyState,
 } from '../src/course/sushi-game/economy.ts';
-import {
-  YEN_UNIT_MULTIPLIER,
-  DEFAULT_CAP_MS,
-  EXTENDED_CAP_MS,
-  MS_PER_HOUR,
-  MS_PER_MINUTE,
-} from '../src/course/sushi-game/types.ts';
+import { YEN_UNIT_MULTIPLIER, MS_PER_HOUR, MS_PER_MINUTE } from '../src/course/sushi-game/types.ts';
 import type { SushiEconomyState } from '../src/course/sushi-game/types.ts';
 
 // =============================================================================
@@ -30,7 +28,7 @@ import type { SushiEconomyState } from '../src/course/sushi-game/types.ts';
 
 test('ADV-01: calculateAccrual safely absorbs extreme backward clock jump (-100 years)', () => {
   const startMs = 1_700_000_000_000; // Realistic timestamp
-  const state = createInitialEconomyState(startMs, {
+  const state = createLegacyEconomyState(startMs, {
     balanceUnits: 50_000,
     uncollectedUnits: 120_000,
     usedProductionMs: 1_000_000,
@@ -54,7 +52,7 @@ test('ADV-01: calculateAccrual safely absorbs extreme backward clock jump (-100 
 });
 
 test('ADV-02: Rapid oscillating clock jitter does not corrupt state or grant free units', () => {
-  let state = createInitialEconomyState(1_000_000);
+  let state = createLegacyEconomyState(1_000_000);
   // Timestamps oscillating back and forth: forward, backward, forward, backward...
   const sequence = [
     1_000_000,
@@ -80,7 +78,7 @@ test('ADV-02: Rapid oscillating clock jitter does not corrupt state or grant fre
 
 test('ADV-03: collectEarnings with backward clock retains existing funds and does not rewind', () => {
   const startMs = 5_000_000;
-  const state = createInitialEconomyState(startMs, {
+  const state = createLegacyEconomyState(startMs, {
     balanceUnits: yenToUnits(100),
     uncollectedUnits: yenToUnits(50),
     usedProductionMs: 300_000,
@@ -102,7 +100,7 @@ test('ADV-03: collectEarnings with backward clock retains existing funds and doe
 
 test('ADV-04: Multi-century absence (1,000 years) strictly clamps to 8h cap without overflow', () => {
   const startMs = 1_000_000;
-  const state = createInitialEconomyState(startMs);
+  const state = createLegacyEconomyState(startMs);
 
   const oneThousandYearsMs = 1000 * 365.25 * 24 * MS_PER_HOUR;
   const endMs = startMs + oneThousandYearsMs;
@@ -110,24 +108,24 @@ test('ADV-04: Multi-century absence (1,000 years) strictly clamps to 8h cap with
   const res = calculateAccrual(state, endMs);
 
   assert.equal(res.elapsedMs, oneThousandYearsMs);
-  assert.equal(res.producedMs, DEFAULT_CAP_MS, 'Produced ms capped exactly at 8 hours');
-  assert.equal(res.excessMs, oneThousandYearsMs - DEFAULT_CAP_MS, 'Excess ms matches difference');
+  assert.equal(res.producedMs, LEGACY_CAP_MS, 'Produced ms capped exactly at 8 hours');
+  assert.equal(res.excessMs, oneThousandYearsMs - LEGACY_CAP_MS, 'Excess ms matches difference');
   assert.equal(res.isCapped, true);
   assert.equal(res.remainingCapMs, 0);
   // Base rate 10 yen/min for 8h = 480 min * 10 = 4,800 yen = 288,000,000 units
   assert.equal(res.earnedUnits, 288_000_000);
   assert.equal(unitsToWholeYen(res.earnedUnits), 4800);
-  assert.equal(res.updatedState.usedProductionMs, DEFAULT_CAP_MS);
+  assert.equal(res.updatedState.usedProductionMs, LEGACY_CAP_MS);
   assert.equal(res.updatedState.accountedAtMs, endMs);
   assert.ok(Number.isSafeInteger(res.earnedUnits));
   assert.ok(Number.isSafeInteger(res.updatedState.accountedAtMs));
 });
 
 test('ADV-05: Accrual after cap already reached produces exactly 0 units over subsequent years', () => {
-  const state = createInitialEconomyState(0, {
-    usedProductionMs: DEFAULT_CAP_MS,
+  const state = createLegacyEconomyState(0, {
+    usedProductionMs: LEGACY_CAP_MS,
     uncollectedUnits: 288_000_000,
-    capMs: DEFAULT_CAP_MS,
+    capMs: LEGACY_CAP_MS,
   });
 
   const tenYearsMs = 10 * 365.25 * 24 * MS_PER_HOUR;
@@ -139,7 +137,7 @@ test('ADV-05: Accrual after cap already reached produces exactly 0 units over su
   assert.equal(res.isCapped, true);
   assert.equal(res.remainingCapMs, 0);
   assert.equal(res.updatedState.uncollectedUnits, 288_000_000);
-  assert.equal(res.updatedState.usedProductionMs, DEFAULT_CAP_MS);
+  assert.equal(res.updatedState.usedProductionMs, LEGACY_CAP_MS);
 });
 
 // -----------------------------------------------------------------------------
@@ -147,7 +145,7 @@ test('ADV-05: Accrual after cap already reached produces exactly 0 units over su
 // -----------------------------------------------------------------------------
 
 test('ADV-06: Sub-millisecond deltas and fractional time values do not produce NaN or unrecoverable error', () => {
-  const state = createInitialEconomyState(0);
+  const state = createLegacyEconomyState(0);
 
   // Fractional 0.4 ms elapsed
   const r1 = calculateAccrual(state, 0.4);
@@ -168,7 +166,7 @@ test('ADV-06: Sub-millisecond deltas and fractional time values do not produce N
 // -----------------------------------------------------------------------------
 
 test('ADV-07: 100,000 repeated micro-collections verify ZERO fractional yen loss against single collection', () => {
-  let state = createInitialEconomyState(0); // rate = 10 yen/min = 10 units/ms
+  let state = createLegacyEconomyState(0); // rate = 10 yen/min = 10 units/ms
   const ITERATIONS = 100_000;
 
   // Run 100,000 discrete 1-ms accruals and collections
@@ -189,7 +187,7 @@ test('ADV-07: 100,000 repeated micro-collections verify ZERO fractional yen loss
   assert.equal(state.balanceUnits % YEN_UNIT_MULTIPLIER, 40_000);
 
   // Verification 3: Compare with a single 100,000 ms collection from same initial state
-  const singleState = createInitialEconomyState(0);
+  const singleState = createLegacyEconomyState(0);
   const singleCol = collectEarnings(singleState, ITERATIONS);
 
   assert.equal(singleCol.newBalanceUnits, 1_000_000);
@@ -202,7 +200,7 @@ test('ADV-07: 100,000 repeated micro-collections verify ZERO fractional yen loss
 });
 
 test('ADV-08: 100,000 repeated micro-accruals without collection match single atomic accrual', () => {
-  let state = createInitialEconomyState(0);
+  let state = createLegacyEconomyState(0);
   const ITERATIONS = 100_000;
 
   for (let i = 1; i <= ITERATIONS; i++) {
@@ -214,7 +212,7 @@ test('ADV-08: 100,000 repeated micro-accruals without collection match single at
   assert.equal(state.usedProductionMs, 100_000);
   assert.equal(state.accountedAtMs, 100_000);
 
-  const singleState = createInitialEconomyState(0);
+  const singleState = createLegacyEconomyState(0);
   const singleAcc = calculateAccrual(singleState, ITERATIONS);
 
   assert.equal(state.uncollectedUnits, singleAcc.updatedState.uncollectedUnits);
@@ -258,7 +256,7 @@ test('ADV-09: Degenerate kitchen and service capacities produce 0 income safely'
 });
 
 test('ADV-10: Accrual with 0 capacity advances time and cap consumption without creating money', () => {
-  const zeroCapState = createInitialEconomyState(0, {
+  const zeroCapState = createLegacyEconomyState(0, {
     kitchenCapacity: 0,
     serviceCapacity: 5,
   });
@@ -281,7 +279,7 @@ test('ADV-11: Upgrade with exact spendable funds leaves exactly 0 units in balan
   const priceYen = 300;
   const exactPriceUnits = yenToUnits(priceYen); // 18,000,000 units
 
-  const state = createInitialEconomyState(0, {
+  const state = createLegacyEconomyState(0, {
     balanceUnits: exactPriceUnits,
   });
 
@@ -303,7 +301,7 @@ test('ADV-12: Upgrade with exactly 1 unit less than price is strictly rejected',
   const priceYen = 300;
   const exactPriceUnits = yenToUnits(priceYen);
 
-  const state = createInitialEconomyState(0, {
+  const state = createLegacyEconomyState(0, {
     balanceUnits: exactPriceUnits - 1, // 1 unit short (1/60000 yen short!)
   });
 
@@ -322,7 +320,7 @@ test('ADV-12: Upgrade with exactly 1 unit less than price is strictly rejected',
 });
 
 test('ADV-13: Uncollected register revenue cannot be spent on upgrades without collection', () => {
-  const state = createInitialEconomyState(0, {
+  const state = createLegacyEconomyState(0, {
     balanceUnits: 0,
     uncollectedUnits: yenToUnits(10_000), // Huge register balance
   });
@@ -340,7 +338,7 @@ test('ADV-13: Uncollected register revenue cannot be spent on upgrades without c
 });
 
 test('ADV-14: Consecutive upgrades in the exact same millisecond compose correctly', () => {
-  let state = createInitialEconomyState(0, {
+  let state = createLegacyEconomyState(0, {
     balanceUnits: yenToUnits(10_000),
   });
 
@@ -366,7 +364,7 @@ test('ADV-14: Consecutive upgrades in the exact same millisecond compose correct
   const upg3 = applyProspectiveUpgrade(state, 0, {
     itemId: 'cap_extension_1',
     priceYen: 1800,
-    newCapMs: EXTENDED_CAP_MS,
+    newCapMs: LEGACY_EXTENDED_CAP_MS,
   });
   assert.equal(upg3.success, true);
   if (upg3.success) state = upg3.updatedState;
@@ -376,7 +374,7 @@ test('ADV-14: Consecutive upgrades in the exact same millisecond compose correct
   assert.equal(unitsToWholeYen(state.balanceUnits), 4300);
   assert.equal(state.kitchenCapacity, 3); // 1 + 2
   assert.equal(state.serviceCapacity, 4); // 2 + 2
-  assert.equal(state.capMs, EXTENDED_CAP_MS); // 12h
+  assert.equal(state.capMs, LEGACY_EXTENDED_CAP_MS); // 12h
   assert.equal(state.usedProductionMs, 0);
 
   // Rate now: min(3, 4) * 10 = 30 yen/min, kitchen bottleneck
@@ -391,7 +389,7 @@ test('ADV-14: Consecutive upgrades in the exact same millisecond compose correct
 
 test('ADV-15: Cap downgrade / anomaly where newCapMs < usedProductionMs halts further production safely', () => {
   // If an anomalous upgrade sets capMs smaller than already used production
-  const state = createInitialEconomyState(0, {
+  const state = createLegacyEconomyState(0, {
     usedProductionMs: 8 * MS_PER_HOUR,
     capMs: 4 * MS_PER_HOUR, // cap smaller than used!
   });
@@ -416,7 +414,7 @@ test('ADV-16: Arithmetic operations remain within JavaScript Number.MAX_SAFE_INT
   const hugeUnits = yenToUnits(1_000_000_000); // 1 billion yen
   assert.ok(Number.isSafeInteger(hugeUnits));
 
-  const state = createInitialEconomyState(0, {
+  const state = createLegacyEconomyState(0, {
     balanceUnits: hugeUnits,
   });
 
@@ -442,7 +440,7 @@ test('ADV-16: Arithmetic operations remain within JavaScript Number.MAX_SAFE_INT
 // -----------------------------------------------------------------------------
 
 test('ADV-17: Fuzz harness with 2,000 random actions maintains all economy invariants strictly', () => {
-  let state: SushiEconomyState = createInitialEconomyState(1_000_000, {
+  let state: SushiEconomyState = createLegacyEconomyState(1_000_000, {
     balanceUnits: yenToUnits(50_000), // starting bankroll
   });
 
@@ -503,7 +501,7 @@ test('ADV-17: Fuzz harness with 2,000 random actions maintains all economy invar
     } else {
       // Action C: Prospective Upgrade attempt
       const priceYen = Math.floor(rand() * 2000);
-      const capDelta = rand() < 0.2 ? EXTENDED_CAP_MS : undefined;
+      const capDelta = rand() < 0.2 ? LEGACY_EXTENDED_CAP_MS : undefined;
       const kitchenDelta = rand() < 0.4 ? 1 : 0;
       const serviceDelta = rand() < 0.4 ? 1 : 0;
 
@@ -545,7 +543,7 @@ test('ADV-17: Fuzz harness with 2,000 random actions maintains all economy invar
 // -----------------------------------------------------------------------------
 
 test('ADV-18: Zero-price upgrade (free item / decoration) executes without debiting wallet', () => {
-  const state = createInitialEconomyState(0, {
+  const state = createLegacyEconomyState(0, {
     balanceUnits: 50_000,
   });
 
@@ -565,7 +563,7 @@ test('ADV-18: Zero-price upgrade (free item / decoration) executes without debit
 
 test('ADV-19: Upgrades after long stopped time discard all stopped time and apply new cap cleanly', () => {
   // Start base state at T=0
-  const state = createInitialEconomyState(0, {
+  const state = createLegacyEconomyState(0, {
     balanceUnits: yenToUnits(5000),
   });
 
@@ -574,7 +572,7 @@ test('ADV-19: Upgrades after long stopped time discard all stopped time and appl
   const upgRes = applyProspectiveUpgrade(state, t24h, {
     itemId: 'cap_extension_1',
     priceYen: 1800,
-    newCapMs: EXTENDED_CAP_MS, // 12h cap
+    newCapMs: LEGACY_EXTENDED_CAP_MS, // 12h cap
   });
 
   assert.equal(upgRes.success, true);
@@ -583,7 +581,7 @@ test('ADV-19: Upgrades after long stopped time discard all stopped time and appl
     // Accounted time advanced all the way to 24h
     assert.equal(upgraded.accountedAtMs, t24h);
     // Used production time is capped at 8h
-    assert.equal(upgraded.usedProductionMs, DEFAULT_CAP_MS);
+    assert.equal(upgraded.usedProductionMs, LEGACY_CAP_MS);
     // Uncollected earnings reflect exactly 8h at 10 yen/min = 4,800 yen (no retroactive pay for 16h stopped)
     assert.equal(unitsToWholeYen(upgraded.uncollectedUnits), 4800);
 

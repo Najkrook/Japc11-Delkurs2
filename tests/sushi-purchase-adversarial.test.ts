@@ -37,8 +37,8 @@ test('Adversarial-Purchase: __proto__ key handles fresh purchase, retry idempote
     false,
     '__proto__ key must NOT trigger false alreadyProcessed on fresh call',
   );
-  assert.equal(res1.debitedYen, 300);
-  assert.equal(unitsToWholeYen(res1.state.balanceUnits), 200);
+  assert.equal(res1.debitedYen, 50);
+  assert.equal(unitsToWholeYen(res1.state.balanceUnits), 450);
 
   // 2. Retry with '__proto__' key
   const res2 = await service.purchaseCatalogItem(uid, 'prep_counter', '__proto__', t0 + 2000);
@@ -48,8 +48,8 @@ test('Adversarial-Purchase: __proto__ key handles fresh purchase, retry idempote
     true,
     '__proto__ retry must be recognized as already processed',
   );
-  assert.equal(res2.debitedUnits, 18_000_000);
-  assert.equal(unitsToWholeYen(res2.state.balanceUnits), 200, 'Balance must NOT be debited twice');
+  assert.equal(res2.debitedUnits, 3_000_000);
+  assert.equal(unitsToWholeYen(res2.state.balanceUnits), 450, 'Balance must NOT be debited twice');
 
   // 3. Strict prototype purity check: verify Object.prototype was NOT polluted
   const cleanObject: any = {};
@@ -79,7 +79,7 @@ test('Adversarial-Purchase: Concurrent duplicate rapid-clicks with SAME idempote
   // User has exactly 300 yen (enough for 1 prep_counter)
   await service.getOrInitRestaurant(uid, t0, ['prep_counter']);
   await repo.transaction(uid, async (current) => ({
-    state: { ...current!, balanceUnits: yenToUnits(300) },
+    state: { ...current!, balanceUnits: yenToUnits(50) },
     result: null,
   }));
 
@@ -125,7 +125,7 @@ test('Adversarial-Purchase: Concurrent swarm with DIFFERENT idempotency keys can
   // User has 300 yen (enough for prep_counter only once)
   await service.getOrInitRestaurant(uid, t0, ['prep_counter']);
   await repo.transaction(uid, async (current) => ({
-    state: { ...current!, balanceUnits: yenToUnits(300) },
+    state: { ...current!, balanceUnits: yenToUnits(50) },
     result: null,
   }));
 
@@ -193,8 +193,8 @@ test('Adversarial-Purchase: Interleaved concurrent purchases and revenue collect
   assert.ok(finalState);
   assert.equal(
     unitsToWholeYen(finalState.balanceUnits),
-    4800,
-    'Interleaved collect and purchase must conserve exact balance (5000 + 100 - 300 = 4800)',
+    5050,
+    'Interleaved collect and purchase must conserve exact balance (5000 + 100 - 50 = 5050)',
   );
   assert.deepEqual(finalState.inventory, ['prep_counter']);
   assert.equal(finalState.kitchenCapacity, 3);
@@ -236,8 +236,8 @@ test('Adversarial-Purchase: Multi-user swarm (10 users x 10 concurrent requests)
     assert.ok(state, `State for ${uid} must exist`);
     assert.equal(
       unitsToWholeYen(state.balanceUnits),
-      300,
-      `${uid} must have exactly 600 - 300 = 300 yen`,
+      550,
+      `${uid} must have exactly 600 - 50 = 550 yen`,
     );
     assert.deepEqual(state.inventory, ['prep_counter']);
     assert.equal(state.kitchenCapacity, 3);

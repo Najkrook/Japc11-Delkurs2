@@ -1,3 +1,8 @@
+import {
+  createLegacyEconomyState,
+  LEGACY_CAP_MS,
+  LEGACY_EXTENDED_CAP_MS,
+} from './helpers/legacy-sushi-economy.ts';
 /**
  * Milestone 4: Code-Executing Adversarial Challenge Test Harness
  *
@@ -31,18 +36,11 @@ import {
   calculateProductionRate,
   collectEarnings,
   createDefaultRestaurantState,
-  createInitialEconomyState,
   unitsToWholeYen,
   unitsToYenDecimal,
   yenToUnits,
 } from '../src/course/sushi-game/economy.ts';
-import {
-  DEFAULT_CAP_MS,
-  EXTENDED_CAP_MS,
-  MS_PER_HOUR,
-  MS_PER_MINUTE,
-  YEN_UNIT_MULTIPLIER,
-} from '../src/course/sushi-game/types.ts';
+import { MS_PER_HOUR, MS_PER_MINUTE, YEN_UNIT_MULTIPLIER } from '../src/course/sushi-game/types.ts';
 import type { SushiEconomyState, SushiRestaurantState } from '../src/course/sushi-game/types.ts';
 import {
   SUSHI_CATALOG,
@@ -67,11 +65,11 @@ import type { CourseProgressData, CourseWeek } from '../src/course/types.ts';
 
 test('Adversarial 1.1: Extreme offline intervals (7 days, 30 days, 1 year, 10 years) clamp safely without overflow', () => {
   const startMs = 1_500_000_000_000; // Realistic Unix epoch ms
-  const rate20State = createInitialEconomyState(startMs, {
+  const rate20State = createLegacyEconomyState(startMs, {
     kitchenCapacity: 3,
     serviceCapacity: 2,
     averageRevenuePerOrder: 10,
-    capMs: DEFAULT_CAP_MS, // 8 hours = 28,800,000 ms
+    capMs: LEGACY_CAP_MS, // 8 hours = 28,800,000 ms
   });
 
   // Rates: Kitchen 3, Service 2, AvgRev 10 -> R = 20 yen/min = 20 units/ms
@@ -88,14 +86,14 @@ test('Adversarial 1.1: Extreme offline intervals (7 days, 30 days, 1 year, 10 ye
     // 1. Produced ms must be strictly clamped to capMs
     assert.equal(
       accrual.producedMs,
-      DEFAULT_CAP_MS,
+      LEGACY_CAP_MS,
       `[${name}] producedMs must clamp strictly to 8h cap (28,800,000 ms)`,
     );
 
     // 2. Excess ms must account for the rest of the absence
     assert.equal(
       accrual.excessMs,
-      ms - DEFAULT_CAP_MS,
+      ms - LEGACY_CAP_MS,
       `[${name}] excessMs must equal elapsed minus cap`,
     );
 
@@ -120,15 +118,15 @@ test('Adversarial 1.1: Extreme offline intervals (7 days, 30 days, 1 year, 10 ye
 
   // Also test with max upgraded rate (Kitchen 6, Service 6, AvgRev 15 -> 90 yen/min = 90 units/ms)
   // and 12-hour extended cap (43,200,000 ms)
-  const maxUpgradedState = createInitialEconomyState(startMs, {
+  const maxUpgradedState = createLegacyEconomyState(startMs, {
     kitchenCapacity: 6,
     serviceCapacity: 6,
     averageRevenuePerOrder: 15,
-    capMs: EXTENDED_CAP_MS, // 12 hours
+    capMs: LEGACY_EXTENDED_CAP_MS, // 12 hours
   });
 
   const accrual7DaysMax = calculateAccrual(maxUpgradedState, startMs + 7 * 24 * MS_PER_HOUR);
-  assert.equal(accrual7DaysMax.producedMs, EXTENDED_CAP_MS);
+  assert.equal(accrual7DaysMax.producedMs, LEGACY_EXTENDED_CAP_MS);
   // 43,200,000 ms * 90 units/ms = 3,888,000,000 units = 64,800 yen
   assert.equal(accrual7DaysMax.earnedUnits, 3_888_000_000);
   assert.equal(unitsToWholeYen(accrual7DaysMax.earnedUnits), 64_800);
@@ -138,7 +136,7 @@ test('Adversarial 1.1: Extreme offline intervals (7 days, 30 days, 1 year, 10 ye
 
 test('Adversarial 1.2: Negative time deltas (clock skew / backward jump) and zero elapsed time', () => {
   const startMs = 1_000_000_000;
-  const state = createInitialEconomyState(startMs, {
+  const state = createLegacyEconomyState(startMs, {
     kitchenCapacity: 2,
     serviceCapacity: 2,
     averageRevenuePerOrder: 10,
@@ -155,7 +153,7 @@ test('Adversarial 1.2: Negative time deltas (clock skew / backward jump) and zer
   assert.equal(backwardAccrual.excessMs, 0, 'Excess ms must be 0');
   assert.equal(backwardAccrual.earnedUnits, 0, 'Earned units must be 0');
   assert.equal(backwardAccrual.isCapped, false);
-  assert.equal(backwardAccrual.remainingCapMs, DEFAULT_CAP_MS - 1_000_000);
+  assert.equal(backwardAccrual.remainingCapMs, LEGACY_CAP_MS - 1_000_000);
 
   // State accountedAtMs must NEVER move backward
   assert.equal(
@@ -187,11 +185,11 @@ test('Adversarial 1.2: Negative time deltas (clock skew / backward jump) and zer
 test('Adversarial 1.3: Split collections vs continuous idle, and repeated same-timestamp collections', () => {
   const startMs = 1_000_000_000;
   // Rate: 20 yen/min. Default 8h cap (28,800,000 ms = 9,600 yen max per period).
-  const initialState = createInitialEconomyState(startMs, {
+  const initialState = createLegacyEconomyState(startMs, {
     kitchenCapacity: 3,
     serviceCapacity: 2,
     averageRevenuePerOrder: 10,
-    capMs: DEFAULT_CAP_MS,
+    capMs: LEGACY_CAP_MS,
   });
 
   // Strategy A: Uninterrupted 10 hours offline (exceeds 8h cap)
@@ -413,7 +411,7 @@ test('Adversarial 2.2: Rapid purchases, idempotency, and concurrent purchase sta
 
   // Balance should have been debited ONCE (18,000,000 units = 300 yen)
   const afterKey1 = await repo.get(uid);
-  assert.equal(afterKey1!.balanceUnits, 6_000_000_000 - 18_000_000);
+  assert.equal(afterKey1!.balanceUnits, 6_000_000_000 - 3_000_000);
   assert.equal(afterKey1!.inventory.length, 1);
   assert.equal(afterKey1!.inventory[0], 'prep_counter');
 
@@ -433,7 +431,7 @@ test('Adversarial 2.2: Rapid purchases, idempotency, and concurrent purchase sta
 
   // Balance and inventory must remain strictly unchanged after the 50 failed attempts
   const afterStampede = await repo.get(uid);
-  assert.equal(afterStampede!.balanceUnits, 6_000_000_000 - 18_000_000);
+  assert.equal(afterStampede!.balanceUnits, 6_000_000_000 - 3_000_000);
   assert.equal(afterStampede!.inventory.length, 1);
   assert.equal(afterStampede!.inventory[0], 'prep_counter');
 });

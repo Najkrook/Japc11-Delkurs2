@@ -1,0 +1,1271 @@
+{
+  "policy": "Start at zero. All three chapter grants unlock every seven days; collect each visit, then buy eligible core bronze items, visual catalog items, then optional projects in catalog order. No active study earnings or starter cash.",
+  "catalogCost": 47750,
+  "projectCost": 2400000,
+  "cadences": [
+    {
+      "gapHours": 168,
+      "final": {
+        "day": 42,
+        "chapter": 12,
+        "inventory": 21,
+        "projects": ["study_nook", "lantern_evening"],
+        "wallet": 319930,
+        "rate": 90,
+        "purchases": ["master_license", "omakase_menu", "golden_maneki_neko"]
+      },
+      "ledger": [
+        {
+          "day": 0,
+          "chapter": 6,
+          "inventory": 0,
+          "projects": [],
+          "wallet": 0,
+          "rate": 10,
+          "purchases": []
+        },
+        {
+          "day": 7,
+          "chapter": 7,
+          "inventory": 6,
+          "projects": [],
+          "wallet": 10300,
+          "rate": 20,
+          "purchases": [
+            "prep_counter",
+            "cap_extension_12h",
+            "salmon_nigiri",
+            "paper_lantern",
+            "kappamaki",
+            "potted_plant"
+          ]
+        },
+        {
+          "day": 14,
+          "chapter": 8,
+          "inventory": 9,
+          "projects": ["study_nook"],
+          "wallet": 3700,
+          "rate": 22,
+          "purchases": ["precision_knife", "maguro_nigiri", "noren_curtain", "study_nook"]
+        },
+        {
+          "day": 21,
+          "chapter": 9,
+          "inventory": 12,
+          "projects": ["study_nook"],
+          "wallet": 61360,
+          "rate": 44,
+          "purchases": ["conveyor_belt", "ebi_nigiri", "wave_print"]
+        },
+        {
+          "day": 28,
+          "chapter": 10,
+          "inventory": 15,
+          "projects": ["study_nook", "lantern_evening"],
+          "wallet": 130,
+          "rate": 48,
+          "purchases": ["service_counter", "tamago_nigiri", "andon_lantern", "lantern_evening"]
+        },
+        {
+          "day": 35,
+          "chapter": 11,
+          "inventory": 18,
+          "projects": ["study_nook", "lantern_evening"],
+          "wallet": 127870,
+          "rate": 72,
+          "purchases": ["sous_chef", "sashimi_plate", "sakura_bonsai"]
+        },
+        {
+          "day": 42,
+          "chapter": 12,
+          "inventory": 21,
+          "projects": ["study_nook", "lantern_evening"],
+          "wallet": 319930,
+          "rate": 90,
+          "purchases": ["master_license", "omakase_menu", "golden_maneki_neko"]
+        }
+      ]
+    },
+    {
+      "gapHours": 24,
+      "final": {
+        "day": 42,
+        "chapter": 12,
+        "inventory": 21,
+        "projects": ["study_nook", "lantern_evening", "garden_terrace"],
+        "wallet": 1435930,
+        "rate": 90,
+        "purchases": ["master_license", "omakase_menu", "golden_maneki_neko"]
+      },
+      "ledger": [
+        {
+          "day": 0,
+          "chapter": 6,
+          "inventory": 0,
+          "projects": [],
+          "wallet": 0,
+          "rate": 10,
+          "purchases": []
+        },
+        {
+          "day": 1,
+          "chapter": 6,
+          "inventory": 3,
+          "projects": [],
+          "wallet": 13450,
+          "rate": 20,
+          "purchases": ["prep_counter", "salmon_nigiri", "paper_lantern"]
+        },
+        {
+          "day": 2,
+          "chapter": 6,
+          "inventory": 3,
+          "projects": [],
+          "wallet": 42250,
+          "rate": 20,
+          "purchases": []
+        },
+        {
+          "day": 3,
+          "chapter": 6,
+          "inventory": 3,
+          "projects": ["study_nook"],
+          "wallet": 11050,
+          "rate": 20,
+          "purchases": ["study_nook"]
+        },
+        {
+          "day": 4,
+          "chapter": 6,
+          "inventory": 3,
+          "projects": ["study_nook"],
+          "wallet": 39850,
+          "rate": 20,
+          "purchases": []
+        },
+        {
+          "day": 5,
+          "chapter": 6,
+          "inventory": 3,
+          "projects": ["study_nook"],
+          "wallet": 68650,
+          "rate": 20,
+          "purchases": []
+        },
+        {
+          "day": 6,
+          "chapter": 6,
+          "inventory": 3,
+          "projects": ["study_nook"],
+          "wallet": 97450,
+          "rate": 20,
+          "purchases": []
+        },
+        {
+          "day": 7,
+          "chapter": 7,
+          "inventory": 6,
+          "projects": ["study_nook"],
+          "wallet": 123100,
+          "rate": 20,
+          "purchases": ["cap_extension_12h", "kappamaki", "potted_plant"]
+        },
+        {
+          "day": 8,
+          "chapter": 7,
+          "inventory": 6,
+          "projects": ["study_nook"],
+          "wallet": 151900,
+          "rate": 20,
+          "purchases": []
+        },
+        {
+          "day": 9,
+          "chapter": 7,
+          "inventory": 6,
+          "projects": ["study_nook"],
+          "wallet": 180700,
+          "rate": 20,
+          "purchases": []
+        },
+        {
+          "day": 10,
+          "chapter": 7,
+          "inventory": 6,
+          "projects": ["study_nook"],
+          "wallet": 209500,
+          "rate": 20,
+          "purchases": []
+        },
+        {
+          "day": 11,
+          "chapter": 7,
+          "inventory": 6,
+          "projects": ["study_nook"],
+          "wallet": 238300,
+          "rate": 20,
+          "purchases": []
+        },
+        {
+          "day": 12,
+          "chapter": 7,
+          "inventory": 6,
+          "projects": ["study_nook"],
+          "wallet": 267100,
+          "rate": 20,
+          "purchases": []
+        },
+        {
+          "day": 13,
+          "chapter": 7,
+          "inventory": 6,
+          "projects": ["study_nook"],
+          "wallet": 295900,
+          "rate": 20,
+          "purchases": []
+        },
+        {
+          "day": 14,
+          "chapter": 8,
+          "inventory": 9,
+          "projects": ["study_nook", "lantern_evening"],
+          "wallet": 140500,
+          "rate": 22,
+          "purchases": ["precision_knife", "maguro_nigiri", "noren_curtain", "lantern_evening"]
+        },
+        {
+          "day": 15,
+          "chapter": 8,
+          "inventory": 9,
+          "projects": ["study_nook", "lantern_evening"],
+          "wallet": 172180,
+          "rate": 22,
+          "purchases": []
+        },
+        {
+          "day": 16,
+          "chapter": 8,
+          "inventory": 9,
+          "projects": ["study_nook", "lantern_evening"],
+          "wallet": 203860,
+          "rate": 22,
+          "purchases": []
+        },
+        {
+          "day": 17,
+          "chapter": 8,
+          "inventory": 9,
+          "projects": ["study_nook", "lantern_evening"],
+          "wallet": 235540,
+          "rate": 22,
+          "purchases": []
+        },
+        {
+          "day": 18,
+          "chapter": 8,
+          "inventory": 9,
+          "projects": ["study_nook", "lantern_evening"],
+          "wallet": 267220,
+          "rate": 22,
+          "purchases": []
+        },
+        {
+          "day": 19,
+          "chapter": 8,
+          "inventory": 9,
+          "projects": ["study_nook", "lantern_evening"],
+          "wallet": 298900,
+          "rate": 22,
+          "purchases": []
+        },
+        {
+          "day": 20,
+          "chapter": 8,
+          "inventory": 9,
+          "projects": ["study_nook", "lantern_evening"],
+          "wallet": 330580,
+          "rate": 22,
+          "purchases": []
+        },
+        {
+          "day": 21,
+          "chapter": 9,
+          "inventory": 12,
+          "projects": ["study_nook", "lantern_evening"],
+          "wallet": 356560,
+          "rate": 44,
+          "purchases": ["conveyor_belt", "ebi_nigiri", "wave_print"]
+        },
+        {
+          "day": 22,
+          "chapter": 9,
+          "inventory": 12,
+          "projects": ["study_nook", "lantern_evening"],
+          "wallet": 419920,
+          "rate": 44,
+          "purchases": []
+        },
+        {
+          "day": 23,
+          "chapter": 9,
+          "inventory": 12,
+          "projects": ["study_nook", "lantern_evening"],
+          "wallet": 483280,
+          "rate": 44,
+          "purchases": []
+        },
+        {
+          "day": 24,
+          "chapter": 9,
+          "inventory": 12,
+          "projects": ["study_nook", "lantern_evening"],
+          "wallet": 546640,
+          "rate": 44,
+          "purchases": []
+        },
+        {
+          "day": 25,
+          "chapter": 9,
+          "inventory": 12,
+          "projects": ["study_nook", "lantern_evening"],
+          "wallet": 610000,
+          "rate": 44,
+          "purchases": []
+        },
+        {
+          "day": 26,
+          "chapter": 9,
+          "inventory": 12,
+          "projects": ["study_nook", "lantern_evening"],
+          "wallet": 673360,
+          "rate": 44,
+          "purchases": []
+        },
+        {
+          "day": 27,
+          "chapter": 9,
+          "inventory": 12,
+          "projects": ["study_nook", "lantern_evening"],
+          "wallet": 736720,
+          "rate": 44,
+          "purchases": []
+        },
+        {
+          "day": 28,
+          "chapter": 10,
+          "inventory": 15,
+          "projects": ["study_nook", "lantern_evening", "garden_terrace"],
+          "wallet": 252130,
+          "rate": 48,
+          "purchases": ["service_counter", "tamago_nigiri", "andon_lantern", "garden_terrace"]
+        },
+        {
+          "day": 29,
+          "chapter": 10,
+          "inventory": 15,
+          "projects": ["study_nook", "lantern_evening", "garden_terrace"],
+          "wallet": 321250,
+          "rate": 48,
+          "purchases": []
+        },
+        {
+          "day": 30,
+          "chapter": 10,
+          "inventory": 15,
+          "projects": ["study_nook", "lantern_evening", "garden_terrace"],
+          "wallet": 390370,
+          "rate": 48,
+          "purchases": []
+        },
+        {
+          "day": 31,
+          "chapter": 10,
+          "inventory": 15,
+          "projects": ["study_nook", "lantern_evening", "garden_terrace"],
+          "wallet": 459490,
+          "rate": 48,
+          "purchases": []
+        },
+        {
+          "day": 32,
+          "chapter": 10,
+          "inventory": 15,
+          "projects": ["study_nook", "lantern_evening", "garden_terrace"],
+          "wallet": 528610,
+          "rate": 48,
+          "purchases": []
+        },
+        {
+          "day": 33,
+          "chapter": 10,
+          "inventory": 15,
+          "projects": ["study_nook", "lantern_evening", "garden_terrace"],
+          "wallet": 597730,
+          "rate": 48,
+          "purchases": []
+        },
+        {
+          "day": 34,
+          "chapter": 10,
+          "inventory": 15,
+          "projects": ["study_nook", "lantern_evening", "garden_terrace"],
+          "wallet": 666850,
+          "rate": 48,
+          "purchases": []
+        },
+        {
+          "day": 35,
+          "chapter": 11,
+          "inventory": 18,
+          "projects": ["study_nook", "lantern_evening", "garden_terrace"],
+          "wallet": 725470,
+          "rate": 72,
+          "purchases": ["sous_chef", "sashimi_plate", "sakura_bonsai"]
+        },
+        {
+          "day": 36,
+          "chapter": 11,
+          "inventory": 18,
+          "projects": ["study_nook", "lantern_evening", "garden_terrace"],
+          "wallet": 829150,
+          "rate": 72,
+          "purchases": []
+        },
+        {
+          "day": 37,
+          "chapter": 11,
+          "inventory": 18,
+          "projects": ["study_nook", "lantern_evening", "garden_terrace"],
+          "wallet": 932830,
+          "rate": 72,
+          "purchases": []
+        },
+        {
+          "day": 38,
+          "chapter": 11,
+          "inventory": 18,
+          "projects": ["study_nook", "lantern_evening", "garden_terrace"],
+          "wallet": 1036510,
+          "rate": 72,
+          "purchases": []
+        },
+        {
+          "day": 39,
+          "chapter": 11,
+          "inventory": 18,
+          "projects": ["study_nook", "lantern_evening", "garden_terrace"],
+          "wallet": 1140190,
+          "rate": 72,
+          "purchases": []
+        },
+        {
+          "day": 40,
+          "chapter": 11,
+          "inventory": 18,
+          "projects": ["study_nook", "lantern_evening", "garden_terrace"],
+          "wallet": 1243870,
+          "rate": 72,
+          "purchases": []
+        },
+        {
+          "day": 41,
+          "chapter": 11,
+          "inventory": 18,
+          "projects": ["study_nook", "lantern_evening", "garden_terrace"],
+          "wallet": 1347550,
+          "rate": 72,
+          "purchases": []
+        },
+        {
+          "day": 42,
+          "chapter": 12,
+          "inventory": 21,
+          "projects": ["study_nook", "lantern_evening", "garden_terrace"],
+          "wallet": 1435930,
+          "rate": 90,
+          "purchases": ["master_license", "omakase_menu", "golden_maneki_neko"]
+        }
+      ]
+    },
+    {
+      "gapHours": 12,
+      "final": {
+        "day": 42,
+        "chapter": 12,
+        "inventory": 21,
+        "projects": ["study_nook", "lantern_evening", "garden_terrace"],
+        "wallet": 1443130,
+        "rate": 90,
+        "purchases": ["master_license", "omakase_menu", "golden_maneki_neko"]
+      },
+      "ledger": [
+        {
+          "day": 0,
+          "chapter": 6,
+          "inventory": 0,
+          "projects": [],
+          "wallet": 0,
+          "rate": 10,
+          "purchases": []
+        },
+        {
+          "day": 0.5,
+          "chapter": 6,
+          "inventory": 3,
+          "projects": [],
+          "wallet": 6250,
+          "rate": 20,
+          "purchases": ["prep_counter", "salmon_nigiri", "paper_lantern"]
+        },
+        {
+          "day": 1,
+          "chapter": 6,
+          "inventory": 3,
+          "projects": [],
+          "wallet": 20650,
+          "rate": 20,
+          "purchases": []
+        },
+        {
+          "day": 1.5,
+          "chapter": 6,
+          "inventory": 3,
+          "projects": [],
+          "wallet": 35050,
+          "rate": 20,
+          "purchases": []
+        },
+        {
+          "day": 2,
+          "chapter": 6,
+          "inventory": 3,
+          "projects": [],
+          "wallet": 49450,
+          "rate": 20,
+          "purchases": []
+        },
+        {
+          "day": 2.5,
+          "chapter": 6,
+          "inventory": 3,
+          "projects": ["study_nook"],
+          "wallet": 3850,
+          "rate": 20,
+          "purchases": ["study_nook"]
+        },
+        {
+          "day": 3,
+          "chapter": 6,
+          "inventory": 3,
+          "projects": ["study_nook"],
+          "wallet": 18250,
+          "rate": 20,
+          "purchases": []
+        },
+        {
+          "day": 3.5,
+          "chapter": 6,
+          "inventory": 3,
+          "projects": ["study_nook"],
+          "wallet": 32650,
+          "rate": 20,
+          "purchases": []
+        },
+        {
+          "day": 4,
+          "chapter": 6,
+          "inventory": 3,
+          "projects": ["study_nook"],
+          "wallet": 47050,
+          "rate": 20,
+          "purchases": []
+        },
+        {
+          "day": 4.5,
+          "chapter": 6,
+          "inventory": 3,
+          "projects": ["study_nook"],
+          "wallet": 61450,
+          "rate": 20,
+          "purchases": []
+        },
+        {
+          "day": 5,
+          "chapter": 6,
+          "inventory": 3,
+          "projects": ["study_nook"],
+          "wallet": 75850,
+          "rate": 20,
+          "purchases": []
+        },
+        {
+          "day": 5.5,
+          "chapter": 6,
+          "inventory": 3,
+          "projects": ["study_nook"],
+          "wallet": 90250,
+          "rate": 20,
+          "purchases": []
+        },
+        {
+          "day": 6,
+          "chapter": 6,
+          "inventory": 3,
+          "projects": ["study_nook"],
+          "wallet": 104650,
+          "rate": 20,
+          "purchases": []
+        },
+        {
+          "day": 6.5,
+          "chapter": 6,
+          "inventory": 3,
+          "projects": ["study_nook"],
+          "wallet": 119050,
+          "rate": 20,
+          "purchases": []
+        },
+        {
+          "day": 7,
+          "chapter": 7,
+          "inventory": 6,
+          "projects": ["study_nook"],
+          "wallet": 130300,
+          "rate": 20,
+          "purchases": ["cap_extension_12h", "kappamaki", "potted_plant"]
+        },
+        {
+          "day": 7.5,
+          "chapter": 7,
+          "inventory": 6,
+          "projects": ["study_nook"],
+          "wallet": 144700,
+          "rate": 20,
+          "purchases": []
+        },
+        {
+          "day": 8,
+          "chapter": 7,
+          "inventory": 6,
+          "projects": ["study_nook"],
+          "wallet": 159100,
+          "rate": 20,
+          "purchases": []
+        },
+        {
+          "day": 8.5,
+          "chapter": 7,
+          "inventory": 6,
+          "projects": ["study_nook"],
+          "wallet": 173500,
+          "rate": 20,
+          "purchases": []
+        },
+        {
+          "day": 9,
+          "chapter": 7,
+          "inventory": 6,
+          "projects": ["study_nook"],
+          "wallet": 187900,
+          "rate": 20,
+          "purchases": []
+        },
+        {
+          "day": 9.5,
+          "chapter": 7,
+          "inventory": 6,
+          "projects": ["study_nook"],
+          "wallet": 202300,
+          "rate": 20,
+          "purchases": []
+        },
+        {
+          "day": 10,
+          "chapter": 7,
+          "inventory": 6,
+          "projects": ["study_nook"],
+          "wallet": 216700,
+          "rate": 20,
+          "purchases": []
+        },
+        {
+          "day": 10.5,
+          "chapter": 7,
+          "inventory": 6,
+          "projects": ["study_nook"],
+          "wallet": 231100,
+          "rate": 20,
+          "purchases": []
+        },
+        {
+          "day": 11,
+          "chapter": 7,
+          "inventory": 6,
+          "projects": ["study_nook"],
+          "wallet": 245500,
+          "rate": 20,
+          "purchases": []
+        },
+        {
+          "day": 11.5,
+          "chapter": 7,
+          "inventory": 6,
+          "projects": ["study_nook"],
+          "wallet": 259900,
+          "rate": 20,
+          "purchases": []
+        },
+        {
+          "day": 12,
+          "chapter": 7,
+          "inventory": 6,
+          "projects": ["study_nook"],
+          "wallet": 274300,
+          "rate": 20,
+          "purchases": []
+        },
+        {
+          "day": 12.5,
+          "chapter": 7,
+          "inventory": 6,
+          "projects": ["study_nook"],
+          "wallet": 288700,
+          "rate": 20,
+          "purchases": []
+        },
+        {
+          "day": 13,
+          "chapter": 7,
+          "inventory": 6,
+          "projects": ["study_nook"],
+          "wallet": 303100,
+          "rate": 20,
+          "purchases": []
+        },
+        {
+          "day": 13.5,
+          "chapter": 7,
+          "inventory": 6,
+          "projects": ["study_nook"],
+          "wallet": 317500,
+          "rate": 20,
+          "purchases": []
+        },
+        {
+          "day": 14,
+          "chapter": 8,
+          "inventory": 9,
+          "projects": ["study_nook", "lantern_evening"],
+          "wallet": 147700,
+          "rate": 22,
+          "purchases": ["precision_knife", "maguro_nigiri", "noren_curtain", "lantern_evening"]
+        },
+        {
+          "day": 14.5,
+          "chapter": 8,
+          "inventory": 9,
+          "projects": ["study_nook", "lantern_evening"],
+          "wallet": 163540,
+          "rate": 22,
+          "purchases": []
+        },
+        {
+          "day": 15,
+          "chapter": 8,
+          "inventory": 9,
+          "projects": ["study_nook", "lantern_evening"],
+          "wallet": 179380,
+          "rate": 22,
+          "purchases": []
+        },
+        {
+          "day": 15.5,
+          "chapter": 8,
+          "inventory": 9,
+          "projects": ["study_nook", "lantern_evening"],
+          "wallet": 195220,
+          "rate": 22,
+          "purchases": []
+        },
+        {
+          "day": 16,
+          "chapter": 8,
+          "inventory": 9,
+          "projects": ["study_nook", "lantern_evening"],
+          "wallet": 211060,
+          "rate": 22,
+          "purchases": []
+        },
+        {
+          "day": 16.5,
+          "chapter": 8,
+          "inventory": 9,
+          "projects": ["study_nook", "lantern_evening"],
+          "wallet": 226900,
+          "rate": 22,
+          "purchases": []
+        },
+        {
+          "day": 17,
+          "chapter": 8,
+          "inventory": 9,
+          "projects": ["study_nook", "lantern_evening"],
+          "wallet": 242740,
+          "rate": 22,
+          "purchases": []
+        },
+        {
+          "day": 17.5,
+          "chapter": 8,
+          "inventory": 9,
+          "projects": ["study_nook", "lantern_evening"],
+          "wallet": 258580,
+          "rate": 22,
+          "purchases": []
+        },
+        {
+          "day": 18,
+          "chapter": 8,
+          "inventory": 9,
+          "projects": ["study_nook", "lantern_evening"],
+          "wallet": 274420,
+          "rate": 22,
+          "purchases": []
+        },
+        {
+          "day": 18.5,
+          "chapter": 8,
+          "inventory": 9,
+          "projects": ["study_nook", "lantern_evening"],
+          "wallet": 290260,
+          "rate": 22,
+          "purchases": []
+        },
+        {
+          "day": 19,
+          "chapter": 8,
+          "inventory": 9,
+          "projects": ["study_nook", "lantern_evening"],
+          "wallet": 306100,
+          "rate": 22,
+          "purchases": []
+        },
+        {
+          "day": 19.5,
+          "chapter": 8,
+          "inventory": 9,
+          "projects": ["study_nook", "lantern_evening"],
+          "wallet": 321940,
+          "rate": 22,
+          "purchases": []
+        },
+        {
+          "day": 20,
+          "chapter": 8,
+          "inventory": 9,
+          "projects": ["study_nook", "lantern_evening"],
+          "wallet": 337780,
+          "rate": 22,
+          "purchases": []
+        },
+        {
+          "day": 20.5,
+          "chapter": 8,
+          "inventory": 9,
+          "projects": ["study_nook", "lantern_evening"],
+          "wallet": 353620,
+          "rate": 22,
+          "purchases": []
+        },
+        {
+          "day": 21,
+          "chapter": 9,
+          "inventory": 12,
+          "projects": ["study_nook", "lantern_evening"],
+          "wallet": 363760,
+          "rate": 44,
+          "purchases": ["conveyor_belt", "ebi_nigiri", "wave_print"]
+        },
+        {
+          "day": 21.5,
+          "chapter": 9,
+          "inventory": 12,
+          "projects": ["study_nook", "lantern_evening"],
+          "wallet": 395440,
+          "rate": 44,
+          "purchases": []
+        },
+        {
+          "day": 22,
+          "chapter": 9,
+          "inventory": 12,
+          "projects": ["study_nook", "lantern_evening"],
+          "wallet": 427120,
+          "rate": 44,
+          "purchases": []
+        },
+        {
+          "day": 22.5,
+          "chapter": 9,
+          "inventory": 12,
+          "projects": ["study_nook", "lantern_evening"],
+          "wallet": 458800,
+          "rate": 44,
+          "purchases": []
+        },
+        {
+          "day": 23,
+          "chapter": 9,
+          "inventory": 12,
+          "projects": ["study_nook", "lantern_evening"],
+          "wallet": 490480,
+          "rate": 44,
+          "purchases": []
+        },
+        {
+          "day": 23.5,
+          "chapter": 9,
+          "inventory": 12,
+          "projects": ["study_nook", "lantern_evening"],
+          "wallet": 522160,
+          "rate": 44,
+          "purchases": []
+        },
+        {
+          "day": 24,
+          "chapter": 9,
+          "inventory": 12,
+          "projects": ["study_nook", "lantern_evening"],
+          "wallet": 553840,
+          "rate": 44,
+          "purchases": []
+        },
+        {
+          "day": 24.5,
+          "chapter": 9,
+          "inventory": 12,
+          "projects": ["study_nook", "lantern_evening"],
+          "wallet": 585520,
+          "rate": 44,
+          "purchases": []
+        },
+        {
+          "day": 25,
+          "chapter": 9,
+          "inventory": 12,
+          "projects": ["study_nook", "lantern_evening"],
+          "wallet": 617200,
+          "rate": 44,
+          "purchases": []
+        },
+        {
+          "day": 25.5,
+          "chapter": 9,
+          "inventory": 12,
+          "projects": ["study_nook", "lantern_evening"],
+          "wallet": 648880,
+          "rate": 44,
+          "purchases": []
+        },
+        {
+          "day": 26,
+          "chapter": 9,
+          "inventory": 12,
+          "projects": ["study_nook", "lantern_evening"],
+          "wallet": 680560,
+          "rate": 44,
+          "purchases": []
+        },
+        {
+          "day": 26.5,
+          "chapter": 9,
+          "inventory": 12,
+          "projects": ["study_nook", "lantern_evening"],
+          "wallet": 712240,
+          "rate": 44,
+          "purchases": []
+        },
+        {
+          "day": 27,
+          "chapter": 9,
+          "inventory": 12,
+          "projects": ["study_nook", "lantern_evening"],
+          "wallet": 743920,
+          "rate": 44,
+          "purchases": []
+        },
+        {
+          "day": 27.5,
+          "chapter": 9,
+          "inventory": 12,
+          "projects": ["study_nook", "lantern_evening"],
+          "wallet": 775600,
+          "rate": 44,
+          "purchases": []
+        },
+        {
+          "day": 28,
+          "chapter": 10,
+          "inventory": 15,
+          "projects": ["study_nook", "lantern_evening", "garden_terrace"],
+          "wallet": 259330,
+          "rate": 48,
+          "purchases": ["service_counter", "tamago_nigiri", "andon_lantern", "garden_terrace"]
+        },
+        {
+          "day": 28.5,
+          "chapter": 10,
+          "inventory": 15,
+          "projects": ["study_nook", "lantern_evening", "garden_terrace"],
+          "wallet": 293890,
+          "rate": 48,
+          "purchases": []
+        },
+        {
+          "day": 29,
+          "chapter": 10,
+          "inventory": 15,
+          "projects": ["study_nook", "lantern_evening", "garden_terrace"],
+          "wallet": 328450,
+          "rate": 48,
+          "purchases": []
+        },
+        {
+          "day": 29.5,
+          "chapter": 10,
+          "inventory": 15,
+          "projects": ["study_nook", "lantern_evening", "garden_terrace"],
+          "wallet": 363010,
+          "rate": 48,
+          "purchases": []
+        },
+        {
+          "day": 30,
+          "chapter": 10,
+          "inventory": 15,
+          "projects": ["study_nook", "lantern_evening", "garden_terrace"],
+          "wallet": 397570,
+          "rate": 48,
+          "purchases": []
+        },
+        {
+          "day": 30.5,
+          "chapter": 10,
+          "inventory": 15,
+          "projects": ["study_nook", "lantern_evening", "garden_terrace"],
+          "wallet": 432130,
+          "rate": 48,
+          "purchases": []
+        },
+        {
+          "day": 31,
+          "chapter": 10,
+          "inventory": 15,
+          "projects": ["study_nook", "lantern_evening", "garden_terrace"],
+          "wallet": 466690,
+          "rate": 48,
+          "purchases": []
+        },
+        {
+          "day": 31.5,
+          "chapter": 10,
+          "inventory": 15,
+          "projects": ["study_nook", "lantern_evening", "garden_terrace"],
+          "wallet": 501250,
+          "rate": 48,
+          "purchases": []
+        },
+        {
+          "day": 32,
+          "chapter": 10,
+          "inventory": 15,
+          "projects": ["study_nook", "lantern_evening", "garden_terrace"],
+          "wallet": 535810,
+          "rate": 48,
+          "purchases": []
+        },
+        {
+          "day": 32.5,
+          "chapter": 10,
+          "inventory": 15,
+          "projects": ["study_nook", "lantern_evening", "garden_terrace"],
+          "wallet": 570370,
+          "rate": 48,
+          "purchases": []
+        },
+        {
+          "day": 33,
+          "chapter": 10,
+          "inventory": 15,
+          "projects": ["study_nook", "lantern_evening", "garden_terrace"],
+          "wallet": 604930,
+          "rate": 48,
+          "purchases": []
+        },
+        {
+          "day": 33.5,
+          "chapter": 10,
+          "inventory": 15,
+          "projects": ["study_nook", "lantern_evening", "garden_terrace"],
+          "wallet": 639490,
+          "rate": 48,
+          "purchases": []
+        },
+        {
+          "day": 34,
+          "chapter": 10,
+          "inventory": 15,
+          "projects": ["study_nook", "lantern_evening", "garden_terrace"],
+          "wallet": 674050,
+          "rate": 48,
+          "purchases": []
+        },
+        {
+          "day": 34.5,
+          "chapter": 10,
+          "inventory": 15,
+          "projects": ["study_nook", "lantern_evening", "garden_terrace"],
+          "wallet": 708610,
+          "rate": 48,
+          "purchases": []
+        },
+        {
+          "day": 35,
+          "chapter": 11,
+          "inventory": 18,
+          "projects": ["study_nook", "lantern_evening", "garden_terrace"],
+          "wallet": 732670,
+          "rate": 72,
+          "purchases": ["sous_chef", "sashimi_plate", "sakura_bonsai"]
+        },
+        {
+          "day": 35.5,
+          "chapter": 11,
+          "inventory": 18,
+          "projects": ["study_nook", "lantern_evening", "garden_terrace"],
+          "wallet": 784510,
+          "rate": 72,
+          "purchases": []
+        },
+        {
+          "day": 36,
+          "chapter": 11,
+          "inventory": 18,
+          "projects": ["study_nook", "lantern_evening", "garden_terrace"],
+          "wallet": 836350,
+          "rate": 72,
+          "purchases": []
+        },
+        {
+          "day": 36.5,
+          "chapter": 11,
+          "inventory": 18,
+          "projects": ["study_nook", "lantern_evening", "garden_terrace"],
+          "wallet": 888190,
+          "rate": 72,
+          "purchases": []
+        },
+        {
+          "day": 37,
+          "chapter": 11,
+          "inventory": 18,
+          "projects": ["study_nook", "lantern_evening", "garden_terrace"],
+          "wallet": 940030,
+          "rate": 72,
+          "purchases": []
+        },
+        {
+          "day": 37.5,
+          "chapter": 11,
+          "inventory": 18,
+          "projects": ["study_nook", "lantern_evening", "garden_terrace"],
+          "wallet": 991870,
+          "rate": 72,
+          "purchases": []
+        },
+        {
+          "day": 38,
+          "chapter": 11,
+          "inventory": 18,
+          "projects": ["study_nook", "lantern_evening", "garden_terrace"],
+          "wallet": 1043710,
+          "rate": 72,
+          "purchases": []
+        },
+        {
+          "day": 38.5,
+          "chapter": 11,
+          "inventory": 18,
+          "projects": ["study_nook", "lantern_evening", "garden_terrace"],
+          "wallet": 1095550,
+          "rate": 72,
+          "purchases": []
+        },
+        {
+          "day": 39,
+          "chapter": 11,
+          "inventory": 18,
+          "projects": ["study_nook", "lantern_evening", "garden_terrace"],
+          "wallet": 1147390,
+          "rate": 72,
+          "purchases": []
+        },
+        {
+          "day": 39.5,
+          "chapter": 11,
+          "inventory": 18,
+          "projects": ["study_nook", "lantern_evening", "garden_terrace"],
+          "wallet": 1199230,
+          "rate": 72,
+          "purchases": []
+        },
+        {
+          "day": 40,
+          "chapter": 11,
+          "inventory": 18,
+          "projects": ["study_nook", "lantern_evening", "garden_terrace"],
+          "wallet": 1251070,
+          "rate": 72,
+          "purchases": []
+        },
+        {
+          "day": 40.5,
+          "chapter": 11,
+          "inventory": 18,
+          "projects": ["study_nook", "lantern_evening", "garden_terrace"],
+          "wallet": 1302910,
+          "rate": 72,
+          "purchases": []
+        },
+        {
+          "day": 41,
+          "chapter": 11,
+          "inventory": 18,
+          "projects": ["study_nook", "lantern_evening", "garden_terrace"],
+          "wallet": 1354750,
+          "rate": 72,
+          "purchases": []
+        },
+        {
+          "day": 41.5,
+          "chapter": 11,
+          "inventory": 18,
+          "projects": ["study_nook", "lantern_evening", "garden_terrace"],
+          "wallet": 1406590,
+          "rate": 72,
+          "purchases": []
+        },
+        {
+          "day": 42,
+          "chapter": 12,
+          "inventory": 21,
+          "projects": ["study_nook", "lantern_evening", "garden_terrace"],
+          "wallet": 1443130,
+          "rate": 90,
+          "purchases": ["master_license", "omakase_menu", "golden_maneki_neko"]
+        }
+      ]
+    }
+  ]
+}

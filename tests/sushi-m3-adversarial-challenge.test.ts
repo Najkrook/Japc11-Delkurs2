@@ -212,8 +212,8 @@ test('M3-CHALLENGE-01: Exhaustive Catalog Integrity & Economic Constant Verifica
   }
 
   // Exact macroeconomic balance totals
-  assert.equal(totalYen, 48_000, 'Sum of all 21 items must equal exactly 48,000 Yen');
-  assert.equal(totalUnits, 2_880_000_000, 'Sum of units must equal exactly 2,880,000,000 units');
+  assert.equal(totalYen, 47_750, 'Sum of all 21 items must equal exactly 47,750 Yen');
+  assert.equal(totalUnits, 2_865_000_000, 'Sum of units must equal exactly 2,865,000,000 units');
 
   // Tier distributions and sums
   const bronze = SUSHI_CATALOG.filter((i) => i.requiredTier === 'bronze');
@@ -226,8 +226,8 @@ test('M3-CHALLENGE-01: Exhaustive Catalog Integrity & Economic Constant Verifica
 
   assert.equal(
     bronze.reduce((acc, i) => acc + i.priceYen, 0),
-    31_500,
-    'Bronze upgrades sum to 31,500 Yen',
+    31_250,
+    'Bronze upgrades sum to 31,250 Yen',
   );
   assert.equal(
     silver.reduce((acc, i) => acc + i.priceYen, 0),
@@ -266,11 +266,11 @@ test('M3-CHALLENGE-02: Prospective Rate Impact Oracle & master_license Math Veri
       // Current rate: orders * 10
       assert.equal(preview.currentRate.yenPerMinute, orders * 10);
 
-      // Prospective rate: orders * 15
-      assert.equal(preview.prospectiveRate.yenPerMinute, orders * 15);
+      // Prospective rate: orders * 13
+      assert.equal(preview.prospectiveRate.yenPerMinute, orders * 13);
 
-      // Yen delta: +5 yen per order -> orders * 5 yen/min
-      const expectedDelta = orders * 5;
+      // Yen delta: +5 yen per order -> orders * 3 yen/min
+      const expectedDelta = orders * 3;
       assert.equal(preview.yenDelta, expectedDelta, `master_license delta for orders=${orders}`);
 
       assert.equal(preview.hasImmediateEffect, true, 'Immediate rate increase');
@@ -282,8 +282,8 @@ test('M3-CHALLENGE-02: Prospective Rate Impact Oracle & master_license Math Veri
 
       // Educational explanation must explain +5 yen and rate delta
       assert.ok(
-        preview.educationalExplanation.includes('10 till 15 ¥/order'),
-        `Explanation should state 10 till 15: ${preview.educationalExplanation}`,
+        preview.educationalExplanation.includes('10 till 13 ¥/order'),
+        `Explanation should state 10 till 13: ${preview.educationalExplanation}`,
       );
       assert.ok(
         preview.educationalExplanation.includes(`+${expectedDelta} ¥/min`),
@@ -316,7 +316,7 @@ test('M3-CHALLENGE-02: Prospective Rate Impact Oracle & master_license Math Veri
   assert.equal(capPreview.hasImmediateEffect, true);
   assert.equal(capPreview.isBottleneckLimiting, false);
   assert.equal(capPreview.newCapMs, EXTENDED_CAP_MS);
-  assert.ok(capPreview.educationalExplanation.includes('+4 timmar'));
+  assert.ok(capPreview.educationalExplanation.includes('+24 timmar'));
 });
 
 // =============================================================================
@@ -628,8 +628,8 @@ test('M3-CHALLENGE-05: End-to-End Purchase Transaction Stress & Boundary Invaria
   assert.equal(expectedCap, EXTENDED_CAP_MS, 'Final cap must be 12 hours');
   assert.equal(
     expectedBalance,
-    (100_000 - 48_000) * YEN_UNIT_MULTIPLIER,
-    'Exactly 48,000 Yen spent',
+    (100_000 - 47_750) * YEN_UNIT_MULTIPLIER,
+    'Exactly 47,750 Yen spent',
   );
 
   // Final rate verification: K=6, S=6, A=15 -> 6 * 15 = 90 Yen/min
@@ -642,7 +642,7 @@ test('M3-CHALLENGE-05: End-to-End Purchase Transaction Stress & Boundary Invaria
   const poorStudentUid = 'poor-student';
   const poorInit = await service.getOrInitRestaurant(poorStudentUid, nowMs);
   poorInit.permanentGrants = ['prep_counter'];
-  poorInit.balanceUnits = 300 * YEN_UNIT_MULTIPLIER - 1; // 1 unit short of 300 yen
+  poorInit.balanceUnits = 50 * YEN_UNIT_MULTIPLIER - 1; // 1 unit short of 300 yen
   await repo.set(poorInit);
 
   const poorBuy = await service.purchaseCatalogItem(

@@ -11,8 +11,9 @@ export const YEN_UNIT_MULTIPLIER = 60_000; // 1 Yen = 60,000 internal units (1/6
 export const MS_PER_MINUTE = 60_000;
 export const MS_PER_HOUR = 3_600_000;
 
-export const DEFAULT_CAP_MS = 8 * MS_PER_HOUR; // 28,800,000 ms (8 hours)
-export const EXTENDED_CAP_MS = 12 * MS_PER_HOUR; // 43,200,000 ms (12 hours)
+export const DEFAULT_CAP_MS = 24 * MS_PER_HOUR;
+export const EXTENDED_CAP_MS = 48 * MS_PER_HOUR;
+export const CURRENT_BALANCE_VERSION = 2;
 
 export const DEFAULT_KITCHEN_CAPACITY = 1; // 1 order/min
 export const DEFAULT_SERVICE_CAPACITY = 2; // 2 orders/min
@@ -44,7 +45,7 @@ export interface SushiProcessedRequest {
 export interface SushiEconomyState {
   accountedAtMs: number; // Last timestamp accounting was evaluated
   usedProductionMs: number; // Cumulative productive ms consumed in current collection period
-  capMs: number; // Active cap in ms (e.g. 28,800,000 for 8h)
+  capMs: number; // Active cap in integer milliseconds (24h base, 48h extended).
   kitchenCapacity: number; // Kitchen throughput in orders/min
   serviceCapacity: number; // Service throughput in orders/min
   averageRevenuePerOrder: number; // Average revenue per order in whole yen
@@ -58,6 +59,10 @@ export interface SushiEconomyState {
  */
 export interface SushiRestaurantState extends SushiEconomyState {
   schemaVersion: number; // 1
+  /** Missing on restaurants created before the balance audit remedies. */
+  balanceVersion?: number;
+  /** Preserves a previously purchased license's revenue until new bonuses catch up. */
+  legacyRevenueFloor?: number;
   id: string; // Firebase Auth UID (same as ownerUid)
   ownerUid: string;
   createdAtMs: number;
@@ -65,6 +70,8 @@ export interface SushiRestaurantState extends SushiEconomyState {
   periodStartMs: number;
   permanentGrants: string[]; // Unlocked catalog item IDs earned from medals
   inventory: string[]; // Purchased catalog item IDs
+  /** Optional cosmetic savings goals; never required for course or catalog completion. */
+  completedProjects?: string[];
   equipped: SushiEquippedDecorations;
   activeRecipe: string; // e.g. 'basic_nigiri'
   processedRequests: Record<string, SushiProcessedRequest>;
@@ -109,7 +116,7 @@ export interface EconomyUpgrade {
   kitchenCapacityDelta?: number;
   serviceCapacityDelta?: number;
   averageRevenueDelta?: number;
-  newCapMs?: number; // e.g. 43,200,000 for 12h
+  newCapMs?: number;
 }
 
 export interface UpgradeSuccessResult {

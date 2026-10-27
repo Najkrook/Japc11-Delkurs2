@@ -688,13 +688,17 @@ test('Ticket 04 UI: SushiClientController handles accrual recalculation, cap cla
   assert.equal(after30m.currentUsedProductionMs, 30 * 60 * 1000);
   assert.equal(after30m.isCapped, false);
 
-  // Simulate 10 hours elapsed (capped at 8h = 4,800 yen)
+  // A ten-hour absence now remains productive; a thirty-hour gap reaches the 24h cap.
   controller.clientReceivedAtMs = Date.now() - 10 * 3600 * 1000;
   const after10h = controller.recalculate();
-  assert.equal(after10h.displayedUncollectedYen, 4800);
-  assert.equal(after10h.currentUsedProductionMs, 8 * 3600 * 1000);
-  assert.equal(after10h.isCapped, true);
-  assert.equal(after10h.progressPercent, 100);
+  assert.equal(after10h.displayedUncollectedYen, 6000);
+  assert.equal(after10h.isCapped, false);
+  controller.clientReceivedAtMs = Date.now() - 30 * 3600 * 1000;
+  const after30h = controller.recalculate();
+  assert.equal(after30h.displayedUncollectedYen, 14400);
+  assert.equal(after30h.currentUsedProductionMs, 24 * 3600 * 1000);
+  assert.equal(after30h.isCapped, true);
+  assert.equal(after30h.progressPercent, 100);
 
   // Reset clears state
   controller.reset();
@@ -757,7 +761,7 @@ test('Ticket 05 UI: Unlocked item displays "Upplåst köpmöjlighet" and price h
     'Badge text must indicate unlocked purchase eligibility',
   );
   assert.ok(
-    html.includes('Pris i butik: ¥ 300'),
+    html.includes('Pris i butik: ¥ 50'),
     'Price hint in yen must be clearly indicated for unlocked item',
   );
 });
@@ -1069,8 +1073,8 @@ test('Ticket 06 & 07 UI: Scene placeholder displays visual equipment badges for 
   assert.ok(html.includes('Transportband (+2 service)'));
 });
 
-test('Ticket 08 UI: Dynamic cap badges and active indicator display for 8h standard vs 12h extended cap', async () => {
-  const uidStandard = 'student-cap-8h';
+test('Ticket 08 UI: Dynamic cap badges and active indicator display for 24h standard vs 48h extended cap', async () => {
+  const uidStandard = 'student-cap-24h';
   const hostStandard = createMockHost({
     user: { uid: uidStandard, displayName: 'Aoi' },
   });
@@ -1079,11 +1083,15 @@ test('Ticket 08 UI: Dynamic cap badges and active indicator display for 8h stand
   await renderLoadedShell(hostStandard, () => {});
   await new Promise((r) => setTimeout(r, 20));
   const htmlStandard = renderTemplateToString(await renderLoadedShell(hostStandard, () => {}));
-  assert.ok(htmlStandard.includes('sushi-cap-badge-8h'), '8h badge must be shown on standard cap');
-  assert.ok(!htmlStandard.includes('sushi-cap-active-badge'), 'No active indicator on 8h cap');
+  assert.ok(htmlStandard.includes('sushi-cap-badge-standard'), 'Standard badge must be shown');
+  assert.ok(htmlStandard.includes('24h kassa'), 'Standard badge must state the actual 24h cap');
+  assert.ok(
+    !htmlStandard.includes('sushi-cap-active-badge'),
+    'No active indicator on standard cap',
+  );
 
   // Extended cap user
-  const uidExtended = 'student-cap-12h';
+  const uidExtended = 'student-cap-48h';
   const hostExtended = createMockHost({
     user: { uid: uidExtended, displayName: 'Maki' },
   });
@@ -1092,7 +1100,7 @@ test('Ticket 08 UI: Dynamic cap badges and active indicator display for 8h stand
   await repo.transaction(uidExtended, async (current) => ({
     state: {
       ...current!,
-      capMs: 43_200_000,
+      capMs: 48 * 3_600_000,
       inventory: ['cap_extension_12h'],
     },
     result: null,
@@ -1101,18 +1109,16 @@ test('Ticket 08 UI: Dynamic cap badges and active indicator display for 8h stand
   await renderLoadedShell(hostExtended, () => {});
   await new Promise((r) => setTimeout(r, 20));
   const htmlExtended = renderTemplateToString(await renderLoadedShell(hostExtended, () => {}));
-  assert.ok(
-    htmlExtended.includes('sushi-cap-badge-12h'),
-    '12h badge must be shown on extended cap',
-  );
+  assert.ok(htmlExtended.includes('sushi-cap-badge-extended'), 'Extended badge must be shown');
   assert.ok(
     htmlExtended.includes('sushi-cap-active-badge'),
-    'Active indicator must be shown on 12h cap',
+    'Active indicator must be shown on 48h cap',
   );
-  assert.ok(htmlExtended.includes('Ny produktionstid aktiv! (12 timmar max)'));
+  assert.ok(htmlExtended.includes('48h kassa'));
+  assert.ok(htmlExtended.includes('48 timmar'));
   assert.ok(
     htmlExtended.includes('scene-cap-extension'),
-    '12h cap equipment badge must appear in scene',
+    'Extended cap equipment badge must appear in scene',
   );
 });
 
@@ -1146,9 +1152,10 @@ test('Ticket 06 UI: Controller buy() executes purchase, debits funds, and update
   assert.equal(controller.buyError, null);
   assert.ok(controller.state?.inventory.includes('prep_counter'));
   assert.equal(controller.state?.kitchenCapacity, 3);
-  assert.ok(
-    controller.announcement.includes('Köp genomfört: Förbättrad beredningsbänk för ¥ 300!'),
-  );
+  assert.ok(controller.announcement.includes('Köp genomfört: Förbättrad beredningsbänk för ¥ 50!'));
+  assert.equal(controller.state?.balanceUnits, 950 * 60_000);
+  assert.match(controller.announcement, /från 10 till 20 ¥\/min/);
+  assert.doesNotMatch(controller.announcement, /till 5 ordrar/);
 
   controller.reset();
 });
