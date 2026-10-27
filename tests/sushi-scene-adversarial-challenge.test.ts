@@ -1,5 +1,5 @@
 /**
- * Adversarial Challenge Suite: 2:1 Dimetric Pixel-Art Scene, Catalog Items & Layering
+ * Adversarial Challenge Suite: State-driven Vector Scene, Catalog Items & Placement
  * Challenger 2 Verification Harness for Milestone 2
  */
 
@@ -87,7 +87,12 @@ const RECIPE_IDS = [
 ] as const;
 
 const WALL_DECOR_IDS = ['paper_lantern', 'wave_print', 'noren_curtain'] as const;
-const FLOOR_DECOR_IDS = ['potted_plant', 'andon_lantern', 'sakura_bonsai', 'golden_maneki_neko'] as const;
+const FLOOR_DECOR_IDS = [
+  'potted_plant',
+  'andon_lantern',
+  'sakura_bonsai',
+  'golden_maneki_neko',
+] as const;
 
 const EXPECTED_TESTIDS: Record<string, string> = {
   // Equipment (7)
@@ -119,10 +124,10 @@ const EXPECTED_TESTIDS: Record<string, string> = {
 };
 
 // ============================================================================
-// CHALLENGE 1: Crisp Pixel-Art Attributes & Master Catalog Completeness
+// CHALLENGE 1: Vector Artwork & Master Catalog Completeness
 // ============================================================================
 
-test('CHALLENGE 1: Crisp Pixel-Art attributes and 21 catalog items exist in SUSHI_CATALOG', () => {
+test('CHALLENGE 1: Layered pixel-art scene and 21 catalog items exist in SUSHI_CATALOG', () => {
   assert.equal(SUSHI_CATALOG.length, 21, 'Master catalog must contain exactly 21 items');
 
   const catalogIds = new Set(SUSHI_CATALOG.map((item) => item.id));
@@ -130,13 +135,15 @@ test('CHALLENGE 1: Crisp Pixel-Art attributes and 21 catalog items exist in SUSH
     assert.ok(catalogIds.has(id as any), `Master catalog must define ${id}`);
   }
 
-  // Baseline scene SVG crisp rendering
+  // Baseline scene contains only state-driven vector geometry
   const emptyState = createBaseState();
   const svgHtml = renderTemplateToString(renderRestaurantScene(emptyState));
 
-  assert.ok(svgHtml.includes('shape-rendering="crispEdges"'), 'Scene must enforce shape-rendering="crispEdges"');
-  assert.ok(svgHtml.includes('image-rendering: pixelated;'), 'Scene must enforce image-rendering: pixelated');
-  assert.ok(svgHtml.includes('data-testid="art-tatami_mat"'), 'Scene must always render art-tatami_mat');
+  assert.ok(
+    svgHtml.includes('/sprites/sushi/starter-room.png'),
+    'Scene loads the empty starter room',
+  );
+  assert.ok(!svgHtml.includes('sakura_sushi_scene.png'), 'The pre-furnished mockup is not used');
 });
 
 // ============================================================================
@@ -165,7 +172,7 @@ test('CHALLENGE 2A: 0 items owned (baseline restaurant)', () => {
     );
   }
 
-  // No decor testids rendered (except tatami_mat)
+  // No decor testids rendered
   for (const id of [...WALL_DECOR_IDS, ...FLOOR_DECOR_IDS]) {
     const testId = EXPECTED_TESTIDS[id];
     assert.ok(
@@ -173,9 +180,6 @@ test('CHALLENGE 2A: 0 items owned (baseline restaurant)', () => {
       `Baseline must not render unequipped/unowned decor: ${testId}`,
     );
   }
-
-  // Tatami mat always present
-  assert.ok(svgHtml.includes('data-testid="art-tatami_mat"'), 'Tatami mat must always be in scene');
 });
 
 test('CHALLENGE 2B: 1 item owned individually (all 21 items tested one by one)', () => {
@@ -260,13 +264,6 @@ test('CHALLENGE 2B: 1 item owned individually (all 21 items tested one by one)',
       `When equipped in floorSlot, ${testId} must render`,
     );
 
-    if (floorId === 'sakura_bonsai') {
-      assert.ok(
-        svgHtml.includes('data-testid="art-bonsai_tree"'),
-        'sakura_bonsai must include art-bonsai_tree alias',
-      );
-    }
-
     for (const otherFloor of FLOOR_DECOR_IDS) {
       if (otherFloor !== floorId) {
         assert.ok(
@@ -279,12 +276,7 @@ test('CHALLENGE 2B: 1 item owned individually (all 21 items tested one by one)',
 });
 
 test('CHALLENGE 2C: Full Inventory (All 21 items owned simultaneously)', () => {
-  const allInventory = [
-    ...EQUIPMENT_IDS,
-    ...RECIPE_IDS,
-    ...WALL_DECOR_IDS,
-    ...FLOOR_DECOR_IDS,
-  ];
+  const allInventory = [...EQUIPMENT_IDS, ...RECIPE_IDS, ...WALL_DECOR_IDS, ...FLOOR_DECOR_IDS];
 
   // Test wall & floor combinations
   for (const wallId of WALL_DECOR_IDS) {
@@ -322,7 +314,6 @@ test('CHALLENGE 2C: Full Inventory (All 21 items owned simultaneously)', () => {
       );
 
       // Tatami mat MUST render
-      assert.ok(svgHtml.includes('data-testid="art-tatami_mat"'), 'Tatami mat must render');
     }
   }
 });
@@ -342,12 +333,14 @@ test('CHALLENGE 2D: Fuzzing random subsets of inventory & equipment (100 pseudo-
     const ownedWalls = WALL_DECOR_IDS.filter((w) => subset.includes(w));
     const ownedFloors = FLOOR_DECOR_IDS.filter((f) => subset.includes(f));
 
-    const wallSlot = ownedWalls.length > 0 && rnd() > 0.3
-      ? ownedWalls[Math.floor(rnd() * ownedWalls.length)]
-      : null;
-    const floorSlot = ownedFloors.length > 0 && rnd() > 0.3
-      ? ownedFloors[Math.floor(rnd() * ownedFloors.length)]
-      : null;
+    const wallSlot =
+      ownedWalls.length > 0 && rnd() > 0.3
+        ? ownedWalls[Math.floor(rnd() * ownedWalls.length)]
+        : null;
+    const floorSlot =
+      ownedFloors.length > 0 && rnd() > 0.3
+        ? ownedFloors[Math.floor(rnd() * ownedFloors.length)]
+        : null;
 
     const state = createBaseState({
       inventory: subset,
@@ -361,9 +354,15 @@ test('CHALLENGE 2D: Fuzzing random subsets of inventory & equipment (100 pseudo-
       const isOwned = subset.includes(eqId);
       const testId = EXPECTED_TESTIDS[eqId];
       if (isOwned) {
-        assert.ok(svgHtml.includes(`data-testid="${testId}"`), `Iter ${iter}: ${testId} should render`);
+        assert.ok(
+          svgHtml.includes(`data-testid="${testId}"`),
+          `Iter ${iter}: ${testId} should render`,
+        );
       } else {
-        assert.ok(!svgHtml.includes(`data-testid="${testId}"`), `Iter ${iter}: ${testId} should NOT render`);
+        assert.ok(
+          !svgHtml.includes(`data-testid="${testId}"`),
+          `Iter ${iter}: ${testId} should NOT render`,
+        );
       }
     }
 
@@ -372,9 +371,15 @@ test('CHALLENGE 2D: Fuzzing random subsets of inventory & equipment (100 pseudo-
       const isOwned = subset.includes(recId);
       const testId = EXPECTED_TESTIDS[recId];
       if (isOwned) {
-        assert.ok(svgHtml.includes(`data-testid="${testId}"`), `Iter ${iter}: ${testId} should render`);
+        assert.ok(
+          svgHtml.includes(`data-testid="${testId}"`),
+          `Iter ${iter}: ${testId} should render`,
+        );
       } else {
-        assert.ok(!svgHtml.includes(`data-testid="${testId}"`), `Iter ${iter}: ${testId} should NOT render`);
+        assert.ok(
+          !svgHtml.includes(`data-testid="${testId}"`),
+          `Iter ${iter}: ${testId} should NOT render`,
+        );
       }
     }
 
@@ -395,40 +400,22 @@ test('CHALLENGE 2D: Fuzzing random subsets of inventory & equipment (100 pseudo-
 });
 
 // ============================================================================
-// CHALLENGE 3: Strict Layer 2 Customer Stools vs Layer 3 Equipment Precedence
+// CHALLENGE 3: Decoration placement and removal
 // ============================================================================
 
-test('CHALLENGE 3: Strict Layer 2 customer stools contract fill="#e4b77e" strictly precedes Layer 3 equipment', () => {
-  const allEquipmentAndRecipes = [...EQUIPMENT_IDS, ...RECIPE_IDS];
-  const state = createBaseState({ inventory: allEquipmentAndRecipes });
-  const svgHtml = renderTemplateToString(renderRestaurantScene(state));
-
-  // Find fill="#e4b77e"
-  const stoolFillIdx = svgHtml.indexOf('fill="#e4b77e"');
-  assert.ok(stoolFillIdx !== -1, 'fill="#e4b77e" must be present in rendered SVG');
-
-  // Find the LAST occurrence of fill="#e4b77e" (there are 3 stools)
-  const lastStoolFillIdx = svgHtml.lastIndexOf('fill="#e4b77e"');
-  assert.ok(lastStoolFillIdx !== -1);
-
-  // Layer 3 equipment and recipes must all appear strictly AFTER the stools
-  for (const eqId of EQUIPMENT_IDS) {
-    const testId = EXPECTED_TESTIDS[eqId];
-    const elemIdx = svgHtml.indexOf(`data-testid="${testId}"`);
-    assert.ok(elemIdx !== -1, `${testId} must exist in full inventory render`);
+test('CHALLENGE 3: Removing a decoration restores the undecorated scene', () => {
+  for (const id of [...WALL_DECOR_IDS, ...FLOOR_DECOR_IDS]) {
+    const slot = WALL_DECOR_IDS.includes(id as any) ? 'wallSlot' : 'floorSlot';
+    const state = createBaseState({ inventory: [id] });
+    const before = renderTemplateToString(renderRestaurantScene(state));
+    state.equipped[slot] = id;
+    const placed = renderTemplateToString(renderRestaurantScene(state));
+    assert.notEqual(placed, before, 'Placement must change the actual scene');
+    state.equipped[slot] = null;
+    assert.equal(renderTemplateToString(renderRestaurantScene(state)), before);
     assert.ok(
-      lastStoolFillIdx < elemIdx,
-      `Layer 2 customer stool (pos ${lastStoolFillIdx}) must strictly precede Layer 3 ${testId} (pos ${elemIdx})`,
-    );
-  }
-
-  for (const recId of RECIPE_IDS) {
-    const testId = EXPECTED_TESTIDS[recId];
-    const elemIdx = svgHtml.indexOf(`data-testid="${testId}"`);
-    assert.ok(elemIdx !== -1, `${testId} must exist in full inventory render`);
-    assert.ok(
-      lastStoolFillIdx < elemIdx,
-      `Layer 2 customer stool (pos ${lastStoolFillIdx}) must strictly precede Layer 3 recipe ${testId} (pos ${elemIdx})`,
+      !before.includes('sakura_sushi_scene.png'),
+      'No pre-furnished mockup remains after removal',
     );
   }
 });
@@ -537,12 +524,30 @@ test('CHALLENGE 5: Accessibility tree carries correct title, desc and dynamic Sw
 
   const upgradedHtml = renderTemplateToString(renderRestaurantScene(upgradedState));
 
-  assert.ok(upgradedHtml.includes('Förbättrad beredningsbänk'), 'Desc reflects Förbättrad beredningsbänk');
-  assert.ok(upgradedHtml.includes('Transportband installerat'), 'Desc reflects Transportband installerat');
-  assert.ok(upgradedHtml.includes('Precisionskniv vid beredningsbänken.'), 'Desc reflects Precisionskniv');
-  assert.ok(upgradedHtml.includes('Uppgraderad serveringsdisk.'), 'Desc reflects Uppgraderad serveringsdisk');
-  assert.ok(upgradedHtml.includes('Assisterande souschef i köket.'), 'Desc reflects Assisterande souschef');
-  assert.ok(upgradedHtml.includes('Inramad mästarlicens på väggen.'), 'Desc reflects Inramad mästarlicens');
+  assert.ok(
+    upgradedHtml.includes('Förbättrad beredningsbänk'),
+    'Desc reflects Förbättrad beredningsbänk',
+  );
+  assert.ok(
+    upgradedHtml.includes('Transportband installerat'),
+    'Desc reflects Transportband installerat',
+  );
+  assert.ok(
+    upgradedHtml.includes('Precisionskniv vid beredningsbänken.'),
+    'Desc reflects Precisionskniv',
+  );
+  assert.ok(
+    upgradedHtml.includes('Uppgraderad serveringsdisk.'),
+    'Desc reflects Uppgraderad serveringsdisk',
+  );
+  assert.ok(
+    upgradedHtml.includes('Assisterande souschef i köket.'),
+    'Desc reflects Assisterande souschef',
+  );
+  assert.ok(
+    upgradedHtml.includes('Inramad mästarlicens på väggen.'),
+    'Desc reflects Inramad mästarlicens',
+  );
   assert.ok(upgradedHtml.includes('Laxnigiri på disken.'), 'Desc reflects Laxnigiri');
   assert.ok(upgradedHtml.includes('Kappamaki på disken.'), 'Desc reflects Kappamaki');
   assert.ok(upgradedHtml.includes('Tonfisknigiri på disken.'), 'Desc reflects Tonfisknigiri');

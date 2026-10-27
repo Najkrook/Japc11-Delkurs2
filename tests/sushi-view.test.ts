@@ -476,7 +476,10 @@ test('F22-T1: Semantic landmark roles and accessibility attributes are correctly
   );
   assert.ok(authHtml.includes('class="sushi-topbar"'), 'Topbar header must be present');
   assert.ok(authHtml.includes('class="sushi-main"'), 'Main content must be present');
-  assert.ok(authHtml.includes('lang="ja"'), 'Sushi title must declare Japanese language attribute');
+  assert.ok(
+    !authHtml.includes('class="sushi-title" lang="ja"'),
+    'Swedish heading must inherit the page language',
+  );
 });
 
 test('F22-T2: All interactive buttons are semantic button[type="button"] with test IDs', async () => {
@@ -488,7 +491,7 @@ test('F22-T2: All interactive buttons are semantic button[type="button"] with te
   // Asserting key buttons have type="button" and respective classes/test IDs
   assert.ok(html.includes('class="sushi-back-btn"'));
   assert.ok(html.includes('data-testid="sushi-back-to-studies"'));
-  assert.ok(html.includes('class="sushi-icon-btn"'));
+  assert.ok(html.includes('class="sushi-icon-btn sushi-symbol-btn"'));
   assert.ok(html.includes('class="sushi-account-btn logged-in"'));
   assert.ok(html.includes('data-testid="sushi-stage-back-btn"'));
 });
@@ -1259,7 +1262,7 @@ test('Milestone 3 UI: SushiClientController manages overlay visibility and categ
   assert.equal(controller.shopCategoryFilter, 'all');
 });
 
-test('Milestone 3 UI: Viewport locking and pixel styling contracts are declared in sushi.css', async () => {
+test('Milestone 3 UI: Scrollable viewport and pixel styling contracts are declared in sushi.css', async () => {
   const cssPath = resolve(process.cwd(), 'src/course/sushi-game/sushi.css');
   const cssContent = readFileSync(cssPath, 'utf8');
 
@@ -1269,7 +1272,11 @@ test('Milestone 3 UI: Viewport locking and pixel styling contracts are declared 
     cssContent.includes('position: fixed'),
     'CSS must fix the shell position to the viewport',
   );
-  assert.ok(cssContent.includes('overflow: hidden'), 'CSS must prevent document level scrollbars');
+  assert.match(
+    cssContent,
+    /\.sushi-main\s*\{[^}]*overflow-y: auto/s,
+    'Game content must remain scrollable',
+  );
 
   // Authentic Typography (@fontsource/dotgothic16)
   assert.ok(cssContent.includes('@fontsource/dotgothic16'), 'CSS must import DotGothic16');

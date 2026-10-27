@@ -1,0 +1,35 @@
+UI checks (actual rendered lit templates; frozen clock):
+{"name":"Empty register shows zero","pass":false,"actual":"¥ 6,280"}
+{"name":"Nonempty register shows actual seven yen","pass":true,"actual":"¥ 7"}
+{"name":"Collected register shows zero","pass":false,"actual":"¥ 6,280"}
+{"name":"Rate is not screen-reader-only","pass":false}
+{"name":"Cap and full-register warning are not screen-reader-only","pass":false,"warningRendered":true}
+Collection accounting: PASS, seven yen moved once; register is zero.
+Chronological bronze purchases through real domain service:
+{"item":"prep_counter","rate":20,"delta":10,"bottleneckWarning":false}
+{"item":"cap_extension_12h","rate":20,"delta":0,"bottleneckWarning":false}
+{"item":"precision_knife","rate":20,"delta":0,"bottleneckWarning":true}
+{"item":"conveyor_belt","rate":40,"delta":20,"bottleneckWarning":false}
+{"item":"service_counter","rate":40,"delta":0,"bottleneckWarning":true}
+{"item":"sous_chef","rate":60,"delta":20,"bottleneckWarning":false}
+{"item":"master_license","rate":90,"delta":30,"bottleneckWarning":false}
+Catalog totals: {"byCategory":{"kitchen":9900,"recipe":11400,"decoration":5100,"cap":1800,"service":9000,"revenue":10800},"total":48000,"recipesWithoutRateEffect":7}
+{"uiFailures":4,"uiChecks":5}
+node:internal/modules/run_main:107
+    triggerUncaughtException(
+    ^
+
+AssertionError [ERR_ASSERTION]: UI regressions reproduced
+
+4 !== 0
+
+    at file:///C:/Users/Najk/Documents/ChatGPT/Japc11-Delkurs2/docs/sushi-game/audit-investigation.mjs:86:52 {
+  generatedMessage: false,
+  code: 'ERR_ASSERTION',
+  actual: 4,
+  expected: 0,
+  operator: 'strictEqual',
+  diff: 'simple'
+}
+
+Node.js v24.14.1

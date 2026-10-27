@@ -1,5 +1,5 @@
 import { html, svg, type TemplateResult } from 'lit-html';
-import { renderRestaurantScene } from './restaurant-scene.ts';
+import { renderRestaurantScene, SUSHI_SPRITES, spriteStyle } from './restaurant-scene.ts';
 import type { CourseHostContext, CourseProgressData } from '../types.ts';
 import { courseWeeks } from '../data/index.ts';
 import { calculateProductionRate, unitsToWholeYen } from './economy.ts';
@@ -91,6 +91,28 @@ async function waitForStudySync(host: CourseHostContext | null, uid: string): Pr
  * visibility throttling, and manual revenue collection.
  */
 export class SushiClientController {
+  public greetingIndex = -1;
+  public rewardMessage = '';
+  private rewardTimer: ReturnType<typeof setTimeout> | null = null;
+  public greet(): void {
+    this.greetingIndex = (this.greetingIndex + 1) % 3;
+    this.host?.render();
+  }
+  public dismissGreeting(): void {
+    this.greetingIndex = -1;
+    this.host?.render();
+  }
+  private celebrate(message: string): void {
+    if (this.rewardTimer) clearTimeout(this.rewardTimer);
+    this.rewardMessage = message;
+    this.rewardTimer = setTimeout(() => {
+      this.rewardMessage = '';
+      this.rewardTimer = null;
+      this.host?.render();
+    }, 3200);
+    if (typeof this.rewardTimer === 'object' && 'unref' in this.rewardTimer)
+      this.rewardTimer.unref();
+  }
   public isEquipping = false;
   public equipError: string | null = null;
   private equipRequest: { slot: string; itemId: string | null; key: string } | null = null;
@@ -239,6 +261,10 @@ export class SushiClientController {
   }
 
   public reset(): void {
+    if (this.rewardTimer) clearTimeout(this.rewardTimer);
+    this.rewardTimer = null;
+    this.rewardMessage = '';
+    this.greetingIndex = -1;
     this.isEquipping = false;
     this.equipError = null;
     this.equipRequest = null;
@@ -437,6 +463,7 @@ export class SushiClientController {
       if (this.uid === activeUid && this.generation === generation) {
         this.state = res.state;
         this.clientReceivedAtMs = Date.now();
+        this.celebrate(`+ ¥ ${res.collectedYen}`);
         this.idempotencyKey = null; // Key succeeded; reset for next collection
         this.isCollecting = false;
         this.announcement = `Hämtade ${res.collectedYen} yen. Nytt saldo: ${unitsToWholeYen(
@@ -499,6 +526,7 @@ export class SushiClientController {
         if (res.success) {
           this.state = res.state;
           this.clientReceivedAtMs = Date.now();
+          this.celebrate(`Nyhet! ${item.name}`);
           const preview = previewCatalogPurchase(res.state, itemId);
           const feedback = preview?.educationalExplanation || item.effectDescription;
           this.announcement = `Köp genomfört: ${item.name} för ¥ ${item.priceYen}! ${feedback}`;
@@ -740,10 +768,17 @@ function renderSushiAuthenticatedStage(
       ? state.permanentGrants.filter((g) => SUSHI_UNLOCK_CATALOG.some((c) => c.id === g)).length
       : 0;
 
-  const customersServed = Math.min(18, 10 + state.kitchenCapacity + state.serviceCapacity - 1);
-  const displaySalesYen = displayedUncollectedYen > 0 ? displayedUncollectedYen : 6280;
-  const totalServedCount = 25 + state.kitchenCapacity + state.serviceCapacity;
-  const ratingNum = (4.6 + state.inventory.length * 0.02).toFixed(1).split('.');
+  const nextGoal =
+    SUSHI_CATALOG.find(
+      (item) => !state.inventory.includes(item.id) && state.permanentGrants.includes(item.id),
+    ) ?? SUSHI_CATALOG.find((item) => !state.inventory.includes(item.id));
+  const goalUnlocked = nextGoal ? state.permanentGrants.includes(nextGoal.id) : false;
+  const phrases = [
+    { ja: 'いらっしゃいませ！', reading: 'Irasshaimase!', sv: 'Välkommen in!' },
+    { ja: 'いただきます！', reading: 'Itadakimasu!', sv: 'Tack för maten — innan vi äter.' },
+    { ja: 'おいしいです！', reading: 'Oishii desu!', sv: 'Det är gott!' },
+  ];
+  const phrase = phrases[activeController.greetingIndex];
   const formatTightComma = (n: number) => {
     const parts = n.toLocaleString('en-US').split(',');
     return parts.map((p, idx) =>
@@ -754,7 +789,7 @@ function renderSushiAuthenticatedStage(
   return html`
     <div class="sushi-container" data-testid="sushi-container">
       <section class="sushi-stage" data-testid="sushi-stage" aria-label="Personlig sushirestaurang">
-        <!-- Flytande HUD-lager: Plaketter för saldo (Funds) och dagens statistik (Today's Stats) -->
+        <!-- Saldo och aktuell produktion -->
         <div class="sushi-hud-floating-layer">
           <div class="sushi-stage-header" data-testid="sushi-stage-header">
             <h2 class="sr-only">Välkommen, ${displayName}!</h2>
@@ -762,7 +797,7 @@ function renderSushiAuthenticatedStage(
               <span class="sr-only sushi-plaque-icon"
                 >${renderPixelIcon('coins')} Disponibelt saldo: ¥ ${spendableYen}</span
               >
-              <span class="sushi-funds-label" aria-hidden="true">Funds</span>
+              <span class="sushi-funds-label" aria-hidden="true">Disponibelt saldo</span>
               <strong class="sushi-balance-amount" aria-hidden="true"
                 >¥ ${formatTightComma(spendableYen)}</strong
               >
@@ -773,47 +808,15 @@ function renderSushiAuthenticatedStage(
             </p>
           </div>
 
-          <!-- Top-Right Plaque: Today's Stats (matching Sushi_game.png) -->
-          <div class="sushi-stats-plaque" aria-hidden="true">
-            <div class="sushi-stats-header">
-              Today<span class="sushi-apos">'</span>s Stats
-            </div>
-            <div class="sushi-stats-row">
-              <span class="sushi-stats-label">Customers</span>
-              <strong class="sushi-stats-val">${customersServed} / 18</strong>
-            </div>
-            <div class="sushi-stats-row">
-              <span class="sushi-stats-label">Sales</span>
-              <strong class="sushi-stats-val">¥ ${formatTightComma(displaySalesYen)}</strong>
-            </div>
-            <div class="sushi-stats-row">
-              <span class="sushi-stats-label">Served</span>
-              <strong class="sushi-stats-val">${totalServedCount}</strong>
-            </div>
-            <div class="sushi-stats-row">
-              <span class="sushi-stats-label">Rating</span>
-              <strong class="sushi-stats-val"
-                >${ratingNum[0]}<span class="sushi-comma">,</span>${ratingNum[1]}</strong
-              >
-            </div>
+          <!-- Aktuell produktion och flaskhals -->
+          <div class="sushi-rate-bar" data-testid="sushi-rate-info">
+            <span aria-hidden="true">${renderPixelIcon('coins')}</span>
+            <strong>${rate.yenPerMinute} ¥/min</strong>
+            <span class="sr-only"
+              >Intäktstakt: Kök: ${state.kitchenCapacity} ord/min · Service:
+              ${state.serviceCapacity} ord/min · ${bottleneckText}</span
+            >
           </div>
-
-          <!-- Takt och flaskhals (Ticket 04) bevarad för skärmläsare och tester -->
-          <div class="sushi-rate-bar pixel-panel sr-only" data-testid="sushi-rate-info">
-            <span>Intäktstakt: <strong>${rate.yenPerMinute} ¥/min</strong></span>
-            <span class="sushi-bottleneck-tag ${rate.bottleneck === 'kitchen' ? 'tag-warn' : ''}">
-              Kök: ${state ? state.kitchenCapacity : 1} ord/min
-              ${rate.bottleneck === 'kitchen' ? '(Flaskhals)' : ''}
-            </span>
-            <span class="sushi-bottleneck-tag ${rate.bottleneck === 'service' ? 'tag-warn' : ''}">
-              Service: ${state ? state.serviceCapacity : 2} ord/min
-              ${rate.bottleneck === 'service' ? '(Flaskhals)' : ''}
-            </span>
-            <span class="sushi-bottleneck-tag ${rate.bottleneck === 'none' ? 'tag-balanced' : ''}">
-              ${bottleneckText}
-            </span>
-          </div>
-
           <!-- Festlig upplåsningsnotis (Ticket 05) -->
           ${
             activeController.recentlyUnlocked.length > 0
@@ -829,9 +832,8 @@ function renderSushiAuthenticatedStage(
                       <div class="sushi-unlock-banner-text">
                         <strong>Ny kursbelöning upplåst!</strong>
                         <p>
-                          Dina framsteg i studierna har låst upp:
                           <strong>${activeController.getRecentlyUnlockedNames().join(', ')}</strong
-                          >. Föremålen är nu tillgängliga att köpa för yen i butiken.
+                          > · Finns nu i butiken.
                         </p>
                       </div>
                     </div>
@@ -850,8 +852,66 @@ function renderSushiAuthenticatedStage(
           }
         </div>
 
-        <!-- Huvudspelscen: Isometrisk restaurangvy (100dvh låst viewport) -->
-        <div class="sushi-stage-scene-wrap">${renderRestaurantScene(state)}</div>
+        <!-- Restaurangens köpta utrustning och placerade dekorationer -->
+        <div class="sushi-stage-scene-wrap">
+          ${renderRestaurantScene(state, { onGreet: () => activeController.greet(), paused: isCapped })}
+        </div>
+        <aside class="sushi-next-goal" data-testid="sushi-next-goal">
+          <span class="sushi-goal-heading"
+            >${nextGoal ? 'Nästa mål' : 'Restaurangen är komplett!'}</span
+          >
+          ${
+            nextGoal
+              ? html`<button
+                  type="button"
+                  class="sushi-goal-action"
+                  data-testid="sushi-goal-action"
+                  @click=${() => (goalUnlocked ? activeController.toggleOverlay('shop') : handleNavigateToChapter(nextGoal.requiredLesson, nextGoal.targetWeekId))}
+                >
+                  <span
+                    class="sushi-atlas-sprite sushi-goal-sprite"
+                    aria-hidden="true"
+                    style=${spriteStyle(SUSHI_SPRITES[nextGoal.id])}
+                  ></span>
+                  <span
+                    ><strong>${nextGoal.name}</strong
+                    ><small
+                      >${goalUnlocked ? `¥ ${nextGoal.priceYen} · Öppna butik` : `Kapitel ${nextGoal.requiredLesson} · ${nextGoal.requiredTierLabel}`}</small
+                    ></span
+                  >
+                </button>`
+              : html`<p>Alla 21 belöningar är dina.</p>`
+          }
+          <span class="sushi-goal-progress"
+            >${state.inventory.filter((id) => SUSHI_CATALOG.some((item) => item.id === id)).length}
+            / 21 samlade</span
+          >
+        </aside>
+        <div class="sushi-guest-hint">Tryck på en gäst · prata japanska</div>
+        ${
+          phrase
+            ? html`<aside
+                class="sushi-phrase-bubble"
+                data-testid="sushi-phrase-bubble"
+                aria-live="polite"
+              >
+                <button
+                  type="button"
+                  class="sushi-phrase-close"
+                  aria-label="Stäng samtal"
+                  @click=${() => activeController.dismissGreeting()}
+                >
+                  ×
+                </button>
+                <strong lang="ja">${phrase.ja}</strong><span>${phrase.reading}</span>
+                <p>${phrase.sv}</p>
+                <button type="button" class="pixel-btn" @click=${() => activeController.greet()}>
+                  Nästa fras →
+                </button>
+              </aside>`
+            : ''
+        }
+        ${activeController.rewardMessage ? html`<div class="sushi-reward-pop" data-testid="sushi-reward-pop" role="status">${activeController.rewardMessage}</div>` : ''}
 
         <!-- Botten-höger Kassaregister / Collect Income HUD (Ticket 04) -->
         <div
@@ -860,7 +920,7 @@ function renderSushiAuthenticatedStage(
           role="region"
           aria-label="Kassa och ohämtade intäkter"
         >
-          <div class="sushi-register-left sr-only">
+          <div class="sushi-register-left">
             <span class="sushi-register-label">Ohämtade intäkter</span>
             <div class="sushi-register-amount" data-testid="sushi-uncollected-amount">
               <span class="sushi-yen-symbol" aria-hidden="true">¥</span>
@@ -868,7 +928,7 @@ function renderSushiAuthenticatedStage(
             </div>
           </div>
 
-          <div class="sushi-register-center sr-only">
+          <div class="sushi-register-center">
             <!-- Takmätare och framsteg (Ticket 04 & 08) -->
             <div class="sushi-cap-tracker">
               <div class="sushi-cap-header">
@@ -927,23 +987,34 @@ function renderSushiAuthenticatedStage(
               }
             </div>
 
-            ${
-              rate.bottleneck !== 'none'
-                ? html`
-                    <div
-                      class="sushi-bottleneck-explainer register-banner"
-                      data-testid="sushi-register-bottleneck-explainer"
-                    >
-                      💡 <strong>Flaskhalsguide:</strong>
-                      ${
-                        rate.bottleneck === 'kitchen'
-                          ? `Köket begränsar intjäningen (${state ? state.kitchenCapacity : 1} ord/min mot ${state ? state.serviceCapacity : 2} ord/min service). Uppgradera kökskapaciteten för att höja takten.`
-                          : `Servicen begränsar intjäningen (${state ? state.serviceCapacity : 2} ord/min mot ${state ? state.kitchenCapacity : 1} ord/min kök). Uppgradera transportband eller service för att höja takten.`
-                      }
-                    </div>
-                  `
-                : ''
-            }
+            <details class="sushi-production-details">
+              <summary>Produktion</summary>
+              <div class="sushi-production-content">
+                <p>
+                  Kök: ${state.kitchenCapacity} ord/min
+                  ${rate.bottleneck === 'kitchen' ? '(Flaskhals)' : ''} · Service:
+                  ${state.serviceCapacity} ord/min
+                  ${rate.bottleneck === 'service' ? '(Flaskhals)' : ''} · ${bottleneckText}
+                </p>
+                ${
+                  rate.bottleneck !== 'none'
+                    ? html`
+                        <div
+                          class="sushi-bottleneck-explainer register-banner"
+                          data-testid="sushi-register-bottleneck-explainer"
+                        >
+                          💡 <strong>Flaskhalsguide:</strong>
+                          ${
+                            rate.bottleneck === 'kitchen'
+                              ? `Köket begränsar intjäningen (${state ? state.kitchenCapacity : 1} ord/min mot ${state ? state.serviceCapacity : 2} ord/min service). Uppgradera kökskapaciteten för att höja takten.`
+                              : `Servicen begränsar intjäningen (${state ? state.serviceCapacity : 2} ord/min mot ${state ? state.kitchenCapacity : 1} ord/min kök). Uppgradera transportband eller service för att höja takten.`
+                          }
+                        </div>
+                      `
+                    : ''
+                }
+              </div>
+            </details>
           </div>
 
           <div class="sushi-register-right">
@@ -961,9 +1032,9 @@ function renderSushiAuthenticatedStage(
                   ? html`<span class="sushi-btn-spinner" aria-hidden="true"></span>
                       <span class="sushi-collect-title">Hämtar...</span>`
                   : html`<span class="sr-only">Hämta intäkter ¥ ${displayedUncollectedYen}</span>
-                      <span class="sushi-collect-title" aria-hidden="true">Collect Income</span>
+                      <span class="sushi-collect-title" aria-hidden="true">Hämta intäkter</span>
                       <strong class="sushi-btn-yen-tag sushi-collect-yen" aria-hidden="true"
-                        >¥ ${formatTightComma(displaySalesYen)}</strong
+                        >¥ ${formatTightComma(displayedUncollectedYen)}</strong
                       >`
               }
             </button>
@@ -1122,7 +1193,11 @@ function renderSushiAuthenticatedStage(
                     data-purchase-state="${purchaseState}"
                   >
                     <div class="sushi-card-top">
-                      <span class="sushi-card-icon" aria-hidden="true">${item.icon}</span>
+                      <span
+                        class="sushi-atlas-sprite sushi-shop-sprite"
+                        aria-hidden="true"
+                        style=${spriteStyle(SUSHI_SPRITES[item.id])}
+                      ></span>
                       <div class="sushi-card-title-group">
                         <strong class="sushi-card-name">${item.name}</strong>
                         <span class="sushi-card-category">${item.categoryLabel}</span>
@@ -1523,7 +1598,7 @@ export function renderSushiShell(
       <header class="sushi-topbar">
         <div class="sushi-topbar-inner">
           <div class="sushi-topbar-left">
-            <h1 class="sushi-title" lang="ja">
+            <h1 class="sushi-title">
               <img
                 src="/sprites/sushi/ui/topbar_sushi.png"
                 alt=""
@@ -1533,18 +1608,6 @@ export function renderSushiShell(
               <span class="sushi-brand-text">Sakura Sushi</span>
               <span class="sr-only">🍣 Sushirestaurang</span>
             </h1>
-          </div>
-
-          <div class="sushi-topbar-center">
-            <div class="sushi-calendar-badge" aria-hidden="true">
-              <span class="sushi-cal-day">Day 12</span>
-              <span class="sushi-cal-season">Spring 1</span>
-            </div>
-            <div class="sushi-clock-badge" aria-hidden="true">
-              <img src="/sprites/sushi/ui/icon_clock.png" alt="" class="sushi-clock-icon" />
-              <span class="sushi-clock-time">12:30</span>
-              <img src="/sprites/sushi/ui/icon_sun.png" alt="" class="sushi-sun-icon" />
-            </div>
           </div>
 
           <div class="sushi-topbar-right">
@@ -1589,7 +1652,7 @@ export function renderSushiShell(
             }
             <button
               type="button"
-              class="sushi-icon-btn"
+              class="sushi-icon-btn sushi-symbol-btn"
               @click=${() => host.toggleTheme()}
               title=${
                 host.theme === 'sakura'
@@ -1597,12 +1660,9 @@ export function renderSushiShell(
                   : 'Slå på Sakura / Kawaii-tema'
               }
             >
-              <img
-                src="/sprites/sushi/ui/btn_stats.png"
-                alt=""
-                aria-hidden="true"
-                class="sushi-top-btn-img"
-              />
+              <span aria-hidden="true"
+                >${renderPixelIcon(host.theme === 'sakura' ? 'moon' : 'sun')}</span
+              >
               <span class="sr-only">${host.theme === 'sakura' ? '🍵 Washi' : '🌸 Sakura'}</span>
             </button>
             ${
@@ -1632,19 +1692,14 @@ export function renderSushiShell(
                     </button>
                     <button
                       type="button"
-                      class="sushi-hud-btn pixel-btn ${activeController.activeOverlay === 'shop' ? 'is-active' : ''}"
+                      class="sushi-hud-btn sushi-symbol-btn pixel-btn ${activeController.activeOverlay === 'shop' ? 'is-active' : ''}"
                       data-testid="sushi-toggle-shop"
                       @click=${() => activeController.toggleOverlay('shop')}
                       title="Öppna butik och upplåsningar"
                       aria-expanded="${activeController.activeOverlay === 'shop'}"
                       aria-controls="sushi-unlocks-panel"
                     >
-                      <img
-                        src="/sprites/sushi/ui/btn_settings.png"
-                        alt=""
-                        aria-hidden="true"
-                        class="sushi-top-btn-img"
-                      />
+                      <span aria-hidden="true">${renderPixelIcon('store')}</span>
                       <span class="sr-only">
                         <span class="sushi-btn-icon" aria-hidden="true"
                           >${renderPixelIcon('store')}</span

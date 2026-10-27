@@ -160,10 +160,10 @@ test('Milestone 3 Restaurant Scene: Renders all recipe plates when owned', () =>
 
   const state = createMockState({ inventory: allRecipes });
   const rendered = renderRestaurantScene(state);
-  const htmlStr = JSON.stringify(rendered);
+  const htmlStr = renderTemplateToString(rendered);
 
   for (const recipe of allRecipes) {
-    assert.ok(htmlStr.includes(`data-testid=\\"art-${recipe}\\"`), `Contains art-${recipe}`);
+    assert.ok(htmlStr.includes(`data-testid="art-${recipe}"`), `Contains art-${recipe}`);
   }
 });
 
@@ -180,17 +180,14 @@ test('Milestone 3 Restaurant Scene: Renders equipment visual cues and wall/floor
   });
 
   const rendered = renderRestaurantScene(state);
-  const htmlStr = JSON.stringify(rendered);
+  const htmlStr = renderTemplateToString(rendered);
 
   for (const eq of equipment) {
-    assert.ok(htmlStr.includes(`data-testid=\\"art-${eq}\\"`), `Contains visual cue art-${eq}`);
+    assert.ok(htmlStr.includes(`data-testid="art-${eq}"`), `Contains visual cue art-${eq}`);
   }
+  assert.ok(htmlStr.includes('data-testid="art-noren_curtain"'), 'Contains wall art-noren_curtain');
   assert.ok(
-    htmlStr.includes('data-testid=\\"art-noren_curtain\\"'),
-    'Contains wall art-noren_curtain',
-  );
-  assert.ok(
-    htmlStr.includes('data-testid=\\"art-golden_maneki_neko\\"'),
+    htmlStr.includes('data-testid="art-golden_maneki_neko"'),
     'Contains floor art-golden_maneki_neko',
   );
   assert.ok(
@@ -203,7 +200,7 @@ test('Milestone 3 Restaurant Scene: Renders equipment visual cues and wall/floor
   );
 });
 
-test('Milestone 3 Restaurant Scene: Comprehensive 21-item pixel-art sprite rendering and contracts', () => {
+test('Milestone 3 Restaurant Scene: State-driven pixel artwork for catalog purchases', () => {
   // Test remaining wall/floor decor: paper_lantern, wave_print, potted_plant, sakura_bonsai with cap extension
   const state1 = createMockState({
     inventory: ['paper_lantern', 'potted_plant', 'cap_extension_12h'],
@@ -216,7 +213,6 @@ test('Milestone 3 Restaurant Scene: Comprehensive 21-item pixel-art sprite rende
   assert.ok(html1.includes('data-testid="art-paper_lantern"'), 'Renders art-paper_lantern');
   assert.ok(html1.includes('data-testid="art-potted_plant"'), 'Renders art-potted_plant');
   assert.ok(html1.includes('data-testid="art-cap-extension"'), 'Renders art-cap-extension');
-  assert.ok(html1.includes('data-testid="art-tatami_mat"'), 'Renders art-tatami_mat');
   assert.ok(html1.includes('Papperslykta på väggen.'), 'Desc describes paper lantern');
   assert.ok(html1.includes('Krukväxt på golvet.'), 'Desc describes potted plant');
 
@@ -234,7 +230,7 @@ test('Milestone 3 Restaurant Scene: Comprehensive 21-item pixel-art sprite rende
   assert.ok(html2.includes('Vågmotiv på väggen.'), 'Desc describes wave print');
   assert.ok(html2.includes('Andon-golvlykta på golvet.'), 'Desc describes andon lantern');
 
-  // Test sakura_bonsai and bonsai_tree alias
+  // Test sakura_bonsai
   const state3 = createMockState({
     inventory: ['sakura_bonsai'],
     equipped: {
@@ -244,14 +240,17 @@ test('Milestone 3 Restaurant Scene: Comprehensive 21-item pixel-art sprite rende
   });
   const html3 = renderTemplateToString(renderRestaurantScene(state3));
   assert.ok(html3.includes('data-testid="art-sakura_bonsai"'), 'Renders art-sakura_bonsai');
-  assert.ok(html3.includes('data-testid="art-bonsai_tree"'), 'Renders art-bonsai_tree alias');
   assert.ok(html3.includes('Sakura-bonsai på golvet.'), 'Desc describes sakura bonsai');
 
-  // Verify pixel art rendering attributes and ThirdAngle sprite paths
-  assert.ok(html1.includes('shape-rendering="crispEdges"'), 'SVG carries crispEdges');
-  assert.ok(html1.includes('image-rendering: pixelated;'), 'Includes image-rendering: pixelated');
-  assert.ok(html1.includes('/sprites/sushi/diner/'), 'References diner starter pack sprites');
-  assert.ok(html1.includes('/sprites/sushi/kitchen/'), 'References kitchen starter pack sprites');
+  // The scene is state-driven vector geometry, without baked-in furniture.
+  assert.ok(
+    html1.includes('/sprites/sushi/starter-room.png'),
+    'Scene loads the empty starter room',
+  );
+  assert.ok(
+    !html1.includes('sakura_sushi_scene.png'),
+    'The original pre-furnished raster is not used',
+  );
 });
 
 test('Milestone 3 Prospective Upgrade Preview: Previews revenue deltas and bottleneck impact', () => {
@@ -291,7 +290,7 @@ test('Milestone 3 Controller Announcements: Swedish phrasing for collections and
   }
 });
 
-test('Milestone 3 Restaurant Scene: Layer 2 customer stools precede Layer 3 equipment cues', () => {
+test('Milestone 3 Restaurant Scene: Starter room precedes purchased equipment layers', () => {
   const state = createMockState({
     inventory: [
       'prep_counter',
@@ -305,7 +304,7 @@ test('Milestone 3 Restaurant Scene: Layer 2 customer stools precede Layer 3 equi
   const rendered = renderRestaurantScene(state);
   const sceneHtml = renderTemplateToString(rendered);
 
-  const stoolsIdx = sceneHtml.indexOf('fill="#e4b77e"');
+  const stoolsIdx = sceneHtml.indexOf('data-testid="starter-room"');
   const prepIdx = sceneHtml.indexOf('data-testid="art-prep-counter"');
   const knifeIdx = sceneHtml.indexOf('data-testid="art-precision_knife"');
   const counterIdx = sceneHtml.indexOf('data-testid="art-service_counter"');
