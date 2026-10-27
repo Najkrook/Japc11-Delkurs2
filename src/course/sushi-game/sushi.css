@@ -1042,7 +1042,7 @@
 }
 .sushi-unlocks-intro {
   margin: 0;
-  font-size: 0.78rem;
+  font-size: 0.875rem;
   color: var(--sushi-washi-muted);
   line-height: 1.35;
 }
@@ -1093,7 +1093,7 @@
   color: var(--sushi-washi-text);
 }
 .sushi-card-category {
-  font-size: 0.725rem;
+  font-size: 0.85rem;
   color: var(--sushi-washi-muted);
 }
 .sushi-pill-new {
@@ -1119,7 +1119,7 @@
 
 .sushi-card-desc {
   margin: 0;
-  font-size: 0.78rem;
+  font-size: 0.875rem;
   color: var(--sushi-washi-muted);
   line-height: 1.35;
 }
@@ -1130,7 +1130,7 @@
   background: #f0fff4;
   border: 1px solid #c6f6d5;
   color: #22543d;
-  font-size: 0.75rem;
+  font-size: 0.85rem;
 }
 
 .sushi-bottleneck-explainer {
@@ -1139,7 +1139,7 @@
   background: #fffaf0;
   border: 1px solid #feebc8;
   color: #744210;
-  font-size: 0.75rem;
+  font-size: 0.85rem;
   line-height: 1.3;
 }
 
@@ -1156,7 +1156,9 @@
   display: flex;
   justify-content: space-between;
   align-items: center;
-  font-size: 0.75rem;
+  font-size: 0.85rem;
+  gap: 0.4rem;
+  flex-wrap: wrap;
 }
 
 .sushi-unlock-badge {
@@ -1178,7 +1180,7 @@
 }
 
 .sushi-price-hint {
-  font-size: 0.75rem;
+  font-size: 0.85rem;
   color: var(--sushi-washi-muted);
 }
 .sushi-missing-funds {
@@ -1748,8 +1750,11 @@
 .sushi-scene-guest .sushi-atlas-sprite {
   width: 100%;
   height: 100%;
-  animation: sushi-guest-bob 3s steps(2) infinite;
+  animation-duration: var(--guest-period);
+  animation-timing-function: ease-in-out;
+  animation-iteration-count: infinite;
   animation-delay: var(--guest-delay);
+  transform-origin: bottom center;
 }
 .sushi-scene-guest:hover .sushi-atlas-sprite {
   filter: brightness(1.1) drop-shadow(0 0 3px #ffcf73);
@@ -1765,11 +1770,71 @@
   border-radius: 6px;
   background: #fff9e9;
   box-shadow: 2px 2px #754b3733;
+  animation-duration: var(--guest-period);
+  animation-iteration-count: infinite;
+  animation-delay: var(--guest-delay);
 }
 .sushi-chef-working {
-  animation: sushi-chef-work 2.2s steps(2) infinite;
+  position: absolute;
+  left: 44.92%;
+  top: 35.16%;
+  width: 11.07%;
+  aspect-ratio: 1;
+  background: url('/sprites/sushi/activity/chef-preparing.png') 0 0 / 400% 100% no-repeat;
+  image-rendering: pixelated;
+  pointer-events: none;
+  animation: sushi-chef-prepare var(--activity-cycle) steps(1, end) infinite;
+}
+.sushi-sous-chef-working {
+  animation: sushi-sous-chef-prepare var(--activity-cycle) ease-in-out infinite;
   transform-box: fill-box;
   transform-origin: bottom center;
+}
+.sushi-serving-layer {
+  pointer-events: none;
+}
+.sushi-travelling-plate,
+.sushi-served-plate {
+  opacity: 0;
+  animation-duration: var(--serving-period);
+  animation-delay: var(--serving-delay);
+  animation-timing-function: linear;
+  animation-iteration-count: infinite;
+}
+@keyframes sushi-chef-prepare {
+  0% {
+    background-position-x: 0%;
+  }
+  8% {
+    background-position-x: 33.333333%;
+  }
+  18% {
+    background-position-x: 66.666667%;
+  }
+  28% {
+    background-position-x: 33.333333%;
+  }
+  40% {
+    background-position-x: 100%;
+  }
+  70%,
+  100% {
+    background-position-x: 0%;
+  }
+}
+@keyframes sushi-sous-chef-prepare {
+  0%,
+  40%,
+  100% {
+    transform: none;
+  }
+  12%,
+  30% {
+    transform: rotate(-2deg);
+  }
+  22% {
+    transform: rotate(1deg);
+  }
 }
 .sushi-kitchen-steam {
   position: absolute;
@@ -1796,16 +1861,6 @@
 .sushi-kitchen-steam i:nth-child(3) {
   left: 65%;
   animation-delay: 2s;
-}
-@keyframes sushi-guest-bob {
-  50% {
-    transform: translateY(-3px);
-  }
-}
-@keyframes sushi-chef-work {
-  50% {
-    transform: rotate(2deg);
-  }
 }
 @keyframes sushi-steam {
   25% {
@@ -1914,7 +1969,7 @@
 }
 .sushi-goal-action small {
   display: block;
-  font-size: 0.72rem;
+  font-size: 0.85rem;
   margin-top: 5px;
 }
 .sushi-goal-sprite {
@@ -1923,7 +1978,7 @@
 }
 .sushi-goal-progress {
   display: block;
-  font-size: 0.68rem;
+  font-size: 0.8rem;
   color: #8e6448;
   text-align: right;
 }
@@ -2116,6 +2171,7 @@
   color: #60391f;
   background: #ffe4ac;
   cursor: pointer;
+  margin: 3px;
 }
 .sushi-phrase-close {
   position: absolute;
@@ -2239,7 +2295,8 @@
   .sushi-next-goal {
     top: 12px;
     left: 10px;
-    width: 195px;
+    width: min(195px, 48%);
+    box-sizing: border-box;
     padding: 7px 10px;
   }
   .sushi-goal-sprite {
@@ -2250,13 +2307,13 @@
     font-size: 0.75rem;
   }
   .sushi-goal-action strong {
-    font-size: 0.7rem;
+    font-size: 0.8rem;
   }
   .sushi-goal-action small {
-    font-size: 0.62rem;
+    font-size: 0.75rem;
   }
   .sushi-goal-progress {
-    font-size: 0.6rem;
+    font-size: 0.72rem;
   }
   .sushi-stage-header {
     top: 12px;
@@ -2312,7 +2369,7 @@
   .sushi-guest-hint {
     bottom: 170px;
     left: 12px;
-    font-size: 0.64rem;
+    font-size: 0.75rem;
     padding: 2px 5px;
   }
   .sushi-production-details {
@@ -2355,7 +2412,7 @@
 }
 @media (max-width: 360px) {
   .sushi-next-goal {
-    width: 172px;
+    width: 48%;
   }
   .sushi-balance-badge {
     width: 125px;
@@ -2368,13 +2425,178 @@
     font-size: 0.9rem;
   }
 }
+.sushi-lucky-cat-frames {
+  animation: sushi-cat-beckon 7s steps(1, end) infinite;
+}
+@keyframes sushi-cat-beckon {
+  0%,
+  60% {
+    transform: translateX(0);
+  }
+  64%,
+  88% {
+    transform: translateX(-256px);
+  }
+  70%,
+  82% {
+    transform: translateX(-512px);
+  }
+  76% {
+    transform: translateX(-768px);
+  }
+  94%,
+  100% {
+    transform: translateX(0);
+  }
+}
+.sushi-lantern-sway,
+.sushi-curtain-flutter {
+  transform-box: view-box;
+}
+.sushi-lantern-sway {
+  animation: sushi-lantern-sway 6.5s ease-in-out infinite;
+}
+@keyframes sushi-lantern-sway {
+  0%,
+  100% {
+    transform: rotate(-1.5deg);
+  }
+  50% {
+    transform: rotate(1.5deg);
+  }
+}
+.sushi-curtain-flutter {
+  animation: sushi-curtain-flutter 9s ease-in-out infinite;
+}
+@keyframes sushi-curtain-flutter {
+  0%,
+  35%,
+  100% {
+    transform: none;
+  }
+  50% {
+    transform: skewX(0.6deg) rotate(-0.3deg);
+  }
+  65% {
+    transform: skewX(-0.4deg) rotate(0.2deg);
+  }
+}
+.sushi-decoration-glow {
+  animation: sushi-warm-glow 4.8s ease-in-out infinite;
+}
+@keyframes sushi-warm-glow {
+  0%,
+  100% {
+    filter: brightness(1);
+  }
+  50% {
+    filter: brightness(1.1) drop-shadow(0 0 3px #ffcd7180);
+  }
+}
+.sushi-item-arrival {
+  transform-box: view-box;
+  transform-origin: var(--arrival-x) var(--arrival-y);
+  animation: var(--item-arrival) 750ms ease-out;
+}
+/* Alternating names let a new placement replay without replacing the scene DOM. */
+@keyframes sushi-item-arrive-a {
+  0% {
+    transform: scale(0.86);
+    filter: brightness(1.3);
+  }
+  45% {
+    transform: scale(1.06);
+    filter: brightness(1.15);
+  }
+  75% {
+    transform: scale(0.985);
+  }
+  100% {
+    transform: none;
+    filter: none;
+  }
+}
+@keyframes sushi-item-arrive-b {
+  0% {
+    transform: scale(0.86);
+    filter: brightness(1.3);
+  }
+  45% {
+    transform: scale(1.06);
+    filter: brightness(1.15);
+  }
+  75% {
+    transform: scale(0.985);
+  }
+  100% {
+    transform: none;
+    filter: none;
+  }
+}
+.sushi-petals {
+  pointer-events: none;
+}
+.sushi-falling-petal {
+  opacity: 0;
+  animation: sushi-petal-drift linear infinite;
+}
+@keyframes sushi-petal-drift {
+  0% {
+    opacity: 0;
+    transform: translate(var(--petal-x), var(--petal-y)) rotate(-25deg);
+  }
+  15% {
+    opacity: 0.8;
+  }
+  50% {
+    transform: translate(
+        calc(var(--petal-x) + var(--petal-drift) * 0.4),
+        calc(var(--petal-y) + var(--petal-fall) * 0.5)
+      )
+      rotate(65deg);
+  }
+  85% {
+    opacity: 0.6;
+  }
+  100% {
+    opacity: 0;
+    transform: translate(
+        calc(var(--petal-x) + var(--petal-drift)),
+        calc(var(--petal-y) + var(--petal-fall))
+      )
+      rotate(155deg);
+  }
+}
 @media (prefers-reduced-motion: reduce) {
+  .sushi-lucky-cat-frames,
+  .sushi-lantern-sway,
+  .sushi-curtain-flutter,
+  .sushi-decoration-glow,
+  .sushi-item-arrival,
+  .sushi-falling-petal,
   .sushi-scene-guest .sushi-atlas-sprite,
+  .sushi-guest-heart,
   .sushi-chef-working,
+  .sushi-sous-chef-working,
+  .sushi-travelling-plate,
+  .sushi-served-plate,
   .sushi-kitchen-steam i,
   .sushi-reward-pop {
     animation: none;
   }
+  .sushi-serving-slot:first-child .sushi-served-plate {
+    opacity: 1;
+  }
+}
+.sushi-illustration[data-production-stopped='true'] .sushi-chef-working,
+.sushi-illustration[data-production-stopped='true'] .sushi-sous-chef-working,
+.sushi-illustration[data-production-stopped='true'] .sushi-scene-guest .sushi-atlas-sprite,
+.sushi-illustration[data-production-stopped='true'] .sushi-guest-heart {
+  animation: none;
+}
+.sushi-illustration[data-production-stopped='true'] .sushi-serving-layer,
+.sushi-illustration[data-production-stopped='true'] .sushi-kitchen-steam {
+  display: none;
 }
 .sushi-illustration[data-paused='true'] .sushi-atlas-sprite,
 .sushi-illustration[data-paused='true'] .sushi-chef-working,
@@ -2400,6 +2622,125 @@
   width: 54px;
   height: 54px;
   flex: 0 0 54px;
+}
+
+/* Preview is a temporary presentation; the saved room remains the source of truth. */
+.is-previewing .sushi-stage-header,
+.is-previewing .sushi-next-goal,
+.is-previewing .sushi-unlock-banner,
+.is-previewing .sushi-guest-hint,
+.is-previewing .sushi-production-details,
+.is-previewing .sushi-serving-layer {
+  display: none;
+}
+.is-previewing .sushi-stage-scene-wrap {
+  inset: 0 0 245px;
+}
+.is-previewing .sushi-illustration {
+  width: min(100%, calc((100dvh - 320px) * 1.5));
+}
+.is-previewing .sushi-scene-guest {
+  cursor: default;
+}
+.is-previewing .sushi-chef-working,
+.is-previewing .sushi-sous-chef-working,
+.is-previewing .sushi-scene-guest .sushi-atlas-sprite,
+.is-previewing .sushi-guest-heart,
+.is-previewing .sushi-kitchen-steam i {
+  animation-play-state: paused;
+}
+.sushi-decoration-preview {
+  position: absolute;
+  bottom: 124px;
+  left: 50%;
+  transform: translateX(-50%);
+  width: min(760px, calc(100% - 32px));
+  box-sizing: border-box;
+  z-index: 12;
+  padding: 12px 50px 12px 16px;
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) auto;
+  align-items: center;
+  gap: 12px;
+  color: var(--sushi-washi-text);
+  background: var(--sushi-washi-bg);
+}
+.sushi-decoration-preview:focus-visible {
+  outline: 3px solid var(--sushi-accent-gold);
+  outline-offset: 3px;
+}
+.sushi-preview-label {
+  color: var(--sushi-washi-muted);
+  font-size: 0.8rem;
+}
+.sushi-preview-info h3 {
+  font-size: 1rem;
+  margin: 2px 0 5px;
+}
+.sushi-preview-info p {
+  font-size: 0.85rem;
+  line-height: 1.4;
+  margin: 0;
+}
+.sushi-preview-actions {
+  display: grid;
+  gap: 6px;
+}
+.sushi-preview-browse {
+  display: flex;
+  gap: 6px;
+}
+.sushi-preview-actions .pixel-btn {
+  min-height: 44px;
+  padding: 6px 10px;
+  font: inherit;
+  font-size: 0.85rem;
+  flex: 1;
+}
+.sushi-preview-close {
+  position: absolute;
+  right: 2px;
+  top: 2px;
+  width: 44px;
+  height: 44px;
+  display: grid;
+  place-items: center;
+  color: inherit;
+  cursor: pointer;
+}
+@media (max-width: 640px) {
+  .is-previewing .sushi-stage-scene-wrap {
+    inset: 0 0 360px;
+  }
+  .is-previewing .sushi-illustration {
+    width: min(100%, calc((100dvh - 430px) * 1.5));
+    flex-shrink: 1;
+  }
+  .sushi-decoration-preview {
+    bottom: 180px;
+    width: calc(100% - 20px);
+    padding: 10px 48px 10px 12px;
+    grid-template-columns: minmax(0, 1fr);
+    gap: 8px;
+  }
+  .sushi-preview-actions {
+    grid-template-columns: 94px minmax(0, 1fr);
+    align-items: stretch;
+  }
+  .sushi-preview-browse {
+    flex-wrap: wrap;
+  }
+  .sushi-preview-browse:first-child {
+    flex-wrap: nowrap;
+  }
+  .sushi-preview-actions .pixel-btn {
+    font-size: 0.75rem;
+    padding: 5px;
+  }
+  .sushi-preview-close {
+    width: 44px;
+    height: 44px;
+  }
 }
 @media (max-width: 640px) {
   .sushi-account-btn .sushi-user-name {

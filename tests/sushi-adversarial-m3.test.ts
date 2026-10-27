@@ -114,16 +114,16 @@ test('Adversarial Bottleneck Banner: Comprehensive K < S scenarios (Kitchen Bott
     );
 
     // 2. Banner content accuracy
-    const expectedMsg = `Köket begränsar intjäningen (${k} ord/min mot ${s} ord/min service). Uppgradera kökskapaciteten för att höja takten.`;
+    const expectedMsg = `Köket begränsar intjäningen (${k} ${k === 1 ? 'order' : 'ordrar'}/min mot ${s} ${s === 1 ? 'order' : 'ordrar'}/min service). Uppgradera kökskapaciteten för att höja takten.`;
     assert.ok(html.includes(expectedMsg), `[${label}] Banner message must match: "${expectedMsg}"`);
 
     // 3. Rate bar tags
     assert.ok(
-      html.includes(`Kök: ${k} ord/min (Flaskhals)`),
+      html.includes(`Kök: ${k} ${k === 1 ? 'order' : 'ordrar'}/min (Flaskhals)`),
       `[${label}] Kök tag must be marked as Flaskhals`,
     );
     assert.ok(
-      !html.includes(`Service: ${s} ord/min (Flaskhals)`),
+      !html.includes(`Service: ${s} ${s === 1 ? 'order' : 'ordrar'}/min (Flaskhals)`),
       `[${label}] Service tag must NOT be marked as Flaskhals`,
     );
     assert.ok(
@@ -160,16 +160,16 @@ test('Adversarial Bottleneck Banner: Comprehensive K > S scenarios (Service Bott
     );
 
     // 2. Banner content accuracy
-    const expectedMsg = `Servicen begränsar intjäningen (${s} ord/min mot ${k} ord/min kök). Uppgradera transportband eller service för att höja takten.`;
+    const expectedMsg = `Servicen begränsar intjäningen (${s} ${s === 1 ? 'order' : 'ordrar'}/min mot ${k} ${k === 1 ? 'order' : 'ordrar'}/min kök). Uppgradera transportband eller service för att höja takten.`;
     assert.ok(html.includes(expectedMsg), `[${label}] Banner message must match: "${expectedMsg}"`);
 
     // 3. Rate bar tags
     assert.ok(
-      html.includes(`Service: ${s} ord/min (Flaskhals)`),
+      html.includes(`Service: ${s} ${s === 1 ? 'order' : 'ordrar'}/min (Flaskhals)`),
       `[${label}] Service tag must be marked as Flaskhals`,
     );
     assert.ok(
-      !html.includes(`Kök: ${k} ord/min (Flaskhals)`),
+      !html.includes(`Kök: ${k} ${k === 1 ? 'order' : 'ordrar'}/min (Flaskhals)`),
       `[${label}] Kök tag must NOT be marked as Flaskhals`,
     );
     assert.ok(

@@ -1,5 +1,7 @@
 import { html, svg } from 'lit-html';
 import type { SushiRestaurantState } from './types.ts';
+import { calculateProductionRate } from './economy.ts';
+import { getCatalogItem } from './catalog.ts';
 
 // Asset cells are separate from the starter room: ownership never changes a baked-in image.
 const ATLAS_SIZE = 1254;
@@ -31,8 +33,13 @@ export function spriteStyle(index: number): string {
   return `background-position: ${(index % 5) * 25}% ${Math.floor(index / 5) * 25}%`;
 }
 function sprite(index: number, x: number, y: number, size: number) {
+  // The wave-print cell includes the next row's chef hat; isolate the actual print.
+  const viewBox =
+    index === 16
+      ? '270 765 230 190'
+      : `${(index % 5) * CELL} ${Math.floor(index / 5) * CELL} ${CELL} ${CELL}`;
   return svg`<svg x=${x} y=${y} width=${size} height=${size}
-    viewBox=${`${(index % 5) * CELL} ${Math.floor(index / 5) * CELL} ${CELL} ${CELL}`}
+    viewBox=${viewBox}
     overflow="hidden" aria-hidden="true">
     <image href="/sprites/sushi/tycoon-atlas.png" width=${ATLAS_SIZE} height=${ATLAS_SIZE}/>
   </svg>`;
@@ -62,33 +69,118 @@ const recipes = [
   'sashimi_plate',
   'omakase_menu',
 ];
+
+export interface RestaurantSceneArrival {
+  readonly itemId: string;
+  readonly sequence: number;
+}
+
+function luckyCatSprite(x: number, y: number, size: number) {
+  return svg`<svg x=${x} y=${y} width=${size} height=${size} viewBox="0 0 256 256" overflow="hidden" aria-hidden="true">
+    <image class="sushi-lucky-cat-frames" href="/sprites/sushi/activity/lucky-cat-waving.png" width="1024" height="256"/>
+  </svg>`;
+}
+
+/** Decorative choreography only; it never records an order or changes earnings. */
+export function getRestaurantActivity(state: SushiRestaurantState) {
+  const { ordersPerMinute } = calculateProductionRate(
+    state.kitchenCapacity,
+    state.serviceCapacity,
+    state.averageRevenuePerOrder,
+  );
+  const guests = Math.min(3, state.serviceCapacity);
+  const dishes = ['basic_nigiri', ...recipes.filter((id) => state.inventory.includes(id))];
+  return {
+    cycleSeconds: Math.max(8, 12 - Math.min(4, ordersPerMinute - 1)),
+    guests,
+    dishes,
+    servings: Array.from({ length: guests * dishes.length }, (_, index) => ({
+      dish: dishes[Math.floor(index / guests)],
+      guest: index % guests,
+    })),
+  };
+}
+
+function activityKeyframes(servings: number, guests: number) {
+  const at = (fraction: number, count: number) => `${((100 * fraction) / count).toFixed(5)}%`;
+  return `
+    @keyframes sushi-plate-travel-${servings} {
+      0%, ${at(0.399, servings)} { opacity: 0; transform: translate(var(--plate-start-x), var(--plate-start-y)); }
+      ${at(0.4, servings)} { opacity: 1; transform: translate(var(--plate-start-x), var(--plate-start-y)); }
+      ${at(0.699, servings)} { opacity: 1; transform: translate(var(--plate-end-x), var(--plate-end-y)); }
+      ${at(0.7, servings)}, 100% { opacity: 0; transform: translate(var(--plate-end-x), var(--plate-end-y)); }
+    }
+    @keyframes sushi-plate-dining-${servings} {
+      0%, ${at(0.699, servings)} { opacity: 0; }
+      ${at(0.7, servings)}, ${at(0.9, servings)} { opacity: 1; }
+      ${at(1, servings)}, 100% { opacity: 0; }
+    }
+    @keyframes sushi-guest-dining-${guests} {
+      0%, ${at(0.7, guests)} { transform: none; }
+      ${at(0.8, guests)} { transform: translate(2px, -2px) rotate(-2deg); }
+      ${at(0.9, guests)} { transform: translate(1px, -1px) rotate(-1deg); }
+      ${at(1, guests)}, 100% { transform: none; }
+    }
+    @keyframes sushi-guest-happy-${guests} {
+      0%, ${at(0.9, guests)} { transform: scale(1); }
+      ${at(0.95, guests)} { transform: scale(1.18); }
+      ${at(1, guests)}, 100% { transform: scale(1); }
+    }
+  `;
+}
+
+function servingDish(id: string, size = 62) {
+  return id === 'basic_nigiri'
+    ? svg`<image href="/sprites/sushi/activity/basic-nigiri.png" width=${size} height=${size}/>`
+    : sprite(SUSHI_SPRITES[id], 0, 0, size);
+}
 export function renderRestaurantScene(
   state: SushiRestaurantState,
   options: {
     onGreet?: (guest: number) => void;
     paused?: boolean;
+    productionStopped?: boolean;
+    previewDecorationId?: string | null;
+    arrival?: RestaurantSceneArrival | null;
   } = {},
 ) {
   const owns = (id: string) => state.inventory.includes(id);
-  const wall = state.equipped.wallSlot;
-  const floor = state.equipped.floorSlot;
+  const candidate = getCatalogItem(options.previewDecorationId ?? '');
+  const previewDecoration = candidate?.category === 'decoration' ? candidate : undefined;
+  const sceneTitle = previewDecoration
+    ? 'Förhandsvisning av din restaurang'
+    : 'Din sushirestaurang';
+  const wall =
+    previewDecoration?.slotType === 'wallSlot' ? previewDecoration.id : state.equipped.wallSlot;
+  const floor =
+    previewDecoration?.slotType === 'floorSlot' ? previewDecoration.id : state.equipped.floorSlot;
+  const showsDecoration = (id: string) =>
+    (wall === id || floor === id) && (owns(id) || previewDecoration?.id === id);
   const prep = owns('prep_counter');
   const conveyor = owns('conveyor_belt');
   // Customers illustrate capacity, not tracked sales or a separate economy simulation.
-  const guests = Math.min(3, state.serviceCapacity);
+  const { guests, cycleSeconds, servings } = getRestaurantActivity(state);
   return html`<figure
     class="sushi-illustration"
     data-testid="restaurant-scene"
     data-paused=${Boolean(options.paused || (typeof document !== 'undefined' && document.hidden))}
+    data-production-stopped=${Boolean(options.productionStopped)}
+    data-conveyor=${conveyor}
+    data-preview-decoration=${previewDecoration?.id ?? ''}
+    style=${`--activity-cycle:${cycleSeconds}s;--serving-period:${cycleSeconds * servings.length}s;--guest-period:${cycleSeconds * guests}s`}
   >
+    <style>
+      ${activityKeyframes(servings.length, guests)}
+    </style>
     <div class="sushi-pixel-world">
       <svg
         viewBox="0 0 1536 1024"
         role="img"
         aria-labelledby="restaurant-art-title restaurant-art-desc"
       >
-        <title id="restaurant-art-title">Din sushirestaurang</title>
+        <title id="restaurant-art-title">${sceneTitle}</title>
         <desc id="restaurant-art-desc">
+          ${previewDecoration ? `Förhandsvisning: ${previewDecoration.name}. Prova utan att ändra inredningen.` : ''}
           Isometrisk vy snett uppifrån genom restaurangens öppna hörn, med två väggar och synligt
           trägolv. ${prep ? 'Förbättrad beredningsbänk' : 'Grundkök'}.
           ${conveyor ? 'Transportband installerat' : 'Serveringsdisk utan transportband'}.
@@ -103,13 +195,13 @@ export function renderRestaurantScene(
           ${owns('tamago_nigiri') ? 'Tamagonigiri på disken.' : ''}
           ${owns('sashimi_plate') ? 'Sashimitallrik på disken.' : ''}
           ${owns('omakase_menu') ? 'Omakasemeny på disken.' : ''}
-          ${wall === 'paper_lantern' && owns('paper_lantern') ? 'Papperslykta på väggen.' : ''}
-          ${wall === 'wave_print' && owns('wave_print') ? 'Vågmotiv på väggen.' : ''}
-          ${wall === 'noren_curtain' && owns('noren_curtain') ? 'Norendraperi på väggen.' : ''}
-          ${floor === 'potted_plant' && owns('potted_plant') ? 'Krukväxt på golvet.' : ''}
-          ${floor === 'andon_lantern' && owns('andon_lantern') ? 'Andon-golvlykta på golvet.' : ''}
-          ${floor === 'sakura_bonsai' && owns('sakura_bonsai') ? 'Sakura-bonsai på golvet.' : ''}
-          ${floor === 'golden_maneki_neko' && owns('golden_maneki_neko') ? 'Gyllene Maneki-neko på golvet.' : ''}
+          ${showsDecoration('paper_lantern') ? 'Papperslykta på väggen.' : ''}
+          ${showsDecoration('wave_print') ? 'Vågmotiv på väggen.' : ''}
+          ${showsDecoration('noren_curtain') ? 'Norendraperi på väggen.' : ''}
+          ${showsDecoration('potted_plant') ? 'Krukväxt på golvet.' : ''}
+          ${showsDecoration('andon_lantern') ? 'Andon-golvlykta på golvet.' : ''}
+          ${showsDecoration('sakura_bonsai') ? 'Sakura-bonsai på golvet.' : ''}
+          ${showsDecoration('golden_maneki_neko') ? 'Gyllene Maneki-neko på golvet.' : ''}
         </desc>
         <image
           data-testid="starter-room"
@@ -118,16 +210,8 @@ export function renderRestaurantScene(
           height="1024"
         />
         ${Object.entries(placements).map(([id, [x, y, size]]) => {
-          const decor = [
-            'paper_lantern',
-            'wave_print',
-            'noren_curtain',
-            'potted_plant',
-            'andon_lantern',
-            'sakura_bonsai',
-            'golden_maneki_neko',
-          ].includes(id);
-          if (!owns(id) || (decor && wall !== id && floor !== id)) return '';
+          const decor = getCatalogItem(id)?.category === 'decoration';
+          if (decor ? !showsDecoration(id) : !owns(id)) return '';
           const marker =
             id === 'prep_counter'
               ? 'art-prep-counter'
@@ -136,11 +220,53 @@ export function renderRestaurantScene(
                 : id === 'cap_extension_12h'
                   ? 'art-cap-extension'
                   : `art-${id}`;
-          return svg`<g data-testid="${marker}" class=${id === 'conveyor_belt' ? 'sushi-belt-tread' : 'sushi-owned-sprite'}>${sprite(SUSHI_SPRITES[id], x, y, size)}</g>`;
+          const arrival = options.arrival?.itemId === id ? options.arrival : null;
+          const ambient =
+            id === 'paper_lantern'
+              ? 'sushi-lantern-sway'
+              : id === 'noren_curtain'
+                ? 'sushi-curtain-flutter'
+                : '';
+          const glow = id === 'paper_lantern' || id === 'andon_lantern';
+          return svg`<g data-testid="${marker}" class=${id === 'conveyor_belt' ? 'sushi-belt-tread' : id === 'sous_chef' ? 'sushi-owned-sprite sushi-sous-chef-working' : 'sushi-owned-sprite'} data-arrival-sequence=${arrival?.sequence ?? ''}>
+            <g class=${arrival ? 'sushi-item-arrival' : ''} style=${`--item-arrival:sushi-item-arrive-${(arrival?.sequence ?? 0) % 2 ? 'a' : 'b'};--arrival-x:${x + size / 2}px;--arrival-y:${y + size}px`}>
+              <g class=${ambient} style=${`transform-origin:${x + size / 2}px ${y + size * 0.1}px`}>
+                <g class=${glow ? 'sushi-decoration-glow' : ''}>${id === 'golden_maneki_neko' ? luckyCatSprite(x, y, size) : sprite(SUSHI_SPRITES[id], x, y, size)}</g>
+              </g>
+            </g>
+          </g>`;
         })}
-        <g class="sushi-chef-working">${sprite(21, 690, 360, 170)}</g>
-        ${recipes.map((id, i) => (owns(id) ? svg`<g data-testid="${`art-${id}`}">${sprite(SUSHI_SPRITES[id], 535 + i * 47, 502 + i * 25, 62)}</g>` : ''))}
+        ${recipes.map((id, i) => {
+          if (!owns(id)) return '';
+          const x = 535 + i * 47;
+          const y = 502 + i * 25;
+          const arrival = options.arrival?.itemId === id ? options.arrival : null;
+          return svg`<g data-testid="${`art-${id}`}" data-arrival-sequence=${arrival?.sequence ?? ''}>
+            <g class=${arrival ? 'sushi-item-arrival' : ''} style=${`--item-arrival:sushi-item-arrive-${(arrival?.sequence ?? 0) % 2 ? 'a' : 'b'};--arrival-x:${x + 31}px;--arrival-y:${y + 62}px`}>${sprite(SUSHI_SPRITES[id], x, y, 62)}</g>
+          </g>`;
+        })}
+        <g class="sushi-serving-layer" aria-hidden="true">
+          ${servings.map(({ dish, guest }, index) => {
+            const endX = 540 + guest * 95;
+            const endY = 475 + guest * 54;
+            return svg`<g class="sushi-serving-slot" data-dish=${dish} data-guest=${guest} style=${`--serving-delay:${(index - servings.length) * cycleSeconds}s;--plate-start-x:${conveyor ? 757 : 684}px;--plate-start-y:${conveyor ? 663 : 497}px;--plate-end-x:${conveyor ? 905 : endX}px;--plate-end-y:${conveyor ? 704 : endY}px`}>
+              <g class="sushi-travelling-plate" style=${`animation-name:sushi-plate-travel-${servings.length}`}>${servingDish(dish, conveyor ? 48 : 62)}</g>
+              <g transform=${`translate(${endX} ${endY})`}><g class="sushi-served-plate" style=${`animation-name:sushi-plate-dining-${servings.length}`}>${servingDish(dish)}</g></g>
+            </g>`;
+          })}
+        </g>
+        <g class="sushi-petals" aria-hidden="true">
+          ${[
+            [80, 380, 55, 300, 12, -4],
+            [1440, 300, -25, 390, 15, -9],
+            [1080, 920, -170, 80, 16, -2],
+          ].map(
+            ([x, y, drift, fall, duration, delay]) =>
+              svg`<image class="sushi-falling-petal" href="/sprites/sushi/activity/cherry-petal.png" width="26" height="26" style=${`--petal-x:${x}px;--petal-y:${y}px;--petal-drift:${drift}px;--petal-fall:${fall}px;animation-duration:${duration}s;animation-delay:${delay}s`}/>`,
+          )}
+        </g>
       </svg>
+      <span class="sushi-chef-working" data-testid="sushi-activity-chef" aria-hidden="true"></span>
       <div class="sushi-kitchen-steam" aria-hidden="true"><i></i><i></i><i></i></div>
       ${Array.from(
         { length: guests },
@@ -149,12 +275,22 @@ export function renderRestaurantScene(
             type="button"
             class="sushi-scene-guest"
             data-testid=${`sushi-guest-${i}`}
-            aria-label="Prata med gäst på japanska"
-            style=${`left:${27.6 + i * 6.2}%;top:${47.5 + i * 5.3}%;--guest-delay:${i * 0.6}s`}
+            aria-label="Se japanska fraser med gästen"
+            ?disabled=${Boolean(previewDecoration)}
+            style=${`left:${27.6 + i * 6.2}%;top:${47.5 + i * 5.3}%;--guest-delay:${(i - guests) * cycleSeconds}s`}
             @click=${() => options.onGreet?.(i)}
           >
-            <span class="sushi-atlas-sprite" style=${spriteStyle(22 + i)} aria-hidden="true"></span>
-            <span class="sushi-guest-heart" aria-hidden="true">♥</span>
+            <span
+              class="sushi-atlas-sprite"
+              style=${`${spriteStyle(22 + i)};animation-name:sushi-guest-dining-${guests}`}
+              aria-hidden="true"
+            ></span>
+            <span
+              class="sushi-guest-heart"
+              style=${`animation-name:sushi-guest-happy-${guests}`}
+              aria-hidden="true"
+              >♥</span
+            >
           </button>`,
       )}
     </div>

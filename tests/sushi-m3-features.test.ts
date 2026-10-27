@@ -374,7 +374,7 @@ test('Milestone 3 Register Bottleneck Explainer: Renders when K != S with pedago
     );
     assert.ok(
       htmlK1.includes(
-        'Köket begränsar intjäningen (1 ord/min mot 2 ord/min service). Uppgradera kökskapaciteten för att höja takten.',
+        'Köket begränsar intjäningen (1 order/min mot 2 ordrar/min service). Uppgradera kökskapaciteten för att höja takten.',
       ),
       'Must contain specific pedagogical guidance for kitchen bottleneck',
     );
@@ -394,7 +394,7 @@ test('Milestone 3 Register Bottleneck Explainer: Renders when K != S with pedago
     );
     assert.ok(
       htmlS2.includes(
-        'Servicen begränsar intjäningen (2 ord/min mot 3 ord/min kök). Uppgradera transportband eller service för att höja takten.',
+        'Servicen begränsar intjäningen (2 ordrar/min mot 3 ordrar/min kök). Uppgradera transportband eller service för att höja takten.',
       ),
       'Must contain specific pedagogical guidance for service bottleneck',
     );

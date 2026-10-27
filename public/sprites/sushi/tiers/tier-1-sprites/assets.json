@@ -1,0 +1,46 @@
+{
+  "generator": "Built-in ImageGen",
+  "tier": 1,
+  "references": [
+    "../tier-1.png",
+    "../../tycoon-atlas.png"
+  ],
+  "status": "Standalone base sprites; not integrated into the scene",
+  "sprites": [
+    {
+      "file": "chef-idle.png",
+      "width": 256,
+      "height": 256,
+      "frames": 1,
+      "anchor": {
+        "x": 128,
+        "y": 240
+      },
+      "prompt": "Production game sprite, matching the warm outlined pixel-like painted isometric sushi restaurant reference, muted honey wood, sage, cream palette, crisp readable small-game shapes. Single isolated complete subject on genuinely transparent background, no scenery, no floor, no text, no labels, no watermark, no cast shadow outside subject. Elevated three-quarter isometric view matching the room. Generous transparent margin. Square canvas. Subject: the SAME friendly male starter sushi chef as bottom row second cell of the supplied character atlas: short dark hair, closed smiling eyes, small white cylindrical chef hat, simple white crossover cook coat, navy waist apron and trousers, brown shoes. Full body, facing toward lower LEFT so he can stand behind the room's counter. Modest beginner appearance, no fancy uniform, no accessories. Relaxed idle pose, hands gently together at waist. Preserve recognizable identity and original chibi body proportions, use cleaner edges without the red fringing visible in the atlas."
+    },
+    {
+      "file": "guest-seated.png",
+      "width": 256,
+      "height": 256,
+      "frames": 1,
+      "anchor": {
+        "x": 128,
+        "y": 240
+      },
+      "anchorNote": "Bottom center at feet; calibrate a pelvis attachment against the stool when integrated.",
+      "prompt": "Production game sprite, matching the warm outlined pixel-like painted isometric sushi restaurant reference, muted honey wood, sage, cream palette, crisp readable small-game shapes. Single isolated complete subject on genuinely transparent background, no scenery, no floor, no text, no labels, no watermark, no cast shadow outside subject. Elevated three-quarter isometric view matching the room. Generous transparent margin. Square canvas. Subject: the SAME young male guest as bottom row third cell in supplied character atlas: tousled chestnut brown hair, navy blue casual sweater, warm skin, friendly face, viewed mostly from behind in three-quarter view facing toward upper RIGHT, toward the chef. Complete seated body including dark trousers and small brown shoes, sitting pose with knees bent and hands resting in front ready at counter height. NO chair, NO stool, NO counter, NO food, NO utensils. This is a character-only overlay to position on the existing stools; pelvis is the sitting anchor. Compact chibi proportions matching the original atlas guest. Preserve identity, clean edges without red fringing."
+    },
+    {
+      "file": "basic-nigiri.png",
+      "width": 128,
+      "height": 128,
+      "frames": 1,
+      "anchor": {
+        "x": 64,
+        "y": 64
+      },
+      "prompt": "Production game sprite, matching the warm outlined pixel-like painted isometric sushi restaurant reference, muted honey wood, sage, cream palette, crisp readable small-game shapes. Single isolated complete subject on genuinely transparent background, no scenery, no floor, no text, no labels, no watermark, no cast shadow outside subject. Elevated three-quarter isometric view matching the room. Generous transparent margin. Square canvas. Subject: ONE basic starter sushi plate only, small inexpensive warm ivory oval ceramic saucer with a subtle brown rim, holding ONE simple white-fish nigiri on white rice. Pale ivory fish distinct from textured rice with faint warm gray outlines. No premium colorful fish, no salmon, no tuna, no garnish, no sauce bowl, no chopsticks. Viewed from above in the same isometric perspective. Entire plate silhouette visible. Plain and modest, consistent with a Tier 1 restaurant."
+    }
+  ],
+  "normalization": "Sprite pipeline normalize_sprite_strip.py with one frame, aspect-preserving nearest-neighbor scale per sprite. 224px characters padded into 256px transparent canvases, 112px plate padded into 128px transparent canvas. preview.png is a contact sheet, not an animation strip."
+}

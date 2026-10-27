@@ -112,7 +112,7 @@ export const SUSHI_CATALOG: readonly SushiCatalogItem[] = [
     priceYen: 300,
     priceUnits: 300 * YEN_UNIT_MULTIPLIER, // 18,000,000
     kitchenCapacityDelta: 2,
-    effectDescription: 'Ökar kökskapaciteten med +2 ordrar/minut (från 1 till 3).',
+    effectDescription: 'Ökar kökskapaciteten med 2 ordrar per minut.',
     targetWeekId: 'week-1',
   },
   {
@@ -212,7 +212,7 @@ export const SUSHI_CATALOG: readonly SushiCatalogItem[] = [
     priceYen: 2400,
     priceUnits: 2400 * YEN_UNIT_MULTIPLIER, // 144,000,000
     kitchenCapacityDelta: 1,
-    effectDescription: 'Ökar kökskapaciteten med +1 order/minut (från 3 till 4).',
+    effectDescription: 'Ökar kökskapaciteten med 1 order per minut.',
     targetWeekId: 'week-3',
   },
   {
@@ -262,7 +262,7 @@ export const SUSHI_CATALOG: readonly SushiCatalogItem[] = [
     priceYen: 3600,
     priceUnits: 3600 * YEN_UNIT_MULTIPLIER, // 216,000,000
     serviceCapacityDelta: 2,
-    effectDescription: 'Ökar servicekapaciteten med +2 ordrar/minut (från 2 till 4).',
+    effectDescription: 'Ökar servicekapaciteten med 2 ordrar per minut.',
     targetWeekId: 'week-4',
   },
   {
@@ -313,7 +313,7 @@ export const SUSHI_CATALOG: readonly SushiCatalogItem[] = [
     priceYen: 5400,
     priceUnits: 5400 * YEN_UNIT_MULTIPLIER, // 324,000,000
     serviceCapacityDelta: 2,
-    effectDescription: 'Ökar servicekapaciteten med +2 ordrar/minut (från 4 till 6).',
+    effectDescription: 'Ökar servicekapaciteten med 2 ordrar per minut.',
     targetWeekId: 'week-5',
   },
   {
@@ -363,7 +363,7 @@ export const SUSHI_CATALOG: readonly SushiCatalogItem[] = [
     priceYen: 7200,
     priceUnits: 7200 * YEN_UNIT_MULTIPLIER, // 432,000,000
     kitchenCapacityDelta: 2,
-    effectDescription: 'Ökar kökskapaciteten med +2 ordrar/minut (från 4 till 6).',
+    effectDescription: 'Ökar kökskapaciteten med 2 ordrar per minut.',
     targetWeekId: 'week-6',
   },
   {
@@ -413,7 +413,7 @@ export const SUSHI_CATALOG: readonly SushiCatalogItem[] = [
     priceYen: 10800,
     priceUnits: 10800 * YEN_UNIT_MULTIPLIER, // 648,000,000
     averageRevenueDelta: 5,
-    effectDescription: 'Höjer genomsnittlig intäkt per order från 10 till 15 yen (+5 ¥/order).',
+    effectDescription: 'Höjer genomsnittlig intäkt med 5 ¥ per order.',
     targetWeekId: 'week-7',
   },
   {

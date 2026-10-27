@@ -1,0 +1,34 @@
+{
+  "generator": "Built-in ImageGen",
+  "reference": "../tycoon-atlas.png, shipped chef in cell 21",
+  "chef": {
+    "file": "chef-preparing.png",
+    "frames": 4,
+    "frameWidth": 256,
+    "frameHeight": 256,
+    "anchor": "bottom center, aligned at the feet",
+    "generationPrompt": "Create a production spritesheet for this cozy isometric sushi restaurant browser game. The reference canvas has the shipped chef in the leftmost of four equal horizontal slots. Generate exactly FOUR COMPLETE full-body chef poses in ONE horizontal row of FOUR equal square cells on a wide 4:1 transparent canvas. Keep the exact same cheerful male Japanese chef identity, short dark hair, white chef toque and white crossover coat, navy apron/trousers, brown shoes, three-quarter view facing toward bottom-left, same pixel illustration palette and proportions in every frame. Restore the complete top of his toque (the reference is slightly clipped); no red outlines/fringes. All four feet at identical bottom baseline, same scale and center anchor. Frame1 relaxed idle arms in front. Frame2 hands together at waist shaping rice, small focused lean forward. Frame3 hands slightly apart shaping a small WHITE fish nigiri at waist. Frame4 one hand gently extended to present it toward bottom-left. Small restrained arm movements suitable for loop, no walk, no equipment/table/background/shadows outside body, no labels. Crisp clean pixel art edges matching reference. Every complete head/hat/shoe fully within its cell, generous transparent padding. Genuine transparent background.",
+    "refinementPrompt": "Precise small edit only: preserve this FOUR-frame horizontal chef spritesheet exactly: same character, poses, position, scale, complete hat, clothing, transparent background, canvas composition and pixel art. In frames THREE and FOUR replace ONLY the red/salmon-colored fish topping he holds with a pale ivory WHITE FISH topping, matching the white rice with a subtle cream edge so it reads as basic white-fish nigiri. There must be NO red/orange fish in any frame. Keep all other pixels/composition as close to original as possible. Exactly four chefs in the same horizontal strip, genuine transparent background."
+  },
+  "plate": {
+    "file": "basic-nigiri.png",
+    "width": 128,
+    "height": 128,
+    "generationPrompt": "Create ONE standalone small game sprite: a simple pale cream oval ceramic saucer holding one plain WHITE FISH nigiri (white fish on white rice), basic starter sushi, no salmon, no tuna, no egg, no cucumber, no garnish. Match the attached sushi restaurant atlas's warm outlined pixel illustration, three-quarter isometric angle seen from above, brown dark outlines, restrained cream palette, crisp pixel edges. Centered complete sprite with generous transparent padding all sides, 1:1 square canvas and genuinely transparent background. No text, scenery, characters, extra plates, or red color fringing. This is a basic starter dish visually distinct from the colored premium recipes in the reference."
+  },
+  "luckyCat": {
+    "file": "lucky-cat-waving.png",
+    "frames": 4,
+    "frameWidth": 256,
+    "frameHeight": 256,
+    "reference": "../tycoon-atlas.png, shipped golden lucky cat in cell 20",
+    "generationPrompt": "Create a FOUR-frame production spritesheet for a subtle beckoning paw animation of this EXACT golden maneki-neko lucky cat decoration. Same gold smiling cat, red collar and gold bell, red square cushion with gold tassels, same warm cozy pixel illustration palette, same three-quarter perspective facing slightly left, same silhouette/size/lighting. Exactly FOUR equal horizontal frame slots in ONE row, transparent canvas, every complete cat and cushion entirely inside its own slot, generous padding. Frame1 raised left paw upright like reference. Frame2 ONLY raised forepaw tilts forward a little. Frame3 ONLY raised forepaw bends forward/down in a beckoning motion. Frame4 paw returning halfway upright. Body, face, eyes, other paw, ears, cushion, legs must stay EXACTLY stationary and same scale/position in all frames; do not rotate/bounce the whole statue. No walking, no new objects, no text, no scenery, no red fringe around outlines. Crisp pixel art matching reference. Genuine transparent background."
+  },
+  "petal": {
+    "file": "cherry-petal.png",
+    "width": 48,
+    "height": 48,
+    "generationPrompt": "One small production sprite for a cozy pixel-art Japanese sushi restaurant game: a SINGLE delicate pale pink cherry blossom petal, diagonally tilted and slightly cupped, with subtle warm rose outline and soft pale cream highlight. Crisp hand-painted pixel illustration matching warm cozy isometric restaurant art. One petal only, no flower, no cluster, no scenery, no text, no shadow outside the petal. Complete shape centered with transparent padding, square 1:1 canvas, genuine transparent background. Designed to be readable at 12 to 18 pixels on screen."
+  },
+  "normalization": "Shared-scale nearest-neighbor normalization using the sprite-pipeline normalize_sprite_strip.py script; chef and cat frames assembled into horizontal strips. Chef frames aligned using the lower-foot alpha bounds. Plate and petal normalized independently."
+}
