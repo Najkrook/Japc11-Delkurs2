@@ -24,7 +24,8 @@ const basePlacements: Record<string, ScenePlacement> = {
   conveyor_belt: [0.35, 0.43, 0.25],
   service_counter: [0.7, 0.62, 0.13],
   sous_chef: [0.49, 0.34, 0.13],
-  master_license: [0.78, 0.405, 0.07],
+  // Achievement and interchangeable wall slot must never share a footprint.
+  master_license: [0.71, 0.42, 0.075],
   paper_lantern: [0.79, 0.44, 0.08],
   wave_print: [0.79, 0.44, 0.08],
   noren_curtain: [0.79, 0.44, 0.08],

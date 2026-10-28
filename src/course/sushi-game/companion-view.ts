@@ -125,14 +125,15 @@ export function renderCompanionGoal(
                 </button>
               `
     }
-    <span class="sushi-goal-progress">${owned} / 21 belöningar köpta</span>
+    <span class="sushi-goal-progress">${owned} / 21 köpta</span>
     <button
       type="button"
       class="sushi-honors-shortcut"
       data-testid="sushi-honors-shortcut"
+      aria-label=${`Kapitelminnen: ${chapterHonors} av 7`}
       @click=${actions.openJournal}
     >
-      🏅 Kapitelminnen ${chapterHonors} / 7
+      🏅 Minnen ${chapterHonors} / 7
     </button>
   </aside>`;
 }

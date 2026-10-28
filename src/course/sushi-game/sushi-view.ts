@@ -395,8 +395,11 @@ export class SushiClientController {
 
   public closeOverlay(): void {
     if (this.activeOverlay !== null) {
+      const trigger = this.activeOverlay === 'shop' ? 'sushi-toggle-shop' : 'sushi-toggle-menu';
       this.activeOverlay = null;
       this.host?.render();
+      if (typeof document !== 'undefined')
+        document.querySelector<HTMLElement>(`[data-testid="${trigger}"]`)?.focus();
     }
   }
 
@@ -1244,7 +1247,7 @@ function renderSushiAuthenticatedStage(
               <span class="sr-only sushi-plaque-icon"
                 >${renderPixelIcon('coins')} Disponibelt saldo: ¥ ${spendableYen}</span
               >
-              <span class="sushi-funds-label" aria-hidden="true">Disponibelt saldo</span>
+              <span class="sushi-funds-label" aria-hidden="true">Saldo</span>
               <strong class="sushi-balance-amount" aria-hidden="true"
                 >¥ ${formatTightComma(spendableYen)}</strong
               >
@@ -1415,7 +1418,7 @@ function renderSushiAuthenticatedStage(
             replayFinale: () => activeController.openFinale(),
           },
         )}
-        <div class="sushi-guest-hint">Tryck på en gäst · öva japanska från kursen</div>
+        <div class="sushi-guest-hint">Öva japanska med en gäst</div>
         ${
           phrase
             ? html`<aside
@@ -1708,7 +1711,7 @@ function renderSushiAuthenticatedStage(
         >
           <div class="sushi-overlay-header">
             <div class="sushi-unlocks-title-group">
-              <h3>Kursbelöningar & Upplåsningar</h3>
+              <h3>Butik</h3>
               <span class="sushi-unlocks-count-badge" data-testid="sushi-unlocks-count-badge">
                 ${unlockedCount} / ${SUSHI_CATALOG.length} upplåsta
               </span>
@@ -1749,15 +1752,17 @@ function renderSushiAuthenticatedStage(
                 `,
               )}
             </div>
-            <p class="sushi-unlocks-intro">
-              Dina studieresultat och kapitelmedaljer i Genki låser upp permanenta köpmöjligheter i
-              butiken. Upplåsning ger inte gratis föremål, men gör dem tillgängliga att köpa för
-              intjänade yen.
-            </p>
           </div>
 
           <div class="sushi-overlay-scroll-body">
-            ${renderRenovationCard(state, { buy: () => void activeController.renovate(), preview: () => activeController.previewRenovation(), study: handleNavigateToChapter }, activeController.isBuying !== null || activeController.isCollecting || activeController.isEquipping)}
+            <details class="sushi-shop-help">
+              <summary>Så låser du upp belöningar</summary>
+              <p>
+                Studera och samla kapitelmedaljer för att låsa upp föremål. Upplåsning ger inte
+                gratis föremål. Köp dem med yen från restaurangen.
+              </p>
+            </details>
+            ${activeController.shopCategoryFilter === 'all' ? renderRenovationCard(state, { buy: () => void activeController.renovate(), preview: () => activeController.previewRenovation(), study: handleNavigateToChapter }, activeController.isBuying !== null || activeController.isCollecting || activeController.isEquipping) : ''}
             ${activeController.buyError ? html`<p role="alert">${activeController.buyError}</p>` : ''}
             <div class="sushi-unlocks-grid" data-testid="sushi-unlocks-grid">
               ${SUSHI_CATALOG.map((item) => {
@@ -1837,7 +1842,12 @@ function renderSushiAuthenticatedStage(
                             <button
                               type="button"
                               class="pixel-btn"
-                              @click=${() => document.querySelector('[data-testid="sushi-renovation-card"]')?.scrollIntoView({ block: 'nearest' })}
+                              @click=${() => {
+                                activeController.setShopFilter('all');
+                                document
+                                  .querySelector('[data-testid="sushi-renovation-card"]')
+                                  ?.scrollIntoView({ block: 'nearest' });
+                              }}
                             >
                               Se nästa renovering ↑
                             </button>`

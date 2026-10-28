@@ -723,7 +723,7 @@ test('Ticket 05 UI: Unlocks panel renders all 7 items with count badge and purch
   assert.ok(html.includes('Kursbelöningar & Upplåsningar'), 'Panel title must be present');
   assert.ok(html.includes('sushi-unlocks-count-badge'), 'Count badge element must be present');
   assert.ok(
-    html.includes('Upplåsning ger inte gratis föremål'),
+    /Upplåsning ger inte\s+gratis föremål/.test(html),
     'Explanatory text must clarify that unlocking grants purchase eligibility, not free items',
   );
 

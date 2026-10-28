@@ -53,7 +53,7 @@ test('goal shows chapter progress, purchase state and completion without inventi
   assert.doesNotMatch(goal, /% klart/);
   goal = await render(createFreshCourseProgress());
   assert.match(goal, /0 % klart/);
-  assert.match(goal, /0 \/ 21 belöningar köpta/);
+  assert.match(goal, /0 \/ 21 köpta/);
   const progress = createFreshCourseProgress();
   progress.masteredVocabIds[courseWeeks[0].vocab[0].id] = true;
   goal = await render(progress);
@@ -79,7 +79,7 @@ test('goal shows chapter progress, purchase state and completion without inventi
   assert.match(goal, /Precisionskniv/);
   assert.match(goal, /Kapitel 8 · Brons/);
   assert.match(goal, /Ger \+2 ¥\/min direkt \(20 → 22\)/);
-  assert.match(goal, /1 \/ 21 belöningar köpta/);
+  assert.match(goal, /1 \/ 21 köpta/);
 
   // With nonsequential grants, useful service relief wins over a cheap cosmetic
   // and the knife's smaller revenue increase at the existing service bottleneck.
@@ -104,7 +104,7 @@ test('goal shows chapter progress, purchase state and completion without inventi
   });
   goal = await render(null);
   assert.match(goal, /Restaurangen är komplett/);
-  assert.match(goal, /21 \/ 21 belöningar köpta/);
+  assert.match(goal, /21 \/ 21 köpta/);
   leaveSushiView();
 });
 

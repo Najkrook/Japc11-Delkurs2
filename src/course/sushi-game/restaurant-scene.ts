@@ -126,77 +126,23 @@ function servingDish(id: string, size = 62) {
     : sprite(SUSHI_SPRITES[id], 0, 0, size);
 }
 
-/** Permanent project scenery sits outside the two interchangeable decor slots. */
+/** Project art shares the room's painted materials and isometric camera. */
 function renderProjectImprovements(state: SushiRestaurantState) {
   const built = new Set(state.completedProjects ?? []);
-  return [
-    built.has('study_nook')
-      ? svg`<g data-testid="art-project-study_nook" aria-hidden="true" transform="translate(235 565)">
-      <path d="M0 0 106 -60 150 -35 44 25Z" fill="#c69353" stroke="#714327" stroke-width="4"/>
-      <path d="M0 0 44 25 44 135 0 110Z" fill="#6d432c" stroke="#54321f" stroke-width="4"/>
-      <path d="M44 25 150 -35 150 75 44 135Z" fill="#a66c3b" stroke="#714327" stroke-width="4"/>
-      <path d="M51 32 141 -20 141 13 51 65Z M51 80 141 28 141 65 51 117Z" fill="#4d3628"/>
-      ${[0, 1, 2, 3, 4, 5].map((i) => svg`<g transform=${`translate(${55 + i * 14} ${30 - i * 8})`}><path d="M0 0 10 -6 10 23 0 29Z" fill=${['#d4a347', '#827e57', '#a45d50', '#d4b78a', '#68856e', '#95764f'][i]} stroke="#563d2b" stroke-width="1.5"/><path d="M0 48 10 42 10 69 0 75Z" fill=${['#8c5a46', '#c99a51', '#769078', '#c8b28b', '#af6b51', '#7c7761'][i]}/></g>`)}
-      <path d="M64 128 95 145 133 123 102 106Z" fill="#d1a15f" stroke="#774a2d" stroke-width="3"/>
-      <path d="M69 129 96 143 127 125 101 111Z" fill="#f8edc5" stroke="#c9b78e" stroke-width="2"/><path d="M96 143 101 111" stroke="#b9a37c" stroke-width="2"/>
-    </g>`
-      : '',
-    built.has('lantern_evening')
-      ? svg`<g data-testid="art-project-lantern_evening" aria-hidden="true">
-      <path d="M756 80Q1050 175 1380 405" fill="none" stroke="#5b392a" stroke-width="5"/>
-      ${[
-        [823, 109],
-        [950, 166],
-        [1075, 230],
-        [1200, 303],
-        [1325, 379],
-      ].map(
-        ([x, y], i) => svg`<g transform=${`translate(${x} ${y})`}>
-        <path d="M0 0v23" stroke="#644432" stroke-width="3"/>
-        <ellipse cx="0" cy="49" rx="26" ry="35" fill="#ffd16b" opacity=".18"/>
-        <rect x="-18" y="22" width="36" height="50" rx="13" fill=${i % 2 ? '#e6b86a' : '#bc5945'} stroke="#7e4531" stroke-width="3"/>
-        <path d="M-14 34h28M-17 46h34M-14 59h28" stroke="#f6d99b" stroke-width="2" opacity=".65"/><path d="M-10 22h20M-10 72h20" stroke="#5b392b" stroke-width="5"/>
-      </g>`,
-      )}
-    </g>`
-      : '',
-    built.has('garden_terrace')
-      ? svg`<g data-testid="art-project-garden_terrace" aria-hidden="true">
-      ${[
-        [153, 744],
-        [1260, 879],
-      ].map(
-        ([x, y]) => svg`<g transform=${`translate(${x} ${y})`}>
-        <ellipse cx="0" cy="10" rx="104" ry="45" fill="#65816b" opacity=".17"/>
-        <path d="M-75 7Q-31 -29 17 -4T88 18" fill="none" stroke="#a4a18a" stroke-width="18" stroke-linecap="round"/>
-        <ellipse cx="-63" cy="-12" rx="29" ry="15" fill="#72805c" stroke="#536844" stroke-width="3"/><ellipse cx="-52" cy="-29" rx="26" ry="23" fill="#78925c"/><ellipse cx="-72" cy="-28" rx="20" ry="17" fill="#8b9a61"/>
-        <path d="M26 -7 43 3 60 -7 43 -17Z" fill="#d5ccb2" stroke="#79765d" stroke-width="2"/><path d="M38 -8v-32h11v32" fill="#a8a38c" stroke="#79765d" stroke-width="2"/>
-        <path d="M29 -39 43 -47 58 -39 43 -30Z" fill="#e9d5a4" stroke="#79765d" stroke-width="2"/><path d="M28 -47 43 -59 59 -47 43 -38Z" fill="#b6ad91" stroke="#79765d" stroke-width="2"/>
-        <ellipse cx="78" cy="-1" rx="20" ry="11" fill="#72835c"/><ellipse cx="73" cy="-13" rx="16" ry="18" fill="#82945f"/>
-      </g>`,
-      )}
-    </g>`
-      : '',
-    built.has('hanami_festival')
-      ? svg`<g data-testid="art-project-hanami_festival" aria-hidden="true" transform="translate(365 753) scale(.8)">
-      <path d="M-132 0 0 -71 132 0 0 71Z" fill="#a45346" stroke="#713e30" stroke-width="5"/>
-      <path d="M-112 0 0 -60 112 0 0 60Z" fill="none" stroke="#d7aa66" stroke-width="3"/>
-      <path d="M-90 1 2 -47 89 0 -1 48Z" fill="#eed8a2" stroke="#9e7e51" stroke-width="2"/>
-      <ellipse cx="-31" cy="1" rx="21" ry="11" fill="#faf0d2" stroke="#b59e73" stroke-width="2"/><ellipse cx="-31" cy="-1" rx="12" ry="5" fill="#d98c66"/>
-      <ellipse cx="33" cy="6" rx="18" ry="9" fill="#faf0d2" stroke="#b59e73" stroke-width="2"/><ellipse cx="33" cy="4" rx="10" ry="5" fill="#80a072"/>
-      ${[
-        [-7, -19],
-        [-5, 24],
-        [64, -7],
-      ].map(
-        ([x, y]) =>
-          svg`<g transform=${`translate(${x} ${y})`}><path d="M-7 -12h14v17q-7 7 -14 0Z" fill="#f2e9ca" stroke="#907653" stroke-width="2"/><ellipse cy="-12" rx="7" ry="3" fill="#8b9c6b"/></g>`,
-      )}
-      <path d="M-137 -2v-91M138 -2v-91M-137 -93Q0 -34 138 -93" stroke="#825235" stroke-width="4" fill="none"/>
-      ${[-96, -48, 0, 48, 96].map((x, i) => svg`<path d=${`M${x} ${-75 + Math.abs(x) / 12}l18 9-18 15Z`} fill=${i % 2 ? '#e5b76f' : '#c67a79'} stroke="#975951" stroke-width="1.5"/>`)}
-    </g>`
-      : '',
+  const projects = [
+    { id: 'study_nook', file: 'study-nook', x: 260, y: 600, width: 230 },
+    { id: 'lantern_evening', file: 'lantern-evening', x: 780, y: 40, width: 610 },
+    { id: 'garden_terrace', file: 'garden-terrace', x: 1230, y: 730, width: 270 },
+    { id: 'hanami_festival', file: 'hanami-festival-deck', x: 180, y: 700, width: 430 },
   ];
+  return projects
+    .filter((project) => built.has(project.id))
+    .map(
+      (project) =>
+        svg`<image data-testid=${`art-project-${project.id}`} aria-hidden="true"
+      href=${`/sprites/sushi/projects/${project.file}.png`}
+      x=${project.x} y=${project.y} width=${project.width} height=${(project.width * 2) / 3}/>`,
+    );
 }
 
 export function renderRestaurantScene(
