@@ -18,7 +18,8 @@ export interface TierScene {
 }
 
 const basePlacements: Record<string, ScenePlacement> = {
-  prep_counter: [0.4, 0.39, 0.1],
+  // Keep the purchased workbench beside the chef, with an unobstructed top.
+  prep_counter: [0.57, 0.39, 0.12],
   cap_extension_12h: [0.81, 0.43, 0.045],
   precision_knife: [0.48, 0.45, 0.05],
   conveyor_belt: [0.35, 0.43, 0.25],
@@ -51,7 +52,7 @@ export const RESTAURANT_SCENES: Record<RestaurantTier, TierScene> = {
     steam: [0.49, 0.31],
     beltStart: [0.4, 0.49],
     beltEnd: [0.6, 0.65],
-    placements: { ...basePlacements, prep_counter: [0.4, 0.375, 0.1] },
+    placements: { ...basePlacements },
     projectOffset: [0, 0],
   },
   2: {

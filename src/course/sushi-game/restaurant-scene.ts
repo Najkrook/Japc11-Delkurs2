@@ -156,6 +156,7 @@ export function renderRestaurantScene(
     productionStopped?: boolean;
     previewDecorationId?: string | null;
     arrival?: RestaurantSceneArrival | null;
+    spotlightItemId?: string;
   } = {},
 ) {
   const tier = options.tier ?? currentRestaurantTier(state);
@@ -211,6 +212,18 @@ export function renderRestaurantScene(
           </g>`;
   };
   const frontIds = new Set(['conveyor_belt', 'service_counter']);
+  const spotlightId = options.spotlightItemId;
+  const recipeIndex = recipes.indexOf(spotlightId ?? '');
+  const spotlight =
+    spotlightId && owns(spotlightId)
+      ? recipeIndex >= 0
+        ? [
+            layout.dishes[0][0] * 1536 + recipeIndex * 40,
+            layout.dishes[0][1] * 1024 + recipeIndex * 21,
+            62,
+          ]
+        : placements[spotlightId]
+      : undefined;
   return html`<figure
     class="sushi-illustration"
     data-testid="restaurant-scene"
@@ -330,6 +343,14 @@ export function renderRestaurantScene(
               svg`<image class="sushi-falling-petal" href="/sprites/sushi/activity/cherry-petal.png" width="26" height="26" style=${`--petal-x:${x}px;--petal-y:${y}px;--petal-drift:${drift}px;--petal-fall:${fall}px;animation-duration:${duration}s;animation-delay:${delay}s`}/>`,
           )}
         </g>
+        ${
+          spotlight
+            ? svg`<g class="sushi-purchase-spotlight" data-testid="sushi-purchase-spotlight" data-item-id=${spotlightId} aria-hidden="true" pointer-events="none">
+          <rect x=${spotlight[0] - 12} y=${spotlight[1] - 12} width=${spotlight[2] + 24} height=${spotlight[2] + 24} rx="20" fill="none" stroke="#fff9e7" stroke-width="12"/>
+          <rect x=${spotlight[0] - 12} y=${spotlight[1] - 12} width=${spotlight[2] + 24} height=${spotlight[2] + 24} rx="20" fill="none" stroke="#b77416" stroke-width="5"/>
+        </g>`
+            : ''
+        }
       </svg>
       <div
         class="sushi-kitchen-steam"

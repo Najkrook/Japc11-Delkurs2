@@ -3468,6 +3468,194 @@
   text-shadow: none;
   cursor: not-allowed;
 }
+
+/* Named menu destinations stay visible while each section scrolls independently. */
+.sushi-menu-tabs {
+  display: grid;
+  grid-template-columns: repeat(4, minmax(0, 1fr));
+  gap: 5px;
+  padding: 10px;
+  border-bottom: 2px solid var(--sushi-washi-border);
+  background: var(--sushi-washi-bg);
+}
+.sushi-menu-tabs .sushi-filter-tab {
+  padding: 8px 4px;
+  font-size: 14px;
+}
+.sushi-overlay-window [role='tabpanel'][hidden] {
+  display: none !important;
+}
+.sushi-menu-panel > :first-child,
+.sushi-menu-panel .sushi-projects,
+.sushi-menu-panel .sushi-chapter-honors,
+.sushi-decorations h3 {
+  margin-top: 0;
+}
+.sushi-menu-panel:focus-visible,
+.sushi-menu-tabs button:focus-visible {
+  outline: 3px solid var(--sushi-accent-gold);
+  outline-offset: -3px;
+}
+
+/* State is communicated with words, a badge and action weight in both themes. */
+.sushi-shop-card[data-purchase-state='locked'],
+.sushi-renovation-card[data-purchase-state='locked'] {
+  border-color: #9c8f7b;
+}
+.sushi-shop-card[data-purchase-state='affordable'],
+.sushi-renovation-card[data-purchase-state='affordable'] {
+  border-color: #567456;
+}
+.sushi-shop-card[data-purchase-state='owned'] {
+  border-color: #738a69;
+}
+.sushi-unlock-badge {
+  display: inline-block;
+  width: fit-content;
+}
+[data-purchase-state='affordable'] .sushi-unlock-badge,
+[data-purchase-state='owned'] .sushi-unlock-badge {
+  background: #e0ecda;
+  color: #2d542f;
+}
+[data-purchase-state='unaffordable'] .sushi-unlock-badge {
+  background: #f4e8cd;
+  color: #70511d;
+}
+.sushi-missing-funds,
+.sushi-action-reason {
+  font-size: 14px;
+  color: var(--sushi-washi-text);
+}
+.sushi-shell .sushi-overlay-window button:disabled,
+.sushi-shell .sushi-decoration-preview button:disabled {
+  opacity: 1;
+  background: #e3ddd1;
+  color: #655e52;
+  border-color: #a69c8b;
+  box-shadow: inset 0 1px #f7f2e9;
+  text-shadow: none;
+  cursor: not-allowed;
+}
+
+/* A purchase has a persistent invitation and a separate, unobstructed room view. */
+.sushi-purchase-receipt {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  margin-bottom: 14px;
+  padding: 12px;
+  background: #eef3e4;
+  border: 2px solid #738a69;
+  color: #2f4e30;
+}
+.sushi-purchase-receipt strong,
+.sushi-purchase-receipt span {
+  display: block;
+}
+.sushi-purchase-receipt span {
+  font-size: 14px;
+  margin-top: 3px;
+}
+.sushi-purchase-receipt button {
+  flex-shrink: 0;
+}
+.sushi-purchase-view {
+  position: absolute;
+  bottom: 124px;
+  left: 50%;
+  transform: translateX(-50%);
+  width: min(800px, calc(100% - 24px));
+  padding: 14px;
+  box-sizing: border-box;
+  display: grid;
+  grid-template-columns: 84px minmax(0, 1fr) auto;
+  gap: 14px;
+  align-items: center;
+  z-index: 12;
+  background: var(--sushi-washi-bg);
+  color: var(--sushi-washi-text);
+}
+.sushi-purchase-view:focus-visible {
+  outline: 3px solid var(--sushi-accent-gold);
+  outline-offset: 3px;
+}
+.sushi-purchase-view h3 {
+  font-size: 18px;
+  line-height: 1.3;
+  margin: 3px 0 6px;
+}
+.sushi-purchase-view p {
+  font-size: 15px;
+  line-height: 1.4;
+  margin: 0;
+}
+.sushi-purchase-view .sushi-purchase-location {
+  font-size: 14px;
+  margin-top: 5px;
+  color: var(--sushi-washi-muted);
+}
+.sushi-purchase-sprite {
+  width: 84px;
+  height: 84px;
+}
+.sushi-purchase-actions {
+  display: grid;
+  gap: 8px;
+}
+.sushi-purchase-actions button {
+  min-height: 44px;
+  padding: 6px 10px;
+  font-size: 14px;
+}
+.sushi-purchase-spotlight {
+  animation: sushi-purchase-glow 1.2s ease-in-out 2;
+}
+.is-showing-purchase .sushi-stage-scene-wrap {
+  bottom: 290px;
+}
+.is-showing-purchase .sushi-illustration {
+  width: min(100%, calc((100dvh - 360px) * 1.5));
+}
+@keyframes sushi-purchase-glow {
+  50% {
+    opacity: 0.35;
+  }
+}
+@media (prefers-reduced-motion: reduce) {
+  .sushi-purchase-spotlight {
+    animation: none;
+  }
+}
+@media (max-width: 640px) {
+  .sushi-purchase-receipt {
+    flex-wrap: wrap;
+  }
+  .sushi-purchase-receipt button {
+    width: 100%;
+  }
+  .sushi-purchase-view {
+    bottom: 180px;
+    grid-template-columns: 64px minmax(0, 1fr);
+    gap: 10px;
+    padding: 10px;
+  }
+  .sushi-purchase-sprite {
+    width: 64px;
+    height: 64px;
+  }
+  .sushi-purchase-actions {
+    grid-column: 1 / -1;
+    grid-template-columns: minmax(0, 1fr) minmax(0, 1fr);
+  }
+  .is-showing-purchase .sushi-stage-scene-wrap {
+    inset: 0 0 420px;
+  }
+  .is-showing-purchase .sushi-illustration {
+    width: min(100%, calc((100dvh - 490px) * 1.5));
+  }
+}
 @media (max-width: 640px) {
   .sushi-overlay-window {
     width: calc(100vw - 16px);

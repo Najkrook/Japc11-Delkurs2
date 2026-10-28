@@ -195,6 +195,7 @@ test('optional savings project changes the room, persists and leaves income alon
   await openRestaurant(page, 'remedy-project', ['prep_counter'], 60_000);
   await expect(page.getByTestId('art-project-study_nook')).toHaveCount(0);
   await page.getByTestId('sushi-toggle-menu').click();
+  await page.getByRole('tab', { name: 'Projekt', exact: true }).click();
   await page.getByTestId('buy-project-study_nook').click();
   await expect(page.getByTestId('sushi-project-study_nook')).toContainText(
     'Byggt · syns i restaurangen',

@@ -736,7 +736,7 @@ test('Ticket 05 UI: Unlocks panel renders all 7 items with count badge and purch
   }
 });
 
-test('Ticket 05 UI: Unlocked item displays "Upplåst köpmöjlighet" and price hint in yen', async () => {
+test('Ticket 05 UI: Unlocked item with insufficient funds displays "Spara yen" and price hint in yen', async () => {
   const uid = 'student-unlocked-badges';
   const host = createMockHost({
     user: { uid, displayName: 'Ren' },
@@ -757,8 +757,8 @@ test('Ticket 05 UI: Unlocked item displays "Upplåst köpmöjlighet" and price h
     'Badge element for prep_counter must be rendered',
   );
   assert.ok(
-    html.includes('🔓 Upplåst köpmöjlighet'),
-    'Badge text must indicate unlocked purchase eligibility',
+    html.includes('◷ Spara yen'),
+    'Badge text must identify an unlocked item that still needs funds',
   );
   assert.ok(
     html.includes('Pris i butik: ¥ 50'),
