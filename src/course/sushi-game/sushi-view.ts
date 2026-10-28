@@ -171,9 +171,8 @@ export class SushiClientController {
     this.greetingIndex = -1;
     this.previewDecorationId = null;
     this.activeOverlay = 'menu';
-    this.menuSection = 'memories';
     this.showingPurchase = false;
-    this.host?.render();
+    this.setMenuSection('memories', true);
   }
   public setMenuSection(section: MenuSection, focus = false): void {
     this.menuSection = section;
@@ -196,6 +195,9 @@ export class SushiClientController {
     this.activeOverlay = null;
     this.greetingIndex = -1;
     this.showingPurchase = true;
+    if (this.rewardTimer) clearTimeout(this.rewardTimer);
+    this.rewardTimer = null;
+    this.rewardMessage = '';
     this.markSceneArrival(item.id);
     this.host?.render();
     if (typeof document !== 'undefined')
@@ -441,7 +443,8 @@ export class SushiClientController {
     this.previewDecorationId = null;
     this.showingPurchase = false;
     this.activeOverlay = this.activeOverlay === overlay ? null : overlay;
-    this.host?.render();
+    if (this.activeOverlay === 'menu') this.setMenuSection(this.menuSection, true);
+    else this.host?.render();
   }
 
   public closeOverlay(): void {
@@ -2213,6 +2216,7 @@ function renderSushiAuthenticatedStage(
               class="sushi-menu-panel"
               role="tabpanel"
               id="sushi-menu-panel-memories"
+              tabindex="0"
               aria-labelledby="sushi-menu-tab-memories"
               ?hidden=${activeController.menuSection !== 'memories'}
             >
@@ -2234,6 +2238,7 @@ function renderSushiAuthenticatedStage(
               data-testid="sushi-scene-equipment"
               role="tabpanel"
               id="sushi-menu-panel-menu"
+              tabindex="0"
               aria-labelledby="sushi-menu-tab-menu"
               ?hidden=${activeController.menuSection !== 'menu'}
             >
@@ -2324,11 +2329,12 @@ function renderSushiAuthenticatedStage(
               }
             </div>
             <section
-              class="sushi-decorations"
+              class="sushi-decorations sushi-menu-panel"
               aria-label="Dekorationsplatser"
               aria-busy=${activeController.isEquipping}
               role="tabpanel"
               id="sushi-menu-panel-decoration"
+              tabindex="0"
               aria-labelledby="sushi-menu-tab-decoration"
               ?hidden=${activeController.menuSection !== 'decoration'}
             >
@@ -2406,6 +2412,7 @@ function renderSushiAuthenticatedStage(
               class="sushi-menu-panel"
               role="tabpanel"
               id="sushi-menu-panel-projects"
+              tabindex="0"
               aria-labelledby="sushi-menu-tab-projects"
               ?hidden=${activeController.menuSection !== 'projects'}
             >

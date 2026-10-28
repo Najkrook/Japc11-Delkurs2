@@ -21,7 +21,7 @@ async function seed(page: Page, overrides: Partial<SushiRestaurantState> = {}) {
 
 test('named menu destinations show one section, support keyboard navigation and open memories directly', async ({
   page,
-}) => {
+}, info) => {
   await page.setViewportSize({ width: 390, height: 844 });
   await seed(page);
   await page.getByTestId('sushi-toggle-menu').click();
@@ -32,6 +32,7 @@ test('named menu destinations show one section, support keyboard navigation and 
   );
   await expect(page.getByTestId('decoration-wallSlot')).toBeInViewport();
   await expect(menu.getByRole('tabpanel')).toHaveCount(1);
+  await page.screenshot({ path: info.outputPath('menu-phone.png') });
   await menu.getByRole('tab', { name: 'Projekt', exact: true }).click();
   await expect(page.getByTestId('sushi-projects')).toBeInViewport();
   await expect(page.getByTestId('decoration-wallSlot')).toBeHidden();
@@ -54,7 +55,7 @@ test('named menu destinations show one section, support keyboard navigation and 
 for (const tier of [1, 2, 3] as const) {
   test(`tier ${tier}: purchase offers a clear room reveal, keeps the workbench visible and never charges twice`, async ({
     page,
-  }) => {
+  }, info) => {
     await seed(page, { restaurantTier: tier, permanentGrants: ['prep_counter'] });
     await page.getByTestId('sushi-toggle-shop').click();
     await page.getByRole('tab', { name: 'Kök', exact: true }).click();
@@ -66,6 +67,7 @@ for (const tier of [1, 2, 3] as const) {
     const reveal = page.getByTestId('sushi-purchase-view');
     await expect(reveal).toBeFocused();
     await expect(reveal).toContainText('Förbättrad beredningsbänk');
+    await expect(page.getByTestId('sushi-reward-pop')).toHaveCount(0);
     await expect(page.getByTestId('sushi-unlocks-panel')).toBeHidden();
     await expect(page.getByTestId('sushi-purchase-spotlight')).toHaveAttribute(
       'data-item-id',
@@ -84,6 +86,7 @@ for (const tier of [1, 2, 3] as const) {
       .locator('..')
       .evaluate((e) => ({ x: e.getAttribute('x'), width: e.getAttribute('width') }));
     expect(Number(workbench.x)).toBeGreaterThan(Number(chef.x) + Number(chef.width));
+    await page.screenshot({ path: info.outputPath(`purchase-tier-${tier}.png`) });
     await reveal.getByRole('button', { name: 'Tillbaka till butik', exact: true }).click();
     await expect(see).toBeFocused();
     await expect(page.getByRole('tab', { name: 'Kök', exact: true })).toHaveAttribute(
@@ -123,6 +126,64 @@ test('owned decoration is labeled unplaced and the purchase invitation keeps pla
   );
 });
 
+test('catalog clearly distinguishes locked, saving, available and owned items', async ({
+  page,
+}) => {
+  await seed(page, {
+    balanceUnits: 100 * 60000,
+    permanentGrants: ['prep_counter', 'salmon_nigiri'],
+    inventory: ['potted_plant'],
+  });
+  await page.getByTestId('sushi-toggle-shop').click();
+  for (const [id, state, badge] of [
+    ['paper_lantern', 'locked', 'Låst'],
+    ['salmon_nigiri', 'unaffordable', 'Spara yen'],
+    ['prep_counter', 'affordable', 'Kan köpas'],
+    ['potted_plant', 'owned', 'Ägd'],
+  ]) {
+    await expect(page.getByTestId(`unlock-card-${id}`)).toHaveAttribute(
+      'data-purchase-state',
+      state,
+    );
+    await expect(page.getByTestId(`unlock-badge-${id}`)).toContainText(badge);
+  }
+  await expect(page.getByTestId('buy-btn-prep_counter')).toBeEnabled();
+  await expect(page.getByTestId('buy-btn-salmon_nigiri')).toBeDisabled();
+  await expect(page.getByTestId('buy-btn-potted_plant')).toBeDisabled();
+  await expect(page.getByTestId('study-link-btn-paper_lantern')).toBeEnabled();
+});
+
+test('purchase reveal fits a narrow phone and keeps reduced-motion highlighting static', async ({
+  page,
+}) => {
+  await page.setViewportSize({ width: 320, height: 740 });
+  await page.emulateMedia({ reducedMotion: 'reduce' });
+  await seed(page, { permanentGrants: ['prep_counter'] });
+  await page.getByTestId('sushi-toggle-shop').click();
+  await page.getByTestId('buy-btn-prep_counter').click();
+  await page.getByTestId('sushi-see-purchase').click();
+  const view = page.getByTestId('sushi-purchase-view');
+  const bounds = await view.boundingBox();
+  const room = await page.getByTestId('restaurant-scene').boundingBox();
+  expect(room!.y + room!.height).toBeLessThanOrEqual(bounds!.y + 2);
+  expect(bounds!.x).toBeGreaterThanOrEqual(0);
+  expect(bounds!.x + bounds!.width).toBeLessThanOrEqual(320);
+  await expect(view.getByRole('button', { name: 'Klart', exact: true })).toBeInViewport();
+  await expect(page.getByTestId('sushi-purchase-spotlight')).toHaveCSS('animation-name', 'none');
+});
+
+test('all four menu destinations fit a narrow phone without clipped labels', async ({ page }) => {
+  await page.setViewportSize({ width: 320, height: 740 });
+  await seed(page);
+  await page.getByTestId('sushi-toggle-menu').click();
+  const tabs = page.getByRole('tablist', { name: 'Restaurangens avdelningar' }).getByRole('tab');
+  for (const tab of await tabs.all()) {
+    await expect(tab).toBeInViewport();
+    expect(await tab.evaluate((e) => e.scrollWidth <= e.clientWidth)).toBe(true);
+  }
+  await expect(page.getByRole('tab', { name: 'Inredning', exact: true })).toBeFocused();
+});
+
 for (const variant of [
   { name: 'missing medal', overrides: {}, state: 'locked', reason: 'Kräver brons i kapitel 9.' },
   {
@@ -140,7 +201,7 @@ for (const variant of [
 ] as const) {
   test(`renovation: ${variant.name} has an explicit reason and consistent action state in both themes`, async ({
     page,
-  }) => {
+  }, info) => {
     await seed(page, variant.overrides as Partial<SushiRestaurantState>);
     await page.getByTestId('sushi-toggle-shop').click();
     const renovation = page.getByTestId('sushi-renovation-card');
@@ -156,6 +217,7 @@ for (const variant of [
           'rgb(227, 221, 209)',
         );
       }
+      await page.screenshot({ path: info.outputPath(`renovation-theme-${theme}.png`) });
       if (theme === 0) {
         await page.keyboard.press('Escape');
         await page.getByRole('button', { name: /🍵 Washi|🌸 Sakura/ }).click();

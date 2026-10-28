@@ -3472,14 +3472,14 @@
 /* Named menu destinations stay visible while each section scrolls independently. */
 .sushi-menu-tabs {
   display: grid;
-  grid-template-columns: repeat(4, minmax(0, 1fr));
+  grid-template-columns: minmax(0, 1.2fr) repeat(3, minmax(0, 1fr));
   gap: 5px;
   padding: 10px;
   border-bottom: 2px solid var(--sushi-washi-border);
   background: var(--sushi-washi-bg);
 }
-.sushi-menu-tabs .sushi-filter-tab {
-  padding: 8px 4px;
+.sushi-shell .sushi-menu-tabs .sushi-filter-tab {
+  padding: 8px 2px;
   font-size: 14px;
 }
 .sushi-overlay-window [role='tabpanel'][hidden] {
