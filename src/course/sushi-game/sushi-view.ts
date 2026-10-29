@@ -1296,7 +1296,7 @@ function renderSushiAuthenticatedStage(
   return html`
     <div class="sushi-container" data-testid="sushi-container">
       <section
-        class="sushi-stage ${previewDecoration || previewRenovation || showingPurchase ? 'is-previewing' : ''} ${showingPurchase ? 'is-showing-purchase' : ''}"
+        class="sushi-stage ${previewDecoration || previewRenovation || showingPurchase ? 'is-previewing' : ''} ${previewRenovation ? 'is-previewing-renovation' : ''} ${showingPurchase ? 'is-showing-purchase' : ''}"
         data-testid="sushi-stage"
         aria-label="Personlig sushirestaurang"
       >
@@ -1498,14 +1498,16 @@ function renderSushiAuthenticatedStage(
                 aria-label="Förhandsvisa renovering"
                 data-testid="sushi-renovation-preview"
               >
-                <button
-                  type="button"
-                  class="pixel-btn"
-                  @click=${() => activeController.closeRenovationPreview()}
-                >
-                  ← Tillbaka till butik
-                </button>
-                <strong>Förhandsvisning · Inget ändras förrän du köper</strong>
+                <div class="sushi-renovation-preview-header">
+                  <button
+                    type="button"
+                    class="pixel-btn"
+                    @click=${() => activeController.closeRenovationPreview()}
+                  >
+                    ← Tillbaka till butik
+                  </button>
+                  <strong>Förhandsvisning · Ingen ändring före köp</strong>
+                </div>
                 ${renderRenovationCard(state, { buy: () => void activeController.renovate(), preview: () => {}, study: handleNavigateToChapter }, activeController.isBuying !== null, true)}
               </section>`
             : ''
@@ -1523,7 +1525,14 @@ function renderSushiAuthenticatedStage(
             replayFinale: () => activeController.openFinale(),
           },
         )}
-        <div class="sushi-guest-hint">Öva japanska med en gäst</div>
+        <button
+          type="button"
+          class="sushi-guest-hint"
+          data-testid="sushi-guest-hint"
+          @click=${() => activeController.greet()}
+        >
+          Öva japanska med en gäst
+        </button>
         ${
           phrase
             ? html`<aside

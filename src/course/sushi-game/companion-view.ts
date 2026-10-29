@@ -69,13 +69,21 @@ export function renderCompanionGoal(
             data-testid="sushi-goal-action"
             @click=${() => actions.openShop('renovation')}
           >
-            <span
-              ><strong>Nästa renovering · ${renovation.name}</strong
-              ><small
-                >¥ ${yen(renovation.priceYen)} · Nivå ${renovation.targetTier}/3 · Kapitel
-                ${renovation.chapter} brons (60 %) · Öppna butik</small
-              ></span
-            >
+            <span>
+              <strong>
+                <span class="sushi-goal-full">Nästa renovering · ${renovation.name}</span>
+                <span class="sushi-goal-compact">Nästa nivå: ${renovation.targetTier}/3</span>
+              </strong>
+              <small>
+                <span class="sushi-goal-full"
+                  >¥ ${yen(renovation.priceYen)} · Nivå ${renovation.targetTier}/3 · Kapitel
+                  ${renovation.chapter} brons (60 %) · Öppna butik</span
+                >
+                <span class="sushi-goal-compact"
+                  >¥ ${yen(renovation.priceYen)} · Kapitel ${renovation.chapter} brons</span
+                >
+              </small>
+            </span>
           </button>`
         : goal
           ? html`

@@ -114,7 +114,10 @@ for (const tier of [1, 2, 3] as const) {
         .getByTestId(`art-${wall}`)
         .locator('svg')
         .evaluate(clippedBounds);
-      expect(certificate.right).toBeLessThanOrEqual(decoration.left);
+      // A curtain may be by the entrance, on the other side of the certificate.
+      expect(certificate.right <= decoration.left || decoration.right <= certificate.left).toBe(
+        true,
+      );
     });
   }
 }

@@ -78,7 +78,7 @@ test('failed image load retains purchased state and previous room; image retry n
   page,
 }) => {
   let failedImageRequests = 0;
-  await page.route('**/tiers/tier-2-front.png', (route) => {
+  await page.route('**/tiers/tier-2-expanded-front.png', (route) => {
     failedImageRequests++;
     return route.abort();
   });
@@ -93,7 +93,7 @@ test('failed image load retains purchased state and previous room; image retry n
   expect((await saved(page)).restaurantTier).toBe(2);
   await page.waitForTimeout(2100);
   expect(failedImageRequests).toBe(1);
-  await page.unroute('**/tiers/tier-2-front.png');
+  await page.unroute('**/tiers/tier-2-expanded-front.png');
   await page.getByRole('button', { name: 'Ladda bilden igen' }).click();
   await expect(page.getByTestId('restaurant-scene')).toHaveAttribute('data-tier', '2');
   expect((await saved(page)).balanceUnits).toBe(balance);

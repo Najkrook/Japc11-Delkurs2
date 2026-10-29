@@ -10,18 +10,24 @@
     },
     {
       "tier": 2,
-      "file": "tier-2.png",
+      "file": "tier-2-expanded.png",
       "references": ["tier-1.png"],
       "prompt": "Production environment illustration for TIER 2 Established Sushi Bar in cozy restaurant game. Renovate reference image's EXACT same compact isometric dollhouse room, same building footprint, cream background, camera, entrance at left, adjacent window, structural corner and framing. 1536x1024 landscape. Major improvement: substantial L-SHAPED cedar sushi counter in middle, long front runs diagonally from left-mid to right-lower, short return going toward back at RIGHT. THREE evenly spaced matching sage-cushioned stools on long customer-facing side. Polished broad warm wood worktop, paneled front, fitted kitchen cabinets, ivory tile backsplash, enclosed storage, repaired finished wood floor, fresh sage plaster, tasteful restrained upper-wall lattice, discreet built-in warm lighting. Keep a basic stove, sink, rice pot, compact fridge, clear kitchen aisle and free countertop. Warm outlined pixel-like painted art exactly matching reference, clean readable game shapes. Environment only. No characters, people, food plates, conveyor, display case, separate service desk, decorations, paper lantern, curtain, plants, wall art, certificate, cat, text, UI or numbers. Leave right wall and right floor clear for separate decoration sprites. All room edges inside canvas. Same room noticeably professionally renovated, still cozy.",
-      "foreground": "tier-2-front.png"
+      "foreground": "tier-2-expanded-front.png",
+      "previousFile": "tier-2.png",
+      "previousForeground": "tier-2-front.png",
+      "expansionProvenance": "expanded-tiers.json"
     },
     {
       "tier": 3,
-      "file": "tier-3.png",
+      "file": "tier-3-expanded.png",
       "references": ["tier-1.png", "tier-2.png"],
       "prompt": "Production environment illustration TIER 3 Cozy Master Restaurant, final of THREE tiers. Image 1 is original humble shop, image 2 established shop. Renovate EXACT same image2 room and L-SHAPED counter silhouette, same building footprint, wall endpoints, entrance, adjacent window, back corner, 1536x1024 cream-background canvas and elevated isometric camera. Warm outlined pixel-like painted game art. Dramatic refined craftsmanship: luminous pale hinoki countertop and fine honey-wood counter front with exquisite joinery; keep THREE matching premium deep sage upholstered stools at exact existing positions. Cream plaster framed in dark pine, refined deep teal accents, fine delicate traditional kumiko wood lattice on upper walls, discreet golden warm under-trim lighting. Framed elegant wooden floor border. Replace basic kitchen with TWO organized empty chef work bays, premium coordinated enclosed cabinetry, refined ivory backsplash, discreet sink and cooking station, rice pot and small fridge; clear work aisle. Right wall and right floor remain usable for separate decoration/certificate/cat. Cozy intimate exceptional traditional Japanese master sushi restaurant, not opulent hotel, not bigger building. No people, chef, guests, food plates, conveyor, sushi display, extra service counter, lanterns, curtains, plants, art, certificate, lucky cat, text, UI, numbers. Keep clear countertop for animated serving layers. All edges fully within frame.",
       "refinement": "Refine this final-tier sushi restaurant illustration while keeping exact room, entrance/window, counter silhouette, THREE stools, perspective, canvas and object positions. Make final renovation MUCH MORE VISIBLY DISTINCT from mid-tier: counter TOP luminous very pale creamy hinoki, counter FRONT refined dark honey-wood small kumiko panels. Walls mostly warm CREAM plaster with richer deep teal framed lower accents. Make floor distinct with a broad DARK PINE wooden perimeter border and central light warm wood planks. Kitchen bench has TWO obvious empty prep sections with fitted premium drawers, replace portable single burner with small fitted two-burner cooking inset at same position, keep small sink and rice pot. More intricate upper lattice craftsmanship, elegant warm lighting integrated under trim. Premium sage stool upholstery. Do not add clutter or any characters, decorative trophies, plants, wall art, conveyor, plates, text. Same cozy outlined pixel-painted art. Complete 1536x1024 opaque cream background.",
-      "foreground": "tier-3-front.png"
+      "foreground": "tier-3-expanded-front.png",
+      "previousFile": "tier-3.png",
+      "previousForeground": "tier-3-front.png",
+      "expansionProvenance": "expanded-tiers.json"
     }
   ],
   "sprites": [
@@ -70,28 +76,7 @@
       [902, 823],
       [465, 580],
       [452, 560]
-    ],
-    "2": [
-      [446, 443],
-      [537, 407],
-      [918, 590],
-      [1060, 520],
-      [1139, 568],
-      [1138, 590],
-      [1134, 737],
-      [914, 815],
-      [449, 578]
-    ],
-    "3": [
-      [451, 443],
-      [550, 400],
-      [917, 586],
-      [1060, 520],
-      [1142, 568],
-      [1139, 592],
-      [1135, 742],
-      [912, 816],
-      [453, 578]
     ]
-  }
+  },
+  "expandedForegroundExtractor": "../../../../scripts/extract-expanded-counter-foregrounds.py"
 }

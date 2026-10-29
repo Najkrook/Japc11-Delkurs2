@@ -1,5 +1,5 @@
-import { RESTAURANT_SCENES } from './tier-scenes.ts';
-import { currentRestaurantTier } from './renovations.ts';
+import { RESTAURANT_SCENES, type TierScene } from './tier-scenes.ts';
+import { currentRestaurantTier, RESTAURANT_TIER_NAMES } from './renovations.ts';
 import type { RestaurantTier } from './types.ts';
 import { html, svg } from 'lit-html';
 import type { SushiRestaurantState } from './types.ts';
@@ -127,22 +127,23 @@ function servingDish(id: string, size = 62) {
 }
 
 /** Project art shares the room's painted materials and isometric camera. */
-function renderProjectImprovements(state: SushiRestaurantState) {
+function renderProjectImprovements(state: SushiRestaurantState, layout: TierScene) {
   const built = new Set(state.completedProjects ?? []);
   const projects = [
-    { id: 'study_nook', file: 'study-nook', x: 260, y: 600, width: 230 },
-    { id: 'lantern_evening', file: 'lantern-evening', x: 780, y: 40, width: 610 },
-    { id: 'garden_terrace', file: 'garden-terrace', x: 1230, y: 730, width: 270 },
-    { id: 'hanami_festival', file: 'hanami-festival-deck', x: 180, y: 700, width: 430 },
-  ];
+    { id: 'study_nook', file: 'study-nook' },
+    { id: 'lantern_evening', file: 'lantern-evening' },
+    { id: 'garden_terrace', file: 'garden-terrace' },
+    { id: 'hanami_festival', file: 'hanami-festival-deck' },
+  ] as const;
   return projects
     .filter((project) => built.has(project.id))
-    .map(
-      (project) =>
-        svg`<image data-testid=${`art-project-${project.id}`} aria-hidden="true"
+    .map((project) => {
+      const [x, y, size] = layout.projects[project.id];
+      const width = size * 1536;
+      return svg`<image data-testid=${`art-project-${project.id}`} aria-hidden="true"
       href=${`/sprites/sushi/projects/${project.file}.png`}
-      x=${project.x} y=${project.y} width=${project.width} height=${(project.width * 2) / 3}/>`,
-    );
+      x=${x * 1536} y=${y * 1024} width=${width} height=${(width * 2) / 3}/>`;
+    });
 }
 
 export function renderRestaurantScene(
@@ -218,8 +219,8 @@ export function renderRestaurantScene(
     spotlightId && owns(spotlightId)
       ? recipeIndex >= 0
         ? [
-            layout.dishes[0][0] * 1536 + recipeIndex * 40,
-            layout.dishes[0][1] * 1024 + recipeIndex * 21,
+            layout.recipeDisplays[recipeIndex][0] * 1536,
+            layout.recipeDisplays[recipeIndex][1] * 1024,
             62,
           ]
         : placements[spotlightId]
@@ -251,7 +252,8 @@ export function renderRestaurantScene(
         <desc id="restaurant-art-desc">
           ${previewDecoration ? `Förhandsvisning: ${previewDecoration.name}. Prova utan att ändra inredningen.` : ''}
           Isometrisk vy snett uppifrån genom restaurangens öppna hörn, med två väggar och synligt
-          trägolv. ${prep ? 'Förbättrad beredningsbänk' : 'Grundkök'}.
+          ${layout.floorMaterial === 'tile' ? 'klinkergolv och en separat matplats' : 'trägolv'}.
+          ${prep ? 'Förbättrad beredningsbänk' : 'Grundkök'}.
           ${conveyor ? 'Transportband installerat' : 'Serveringsdisk utan transportband'}.
           ${owns('precision_knife') ? 'Precisionskniv vid beredningsbänken.' : ''}
           ${owns('service_counter') ? 'Uppgraderad serveringsdisk.' : ''}
@@ -276,11 +278,7 @@ export function renderRestaurantScene(
             .join(' ')}
         </desc>
         <image data-testid="starter-room" href=${layout.room} width="1536" height="1024" />
-        <g
-          transform=${`translate(${layout.projectOffset[0] * 1536} ${layout.projectOffset[1] * 1024})`}
-        >
-          ${renderProjectImprovements(state)}
-        </g>
+        ${renderProjectImprovements(state, layout)}
         ${owns('sous_chef') ? svg`<g class="sushi-sous-chef-working" data-testid="art-sous_chef">${sprite(SUSHI_SPRITES.sous_chef, placements.sous_chef[0], placements.sous_chef[1], placements.sous_chef[2])}</g>` : ''}
         ${Object.entries(placements)
           .filter(([id]) => !frontIds.has(id))
@@ -316,8 +314,9 @@ export function renderRestaurantScene(
           .map(renderPlacement)}
         ${recipes.map((id, i) => {
           if (!owns(id)) return '';
-          const x = layout.dishes[0][0] * 1536 + i * 40;
-          const y = layout.dishes[0][1] * 1024 + i * 21;
+          const [px, py] = layout.recipeDisplays[i];
+          const x = px * 1536;
+          const y = py * 1024;
           const arrival = options.arrival?.itemId === id ? options.arrival : null;
           return svg`<g data-testid="${`art-${id}`}" data-arrival-sequence=${arrival?.sequence ?? ''}>
             <g class=${arrival ? 'sushi-item-arrival' : ''} style=${`--item-arrival:sushi-item-arrive-${(arrival?.sequence ?? 0) % 2 ? 'a' : 'b'};--arrival-x:${x + 31}px;--arrival-y:${y + 62}px`}>${sprite(SUSHI_SPRITES[id], x, y, 62)}</g>
@@ -366,7 +365,7 @@ export function renderRestaurantScene(
             type="button"
             class="sushi-scene-guest"
             data-testid=${`sushi-guest-${i}`}
-            aria-label="Se japanska fraser med gästen"
+            aria-label=${`Se japanska fraser med gäst ${i + 1}`}
             ?disabled=${Boolean(previewDecoration || options.previewing)}
             style=${`left:${layout.guests[i][0] * 100 - 5.6}%;top:${layout.guests[i][1] * 100 - 15.3}%;width:11.2%;--guest-delay:${(i - guests) * cycleSeconds}s`}
             @click=${() => options.onGreet?.(i)}
@@ -386,7 +385,7 @@ export function renderRestaurantScene(
       )}
     </div>
     <figcaption class="sr-only">
-      <span>Din lilla sushibar</span
+      <span>${RESTAURANT_TIER_NAMES[tier]}</span
       ><span
         >${prep ? 'Utökat kök' : 'Grundkök'} ·
         ${conveyor ? 'Transportband' : 'Serveringsdisk'}</span

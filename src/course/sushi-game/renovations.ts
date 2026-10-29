@@ -28,7 +28,7 @@ export const RESTAURANT_RENOVATIONS: readonly RestaurantRenovation[] = [
     priceUnits: 3600 * YEN_UNIT_MULTIPLIER,
     name: RESTAURANT_TIER_NAMES[2],
     chapters: '9–10',
-    image: '/sprites/sushi/tiers/tier-2.png',
+    image: '/sprites/sushi/tiers/tier-2-expanded.png',
   },
   {
     targetTier: 3,
@@ -38,7 +38,7 @@ export const RESTAURANT_RENOVATIONS: readonly RestaurantRenovation[] = [
     priceUnits: 10800 * YEN_UNIT_MULTIPLIER,
     name: RESTAURANT_TIER_NAMES[3],
     chapters: '11–12',
-    image: '/sprites/sushi/tiers/tier-3.png',
+    image: '/sprites/sushi/tiers/tier-3-expanded.png',
   },
 ];
 

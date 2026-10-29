@@ -11,3 +11,9 @@ The client previews only the next room, retains a request key after network unce
 ## Verification and release
 
 Run sushi unit tests, Playwright desktop/mobile regressions, backend emulator tests, typecheck, Vite build, and Functions build. Visual checks include three room tiers, owned equipment, decoration previews, cooking/serving/reaction phases and reduced motion. Publish the compatible Functions backend before releasing the client. No production deployment is performed by the local implementation workflow.
+
+## Expanded-room integration
+
+Tier 2 and 3 now use `tier-2-expanded.png` and `tier-3-expanded.png`. Shop thumbnails, renovation previews, preloading and image retry follow the same active scene assets. Run `python scripts/extract-expanded-counter-foregrounds.py` to reproduce their aligned counter layers from the original pixels. Source illustrations and initial room versions are retained.
+
+This first integration reuses the existing chef and up to three counter guests. Tier 2 seats them at the first three stools; tier 3 spreads them across the first, third and fifth stools. Dining tables and remaining stools stay available for a later activity round. Purchases, production, save format, and animation timing are unchanged.
