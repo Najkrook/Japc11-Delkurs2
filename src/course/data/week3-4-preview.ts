@@ -4,9 +4,9 @@ export const week3Lesson8: CourseWeek = {
   id: 'week-3',
   weekNumber: 3,
   lessonNumber: 8,
-  titleSv: 'Vecka 3 · Lektion 8: Kortform (Nutid) & Åsikter',
+  titleSv: 'Kapitel 8: Kortform (Nutid) & Åsikter',
   subtitleJp: '第8課 · バーベキュー',
-  badgeText: 'VECKA 3 · GENKI L8',
+  badgeText: 'GENKI I · KAPITEL 8',
   themeDescriptionSv:
     'Introduktion till japanskans kortform (普通形) i nutid — både jakande (grundform) och nekande (ない-form) — för att uttrycka tankar (～と思います), citat (～と言っていました) och informella samtal.',
   isPreview: true,
@@ -1124,9 +1124,9 @@ export const week4Lesson9: CourseWeek = {
   id: 'week-4',
   weekNumber: 4,
   lessonNumber: 9,
-  titleSv: 'Vecka 4 · Lektion 9: Dåtid i kortform (た-form) & Bisatser',
+  titleSv: 'Kapitel 9: Dåtid i kortform (た-form) & Bisatser',
   subtitleJp: '第9課 · かぶき',
-  badgeText: 'VECKA 4 · GENKI L9',
+  badgeText: 'GENKI I · KAPITEL 9',
   themeDescriptionSv:
     'Lär dig bilda dåtid i kortform (た-form och なかった-form) — som följer exakt samma ljudregler som て-formen! Använd kortform för att beskriva substantiv med bisatser.',
   isPreview: true,

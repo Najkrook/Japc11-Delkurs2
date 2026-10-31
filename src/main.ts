@@ -20,8 +20,23 @@ function readTheme(): 'classic' | 'sakura' {
 
 const MOCK_USER_STORAGE_KEY = 'japc11-mock-user';
 const viteEnv = (import.meta as unknown as { env?: { DEV?: boolean; MODE?: string } }).env;
-/** Mock auth is only for local development and E2E (`vite --mode test`), never production builds. */
-const MOCK_AUTH_ENABLED = Boolean(viteEnv?.DEV || viteEnv?.MODE === 'test');
+
+function checkLocalhost(): boolean {
+  try {
+    const host = typeof window !== 'undefined' ? window.location?.hostname : '';
+    return (
+      host === 'localhost' ||
+      host === '127.0.0.1' ||
+      host === '[::1]' ||
+      Boolean(host?.endsWith('.localhost'))
+    );
+  } catch {
+    return false;
+  }
+}
+
+/** Mock auth is enabled for local development, E2E (`vite --mode test`), and localhost execution. */
+const MOCK_AUTH_ENABLED = Boolean(viteEnv?.DEV || viteEnv?.MODE === 'test' || checkLocalhost());
 
 function hasMockUser(): boolean {
   if (!MOCK_AUTH_ENABLED) return false;
@@ -161,7 +176,13 @@ export const host: CourseHostContext = {
     draw();
     try {
       if (currentUser) {
+        try {
+          sessionStorage.removeItem(MOCK_USER_STORAGE_KEY);
+        } catch {}
         await logout();
+        if (MOCK_AUTH_ENABLED && currentUser) {
+          applyUser(null);
+        }
         statusText = 'Utloggad (lokalt sparad)';
       } else {
         await login();

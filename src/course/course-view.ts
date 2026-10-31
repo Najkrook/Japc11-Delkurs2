@@ -9,11 +9,13 @@ import {
   renderGrammarModule,
   renderKanjiModule,
   renderVocabModule,
+  resetKanjiMode,
 } from './components/flashcard-deck.ts';
 import { renderWeekQuizModule } from './components/week-quiz.ts';
 import { renderCourseArenaModule } from './components/course-arena.ts';
 import { renderHubStampBadge, renderMiniStamp } from './components/stamp-medal.ts';
 import { courseProgressPersistence } from '../cloud.ts';
+import { isSushiEntryAvailable, SUSHI_GAME_ENABLED } from './sushi-game/config.ts';
 
 type ExtraStudiesModule = typeof import('./components/extra-studies.ts');
 let extraStudiesModule: ExtraStudiesModule | null = null;
@@ -76,6 +78,135 @@ function renderExtraStudiesPlaceholder(host: CourseHostContext): CourseTemplate 
   `;
 }
 
+type SushiGameModule = typeof import('./sushi-game/sushi-view.ts');
+let sushiGameModule: SushiGameModule | null = null;
+let sushiGameLoadingPromise: Promise<SushiGameModule> | null = null;
+let sushiGameLoadError: Error | null = null;
+
+export function loadSushiGameModule(host?: CourseHostContext): Promise<SushiGameModule> {
+  // A literal false in production also removes the dynamic import from the bundle.
+  if (!SUSHI_GAME_ENABLED || !isSushiEntryAvailable()) {
+    return Promise.reject(new Error('Sushirestaurangen är inte tillgänglig.'));
+  }
+  if (sushiGameModule) {
+    return Promise.resolve(sushiGameModule);
+  }
+  if (sushiGameLoadingPromise) {
+    return sushiGameLoadingPromise;
+  }
+  sushiGameLoadError = null;
+  sushiGameLoadingPromise = import('./sushi-game/sushi-view.ts')
+    .then((mod) => {
+      sushiGameModule = mod;
+      sushiGameLoadingPromise = null;
+      host?.render();
+      return mod;
+    })
+    .catch((err) => {
+      sushiGameLoadError = err instanceof Error ? err : new Error(String(err));
+      sushiGameLoadingPromise = null;
+      host?.render();
+      throw err;
+    });
+  return sushiGameLoadingPromise;
+}
+
+export function resetSushiGameModuleForTesting(): void {
+  sushiGameModule = null;
+  sushiGameLoadingPromise = null;
+  sushiGameLoadError = null;
+}
+
+function renderSushiLoadingPlaceholder(
+  host: CourseHostContext,
+  onBack: () => void,
+): CourseTemplate {
+  return html`
+    <div class="sushi-shell sushi-loading-shell" data-theme=${host.theme}>
+      <header class="sushi-topbar">
+        <div class="sushi-topbar-inner">
+          <div class="sushi-topbar-left">
+            <button
+              type="button"
+              class="sushi-back-btn"
+              data-testid="sushi-loading-back-btn"
+              @click=${onBack}
+            >
+              ← Tillbaka till studierna
+            </button>
+          </div>
+          <div class="sushi-topbar-center">
+            <h1 class="sushi-title" lang="ja">🍣 Sushirestaurang</h1>
+          </div>
+          <div class="sushi-topbar-right"></div>
+        </div>
+      </header>
+      <main class="sushi-main">
+        <div class="sushi-loading" role="status" aria-live="polite">
+          <div class="sushi-loading-spinner" aria-hidden="true"></div>
+          <div>Laddar sushirestaurangen...</div>
+        </div>
+      </main>
+    </div>
+  `;
+}
+
+function renderSushiLoadingError(host: CourseHostContext, onBack: () => void): CourseTemplate {
+  return html`
+    <div class="sushi-shell sushi-error-shell" data-theme=${host.theme}>
+      <header class="sushi-topbar">
+        <div class="sushi-topbar-inner">
+          <div class="sushi-topbar-left">
+            <button
+              type="button"
+              class="sushi-back-btn"
+              data-testid="sushi-error-back-btn"
+              @click=${onBack}
+            >
+              ← Tillbaka till studierna
+            </button>
+          </div>
+          <div class="sushi-topbar-center">
+            <h1 class="sushi-title" lang="ja">🍣 Sushirestaurang</h1>
+          </div>
+          <div class="sushi-topbar-right"></div>
+        </div>
+      </header>
+      <main class="sushi-main">
+        <div
+          class="sushi-loading sushi-loading-error"
+          role="alert"
+          data-testid="sushi-loading-error"
+        >
+          <p>Kunde inte ladda sushirestaurangen.</p>
+          <div class="sushi-error-actions">
+            <button
+              type="button"
+              class="sushi-btn-primary"
+              data-testid="sushi-retry-btn"
+              @click=${() => {
+                sushiGameLoadError = null;
+                loadSushiGameModule(host).catch(() => {});
+                host.render();
+              }}
+            >
+              Försök igen
+            </button>
+            <button
+              type="button"
+              class="sushi-btn-secondary"
+              data-testid="sushi-error-back-btn-action"
+              @click=${onBack}
+            >
+              ← Tillbaka till studierna
+            </button>
+          </div>
+        </div>
+      </main>
+    </div>
+  `;
+}
+
 export const courseProgress = createCourseProgress(courseProgressPersistence, studyDrills.reset);
 
 const sessionBaselineMedals = new Map<string, string | null>();
@@ -115,20 +246,58 @@ export function selectCourseWeek(weekId: string, host?: CourseHostContext): void
 }
 
 export function selectCourseSubView(subView: CourseSubView, host?: CourseHostContext): void {
+  if (subView === 'sushi' && !isSushiEntryAvailable()) subView = 'hub';
+  if (subView !== 'kanji') {
+    resetKanjiMode();
+  }
   courseProgress.update({ type: 'subview', subView });
   if (subView === 'extra' && !extraStudiesModule) {
     loadExtraStudiesModule(host).catch(() => {});
+  }
+  if (subView === 'sushi' && !sushiGameModule) {
+    loadSushiGameModule(host).catch(() => {});
   }
   host?.render();
 }
 
 export function renderCourseShell(host: CourseHostContext): CourseTemplate {
-  const progress = courseProgress.snapshot();
+  let progress = courseProgress.snapshot();
+  // Old local/cloud progress may still reopen the restaurant without a URL.
+  if (progress.activeSubView === 'sushi' && !isSushiEntryAvailable()) {
+    courseProgress.update({ type: 'subview', subView: 'hub' });
+    progress = courseProgress.snapshot();
+  }
   updateMedalCelebration(progress);
   const week = getCourseWeekById(progress.activeWeekId);
   const summary = getWeekProgressSummary(progress, week);
   const subView = progress.activeSubView;
 
+  if (subView === 'sushi') {
+    const goBackToStudies = () => {
+      selectCourseSubView('hub', host);
+    };
+
+    const onNavigateToChapter = (_lessonNumber: number, weekId: string) => {
+      selectCourseWeek(weekId, host);
+      selectCourseSubView('hub', host);
+    };
+
+    if (sushiGameLoadError) {
+      return renderSushiLoadingError(host, goBackToStudies);
+    }
+    if (!sushiGameModule) {
+      loadSushiGameModule(host).catch(() => {});
+      return renderSushiLoadingPlaceholder(host, goBackToStudies);
+    }
+    return sushiGameModule.renderSushiShell(
+      { ...host, ensureCourseSynced: courseProgress.ensureCloudSynced },
+      goBackToStudies,
+      progress,
+      onNavigateToChapter,
+    );
+  }
+
+  sushiGameModule?.leaveSushiView();
   const goHub = () => selectCourseSubView('hub', host);
 
   return html`
@@ -141,12 +310,12 @@ export function renderCourseShell(host: CourseHostContext): CourseTemplate {
               type="button"
               class="course-brand-btn"
               @click=${goHub}
-              title="Gå till veckoöversikten"
+              title="Gå till kapitelöversikten"
             >
               <span class="course-brand-glyph" lang="ja">語</span>
               <span class="course-brand-text">
                 <strong>JAPC11 · Delkurs 2</strong>
-                <small>GENKI I · LEKTION 6–9</small>
+                <small>GENKI I · KAPITEL 6–12</small>
               </span>
             </button>
           </div>
@@ -212,6 +381,21 @@ export function renderCourseShell(host: CourseHostContext): CourseTemplate {
               Kurs-Arena
               ${!host.user ? html`<span class="nav-lock-badge" aria-hidden="true">🔒</span>` : ''}
             </button>
+            ${
+              isSushiEntryAvailable()
+                ? html`
+                    <button
+                      type="button"
+                      class="course-top-link sushi-nav-pill"
+                      data-course-nav="sushi"
+                      title="Sushirestaurang"
+                      @click=${() => selectCourseSubView('sushi', host)}
+                    >
+                      🍣 Restaurang
+                    </button>
+                  `
+                : ''
+            }
           </nav>
 
           <div class="course-topbar-right">
@@ -294,9 +478,9 @@ export function renderCourseShell(host: CourseHostContext): CourseTemplate {
 
       <!-- ================= MAIN WORKSPACE WITH LEFT SIDEBAR ================= -->
       <div class="course-workspace-grid">
-        <aside class="course-sidebar" aria-label="Kursmeny och veckoplan">
+        <aside class="course-sidebar" aria-label="Kursmeny och kapitelöversikt">
           <div class="course-sidebar-top">
-            <!-- View Switcher Pill Tray (Veckoöversikt vs Kurs-Arena) -->
+            <!-- View Switcher Pill Tray (Kapitelöversikt vs Kurs-Arena) -->
             <div
               class="course-mode-switcher"
               role="group"
@@ -321,10 +505,10 @@ export function renderCourseShell(host: CourseHostContext): CourseTemplate {
               </button>
             </div>
 
-            <div class="course-sidebar-section-label">STUDIEPLAN · 4 VECKOR</div>
+            <div class="course-sidebar-section-label">KAPITEL 6–12</div>
 
             <!-- Vertical Navigation Timeline (Roadmap) -->
-            <div class="course-week-ribbon" role="tablist" aria-label="Välj kursvecka">
+            <div class="course-week-ribbon" role="tablist" aria-label="Välj kapitel">
               ${courseWeeks.map((w) => {
                 const wSum = getWeekProgressSummary(progress, w);
                 const isActive = subView !== 'extra' && subView !== 'arena' && w.id === week.id;
@@ -332,7 +516,7 @@ export function renderCourseShell(host: CourseHostContext): CourseTemplate {
                   ? w.titleSv.split(':')[1].trim()
                   : w.titleSv.includes('—')
                     ? w.titleSv.split('—')[1].trim()
-                    : `Lektion ${w.lessonNumber}`;
+                    : `Kapitel ${w.lessonNumber}`;
                 return html`
                   <button
                     type="button"
@@ -351,9 +535,7 @@ export function renderCourseShell(host: CourseHostContext): CourseTemplate {
                       </span>
                       <div class="week-tab-body">
                         <div class="week-tab-head">
-                          <strong class="week-tab-title">
-                            Vecka ${w.weekNumber} · Lektion ${w.lessonNumber}
-                          </strong>
+                          <strong class="week-tab-title"> Kapitel ${w.lessonNumber} </strong>
                           <span class="week-tab-pct">
                             ${renderMiniStamp(wSum.medal)} ${wSum.overallPercent}%
                           </span>
@@ -394,6 +576,34 @@ export function renderCourseShell(host: CourseHostContext): CourseTemplate {
                 </div>
               </button>
             </div>
+
+            ${
+              isSushiEntryAvailable()
+                ? html`
+                    <div class="course-sidebar-section-label">RESTAURANG</div>
+                    <div class="course-week-ribbon" role="tablist" aria-label="Sushirestaurang">
+                      <button
+                        type="button"
+                        role="tab"
+                        data-course-nav="sushi-sidebar"
+                        class="course-week-tab course-sushi-tab"
+                        @click=${() => selectCourseSubView('sushi', host)}
+                      >
+                        <div class="week-tab-row">
+                          <span class="week-tab-indicator"> 🍣 </span>
+                          <div class="week-tab-body">
+                            <div class="week-tab-head">
+                              <strong class="week-tab-title">Sushirestaurang</strong>
+                              <span class="week-tab-pct sushi-tag">Tycoon</span>
+                            </div>
+                            <span class="week-tab-sub">Egen restaurang · Idle & dekoration</span>
+                          </div>
+                        </div>
+                      </button>
+                    </div>
+                  `
+                : ''
+            }
           </div>
 
           <!-- Bottom Sticky Section: Multiplayer Arena & Quick Links -->
@@ -427,7 +637,7 @@ export function renderCourseShell(host: CourseHostContext): CourseTemplate {
                 class="course-sidebar-link ${subView === 'quiz' ? 'active' : ''}"
                 @click=${() => selectCourseSubView('quiz', host)}
               >
-                Veckotest & Tentafokus
+                Kapiteltest & Tentafokus
               </button>
             </div>
           </div>
@@ -487,7 +697,7 @@ export function renderCourseShell(host: CourseHostContext): CourseTemplate {
       }
 
       <footer class="course-footer">
-        <span>${host.status} · JAPC11 Delkurs 2 (Genki I Lektion 6–9)</span>
+        <span>${host.status} · JAPC11 Delkurs 2 (Genki I Kapitel 6–12)</span>
         <div class="course-footer-links">
           <button
             type="button"
@@ -499,10 +709,10 @@ export function renderCourseShell(host: CourseHostContext): CourseTemplate {
           <button
             type="button"
             class="course-text-link"
-            title=${host.user ? 'Kurs-Arena (Multiplayer L6–L9)' : 'Kurs-Arena (Kräver inloggning)'}
+            title=${host.user ? 'Kurs-Arena (Multiplayer kapitel 6–12)' : 'Kurs-Arena (Kräver inloggning)'}
             @click=${() => selectCourseSubView('arena', host)}
           >
-            Kurs-Arena (Multiplayer L6–L9)${!host.user ? ' 🔒' : ''}
+            Kurs-Arena (Multiplayer kapitel 6–12)${!host.user ? ' 🔒' : ''}
           </button>
           <button
             type="button"
@@ -511,6 +721,20 @@ export function renderCourseShell(host: CourseHostContext): CourseTemplate {
           >
             て-form Dojo
           </button>
+          ${
+            isSushiEntryAvailable()
+              ? html`
+                  <button
+                    type="button"
+                    class="course-text-link"
+                    data-course-nav="sushi-footer"
+                    @click=${() => selectCourseSubView('sushi', host)}
+                  >
+                    🍣 Sushirestaurang
+                  </button>
+                `
+              : ''
+          }
         </div>
       </footer>
     </div>
@@ -522,12 +746,36 @@ function getHeroDojoConfig(week: ReturnType<typeof getCourseWeekById>): {
   heading: string;
   description: string;
 } {
+  if (week.lessonNumber === 10) {
+    return {
+      watermark: 'ない',
+      heading: 'Kortform Dojo — Planer med つもり',
+      description:
+        'Träna ない-form för planer som 行かないつもりです. Jämför med grundformen 行くつもりです i grammatikguiden.',
+    };
+  }
+  if (week.lessonNumber === 11) {
+    return {
+      watermark: 'た',
+      heading: 'た-form Dojo — Aktiviteter & Erfarenheter',
+      description:
+        'Träna た-formen som bygger uttrycken 〜たり〜たりする och 〜たことがある. Önskemål med たい använder i stället ます-stammen.',
+    };
+  }
+  if (week.lessonNumber === 12) {
+    return {
+      watermark: 'ない',
+      heading: 'ない-form Dojo — Råd & Skyldigheter',
+      description:
+        'Träna ない-form för 〜ないほうがいい och som grund för 〜なければいけません. Växla till た-form för jakande råd med 〜たほうがいい.',
+    };
+  }
   if (week.lessonNumber === 7) {
     return {
       watermark: 'て',
       heading: 'て-form Dojo — Pågående handling & Tillstånd (～ています)',
       description:
-        'I Lektion 7 använder vi て-formen tillsammans med います för pågående aktiviteter (食べています) och resulterande tillstånd (結婚しています, 知っています) samt klädesverb.',
+        'I Kapitel 7 använder vi て-formen tillsammans med います för pågående aktiviteter (食べています) och resulterande tillstånd (結婚しています, 知っています) samt klädesverb.',
     };
   }
 
@@ -536,7 +784,7 @@ function getHeroDojoConfig(week: ReturnType<typeof getCourseWeekById>): {
       watermark: 'ない',
       heading: 'て-form & Kortform Dojo — Nutid & Nekande (ない-form)',
       description:
-        'I Lektion 8 kombinerar vi て-form med japanskans kortform (普通形) i nutid — särskilt nekande ない-form för att uttrycka åsikter (～と思います) och ～ないでください.',
+        'I Kapitel 8 kombinerar vi て-form med japanskans kortform (普通形) i nutid — särskilt nekande ない-form för att uttrycka åsikter (～と思います) och ～ないでください.',
     };
   }
 
@@ -545,7 +793,7 @@ function getHeroDojoConfig(week: ReturnType<typeof getCourseWeekById>): {
       watermark: 'た',
       heading: 'て-form & Dåtid Dojo — Kortform i dåtid (た-form)',
       description:
-        'Kan du て-formen kan du redan た-formen! I Lektion 9 byter vi bara て/de mot た/だ (買って → 買った, 読んで → 読んだ) för att bilda dåtid i kortform och bisatser.',
+        'Kan du て-formen kan du redan た-formen! I Kapitel 9 byter vi bara て/de mot た/だ (買って → 買った, 読んで → 読んだ) för att bilda dåtid i kortform och bisatser.',
     };
   }
 
@@ -580,8 +828,6 @@ function renderWeekBentoHub(
         <div class="course-breadcrumbs">
           <span>Universitetskurs: Japanska I</span>
           <span class="sep">/</span>
-          <span>Vecka ${week.weekNumber} av 4</span>
-          <span class="sep">/</span>
           <strong class="crumb-current">Genki I Kapitel ${week.lessonNumber}</strong>
           ${week.isPreview ? html`<span class="course-badge-preview">Förhandsvisning</span>` : ''}
         </div>
@@ -594,7 +840,7 @@ function renderWeekBentoHub(
                   <button
                     type="button"
                     class="course-pill-icon-btn"
-                    title="Lyssna på veckans nyckelord"
+                    title="Lyssna på kapitlets nyckelord"
                     @click=${(e: Event) =>
                       host.speak(previewVocab.kana, e.currentTarget as HTMLElement)}
                   >
@@ -637,7 +883,7 @@ function renderWeekBentoHub(
 
         <div class="course-stat-cell">
           <div class="stat-meta">
-            <span class="stat-label">Veckoprogression</span>
+            <span class="stat-label">Kapitelframsteg</span>
             <strong class="stat-value ring-value">${summary.overallPercent}%</strong>
           </div>
           <div class="stat-bar-track">
@@ -647,7 +893,7 @@ function renderWeekBentoHub(
       </div>
 
       <!-- Authentic Japanese Teacher Seal Stamp (Sensei Stamp / Hanko) -->
-      ${renderHubStampBadge(summary, week.weekNumber, isNewlyAwarded)}
+      ${renderHubStampBadge(summary, week.lessonNumber, isNewlyAwarded)}
     </section>
 
     <!-- ================= HERO BANNER: FOCUS MISSION ================= -->
@@ -659,7 +905,7 @@ function renderWeekBentoHub(
           <div class="dojo-hero-badges">
             <span class="badge-dagens-fokus">DAGENS FOKUS</span>
             <span class="badge-sub">
-              Genki I Lektion ${week.lessonNumber} · Verbkonjugation (${week.conjugations.length}
+              Genki I Kapitel ${week.lessonNumber} · Verbkonjugation (${week.conjugations.length}
               verb)
             </span>
           </div>
@@ -701,7 +947,7 @@ function renderWeekBentoHub(
                   </strong>
                   <p>
                     Glosor och verb du nyligen markerat som svåra eller haft fel på under
-                    övningarna. Nöt dem för att säkra momenten inför tentan!
+                    övningarna. Repetera dem för att säkra momenten inför tentan!
                   </p>
                 </div>
               </div>
@@ -733,7 +979,7 @@ function renderWeekBentoHub(
                             selectCourseSubView('dojo', host);
                           }}
                         >
-                          Nöt svaga verb (${summary.mistakeDojoCount}) →
+                          Repetera svaga verb (${summary.mistakeDojoCount}) →
                         </button>
                       `
                     : ''
@@ -745,13 +991,13 @@ function renderWeekBentoHub(
     }
 
     <!-- ================= 3-COLUMN STUDY MODULES ================= -->
-    <section class="course-three-col-grid" aria-label="Veckans tre studiemoduler">
-      <!-- COLUMN 1: VECKANS GLOSOR -->
+    <section class="course-three-col-grid" aria-label="Kapitlets tre studiemoduler">
+      <!-- COLUMN 1: KAPITLETS GLOSOR -->
       <article class="course-bento-card bento-vocab">
         <div class="bento-card-main">
           <div class="bento-col-header">
             <div class="bento-col-title">
-              <h2>Veckans glosor</h2>
+              <h2>Kapitlets glosor</h2>
             </div>
             <div class="bento-header-badges">
               ${
@@ -812,7 +1058,7 @@ function renderWeekBentoHub(
                       selectCourseSubView('vocab', host);
                     }}
                   >
-                    ⚠️ Nöt ${summary.mistakeVocabCount} svaga ord
+                    ⚠️ Repetera ${summary.mistakeVocabCount} svaga ord
                   </button>
                 `
               : ''
@@ -869,7 +1115,7 @@ function renderWeekBentoHub(
         <div class="bento-card-main">
           <div class="bento-col-header">
             <div class="bento-col-title">
-              <h2>Veckotest</h2>
+              <h2>Kapiteltest</h2>
             </div>
             <span class="bento-stat-pill exam-pill"> Tentafokus · L${week.lessonNumber} </span>
           </div>
@@ -879,10 +1125,10 @@ function renderWeekBentoHub(
               <span class="exam-tag">Diagnostiskt delprov</span>
               <span class="exam-time">${week.quiz.length} frågor</span>
             </div>
-            <h3>Lektion ${week.lessonNumber} Veckokontroll</h3>
+            <h3>Kapitel ${week.lessonNumber} Kunskapskontroll</h3>
             <p>
-              Testa om veckans glosor, verbböjningar, partiklar och läsförståelse sitter med direkt
-              förklaring efter varje fråga.
+              Testa om kapitlets glosor, verbböjningar, partiklar och läsförståelse sitter med
+              direkt förklaring efter varje fråga.
             </p>
 
             <div class="bento-exam-status">
@@ -904,7 +1150,7 @@ function renderWeekBentoHub(
             class="course-btn-primary full-width"
             @click=${() => selectCourseSubView('quiz', host)}
           >
-            Starta veckans minitest (${week.quiz.length} frågor) →
+            Starta kapitlets minitest (${week.quiz.length} frågor) →
           </button>
         </div>
       </article>

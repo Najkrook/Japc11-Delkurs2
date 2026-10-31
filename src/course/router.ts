@@ -2,7 +2,8 @@ import type { CourseHostContext, CourseSubView } from './types.ts';
 import { courseWeeks } from './data/index.ts';
 import { courseProgress as defaultCourseProgress } from './course-view.ts';
 import { courseArenaManager as defaultArenaManager } from './multiplayer/arena-service.ts';
-import { loadExtraStudiesModule } from './course-view.ts';
+import { loadExtraStudiesModule, loadSushiGameModule } from './course-view.ts';
+import { isSushiEntryAvailable } from './sushi-game/config.ts';
 
 export interface CourseRoute {
   weekId: string;
@@ -21,6 +22,7 @@ const VALID_SUBVIEWS = new Set<CourseSubView>([
   'quiz',
   'arena',
   'extra',
+  'sushi',
 ]);
 
 const SUBVIEW_ALIASES: Record<string, CourseSubView> = {
@@ -40,6 +42,9 @@ const SUBVIEW_ALIASES: Record<string, CourseSubView> = {
   tentafokus: 'quiz',
   arena: 'arena',
   extra: 'extra',
+  sushi: 'sushi',
+  restaurang: 'sushi',
+  sushigame: 'sushi',
 };
 
 function normalizeWeekId(raw: string, fallback: string): string {
@@ -61,7 +66,8 @@ function normalizeSubView(raw?: string): CourseSubView {
   if (!raw) return 'hub';
   const clean = raw.trim().toLowerCase();
   if (clean in SUBVIEW_ALIASES) {
-    return SUBVIEW_ALIASES[clean];
+    const subView = SUBVIEW_ALIASES[clean];
+    return subView === 'sushi' && !isSushiEntryAvailable() ? 'hub' : subView;
   }
   if (VALID_SUBVIEWS.has(clean as CourseSubView)) {
     return clean as CourseSubView;
@@ -120,6 +126,14 @@ export function parseRoute(hash: string, fallbackWeekId = 'week-1'): CourseRoute
     };
   }
 
+  // Pattern: #/sushi or #/restaurang
+  if (first === 'sushi' || first === 'restaurang' || first === 'sushigame') {
+    return {
+      weekId: fallback,
+      subView: normalizeSubView(first),
+    };
+  }
+
   // Pattern: #/vecka/:weekId or #/vecka/:weekId/:subView or #/week/:weekId
   if (first === 'vecka' || first === 'week') {
     const rawWeek = parts[1] || '';
@@ -153,6 +167,9 @@ export function formatRoute(route: CourseRoute): string {
   }
   if (route.subView === 'extra') {
     return '#/extra';
+  }
+  if (route.subView === 'sushi') {
+    return isSushiEntryAvailable() ? '#/sushi' : `#/vecka/${route.weekId}`;
   }
   if (route.subView === 'hub') {
     return `#/vecka/${route.weekId}`;
@@ -294,6 +311,9 @@ export class CourseRouter {
         if (route.subView === 'extra') {
           loadExtraStudiesModule(this.host).catch(() => {});
         }
+        if (route.subView === 'sushi') {
+          loadSushiGameModule(this.host).catch(() => {});
+        }
       }
       if (weekChanged || subViewChanged) {
         this.host?.render();
@@ -301,6 +321,7 @@ export class CourseRouter {
     } finally {
       this.isApplyingFromHash = false;
     }
+    this.syncToHash(true);
   }
 
   public syncToHash(replace = false): void {

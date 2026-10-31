@@ -1,0 +1,76 @@
+{
+  "date": "2026-10-27",
+  "scope": "Local checkout remedies; no production deployment",
+  "baseCommit": "1137913",
+  "status": "all six audit findings remedied and verified locally",
+  "findings": [
+    {
+      "id": "01",
+      "title": "Yen have a visible purpose.",
+      "status": "verified",
+      "evidence": "Actual service simulations show daily visitors still saving for the final project on day 42; weekly visitors afford all core rewards and two projects. Browser purchase → room change → reload passes. Authenticated backend checks prove server pricing, authorization and exactly-once debit.",
+      "source": "projects.ts · domain-service.ts · restaurant-scene.ts · companion-view.ts"
+    },
+    {
+      "id": "02",
+      "title": "The two empty income steps now pay off.",
+      "status": "verified",
+      "evidence": "Domain and browser checks compare preview, actual purchased state and announcement. Generic equal-capacity explanations name the future bottleneck. Legacy license owners retain their purchased benefit; previews explain bonuses already received.",
+      "source": "catalog.ts · domain-service.ts · sushi-view.ts"
+    },
+    {
+      "id": "03",
+      "title": "The first renovation fits a short visit.",
+      "status": "verified",
+      "evidence": "A zero-yen, bronze-qualified browser fixture advances exactly five minutes, collects ¥50, buys the prep counter, and ends at ¥0 with 20 ¥/min. The same boundary is tested through the real domain service.",
+      "source": "catalog.ts · sushi-view.ts · tests/e2e/sushi-balance-remedies.spec.ts"
+    },
+    {
+      "id": "04",
+      "title": "The register respects daily study rhythms.",
+      "status": "verified",
+      "evidence": "Fixed-rate daily and twice-daily collection earn the same total. The modeled route differs by just ¥7,200 because an earlier visit buys the first upgrade earlier. Migration tests verify old capped earnings, discarded stopped time and idempotent future-only changes.",
+      "source": "types.ts · domain-service.ts · sushi-view.ts"
+    },
+    {
+      "id": "05",
+      "title": "Every gold achievement has a permanent home.",
+      "status": "verified",
+      "evidence": "Domain tests check permanent grants independently of current progress. Browser fixtures show all seven honors with an empty wallet, no inventory and both decor slots empty; they persist after reload.",
+      "source": "study-companion.ts · companion-view.ts"
+    },
+    {
+      "id": "06",
+      "title": "Goals explain their value; guests teach the course.",
+      "status": "verified",
+      "evidence": "A service-limited restaurant recommends the conveyor ahead of cosmetics; switching goal type changes the suggestion. Browser checks verify selected chapter, source, reveal and next, while course records, grants, inventory and yen remain unchanged.",
+      "source": "study-companion.ts · companion-view.ts · sushi-view.ts"
+    }
+  ],
+  "checks": {
+    "unit": 394,
+    "browser": 102,
+    "firestore": 10,
+    "authenticatedCallable": "passed",
+    "realBackendBrowser": 3,
+    "productionBuild": "passed",
+    "repositoryFormatting": "passed"
+  },
+  "economyPolicy": "Start at zero. All three chapter grants unlock every seven days; collect each visit, then buy eligible core bronze items, visual catalog items, then optional projects in catalog order. No active study earnings or starter cash.",
+  "changedDefaults": {
+    "firstPurchaseYen": 50,
+    "baseCapHours": 24,
+    "extendedCapHours": 48,
+    "finalRateYenPerMinute": 90
+  },
+  "curriculumDecks": [
+    { "chapter": 6, "examples": 8 },
+    { "chapter": 7, "examples": 6 },
+    { "chapter": 8, "examples": 8 },
+    { "chapter": 9, "examples": 7 },
+    { "chapter": 10, "examples": 14 },
+    { "chapter": 11, "examples": 10 },
+    { "chapter": 12, "examples": 12 }
+  ],
+  "evidenceImages": ["room", "honors", "practice", "finale", "mobile"]
+}

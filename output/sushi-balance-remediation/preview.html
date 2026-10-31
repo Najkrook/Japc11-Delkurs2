@@ -1,0 +1,86 @@
+<!doctype html>
+<html lang="en">
+  <meta charset="utf-8" /><title>Sakura Sushi · remediation preview</title
+  ><style>
+    body {
+      font: 17px/1.7 system-ui;
+      margin: 60px auto;
+      max-width: 800px;
+      background: #fff7e7;
+      color: #61412b;
+    }
+    button {
+      font: inherit;
+      margin: 8px;
+      padding: 16px 22px;
+      border: 1px solid #a9794b;
+      background: #eed4a7;
+      border-radius: 5px;
+      cursor: pointer;
+    }
+  </style>
+  <h1>Sakura Sushi · balance remedies</h1>
+  <p>Isolated local fixtures for the current game. Existing player accounts are untouched.</p>
+  <button data-mode="fresh">Fresh restaurant</button
+  ><button data-mode="projects">All projects in the room</button
+  ><button data-mode="honors">Seven gold honors</button
+  ><button data-mode="finale">Course completion</button>
+  <p id="status">Choose a scenario.</p>
+  <script type="module">
+    import { SUSHI_CATALOG } from '/src/course/sushi-game/catalog.ts';
+    import { createDefaultRestaurantState } from '/src/course/sushi-game/economy.ts';
+    import {
+      InMemorySushiRepository,
+      SushiService,
+    } from '/src/course/sushi-game/domain-service.ts';
+    import { SUSHI_PROJECTS } from '/src/course/sushi-game/projects.ts';
+    import { createFreshCourseProgress } from '/src/course/course-state.ts';
+    if (!['127.0.0.1', 'localhost'].includes(location.hostname)) throw Error('Local fixtures only');
+    for (const button of document.querySelectorAll('button'))
+      button.onclick = async () => {
+        const mode = button.dataset.mode,
+          uid = 'sushi-remedy-preview-' + mode,
+          now = Date.now(),
+          repo = new InMemorySushiRepository(),
+          service = new SushiService(repo);
+        let state = createDefaultRestaurantState(uid, now, {
+          balanceUnits: 10000000 * 60000,
+          permanentGrants: mode === 'fresh' ? ['prep_counter'] : SUSHI_CATALOG.map((i) => i.id),
+        });
+        if (mode === 'projects' || mode === 'finale')
+          for (const item of SUSHI_CATALOG) {
+            await repo.set(state);
+            const result = await service.purchaseCatalogItem(uid, item.id, 'seed-' + item.id, now);
+            if (!result.success) throw Error(result.reason);
+            state = result.state;
+          }
+        if (mode === 'projects')
+          for (const project of SUSHI_PROJECTS) {
+            await repo.set(state);
+            const result = await service.purchaseRestaurantProject(
+              uid,
+              project.id,
+              'seed-' + project.id,
+              now,
+            );
+            if (!result.success) throw Error(result.reason);
+            state = result.state;
+          }
+        state.balanceUnits = mode === 'honors' ? 60000 * 60000 : 0;
+        if (mode === 'projects') {
+          state.equipped = { wallSlot: 'noren_curtain', floorSlot: 'golden_maneki_neko' };
+          localStorage.setItem('japc11-sushi-finale-seen-' + uid, 'true');
+        } else localStorage.removeItem('japc11-sushi-finale-seen-' + uid);
+        const course = createFreshCourseProgress();
+        course.activeWeekId = 'week-7';
+        course.activeSubView = 'sushi';
+        sessionStorage.setItem(
+          'japc11-mock-user',
+          JSON.stringify({ uid, displayName: 'Balansprov' }),
+        );
+        localStorage.setItem('japc11-dk2-sushi-v1-' + uid, JSON.stringify(state));
+        localStorage.setItem('japc11-dk2-course-v1-' + uid, JSON.stringify(course));
+        location.href = '/?sushi=1#/sushi';
+      };
+  </script>
+</html>

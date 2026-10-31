@@ -1,7 +1,7 @@
 import type { TemplateResult } from 'lit-html';
 
 export type CourseSubView =
-  'hub' | 'vocab' | 'grammar' | 'dojo' | 'kanji' | 'quiz' | 'arena' | 'extra';
+  'hub' | 'vocab' | 'grammar' | 'dojo' | 'kanji' | 'quiz' | 'arena' | 'extra' | 'sushi';
 
 export type VerbGroup = 'u-verb' | 'ru-verb' | 'irregular';
 
@@ -97,6 +97,7 @@ export interface CourseQuizQuestion {
   explanationSv: string;
   vocabId?: string;
   conjugationId?: string;
+  kanjiId?: string;
 }
 
 export interface CourseWeek {
@@ -137,6 +138,7 @@ export interface CourseProgressData {
 }
 
 export interface CourseHostContext {
+  ensureCourseSynced?: (uid: string) => Promise<void>;
   theme: 'classic' | 'sakura';
   toggleTheme: () => void;
   user: {

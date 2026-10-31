@@ -1,0 +1,76 @@
+<!doctype html>
+<html lang="en">
+  <meta charset="utf-8" /><title>Sushi balance audit · isolated fixtures</title>
+  <style>
+    body {
+      font: 18px system-ui;
+      max-width: 750px;
+      margin: 60px auto;
+      background: #fff9ed;
+      color: #23483e;
+    }
+    button {
+      font: inherit;
+      padding: 18px;
+      margin: 8px;
+      background: #23483e;
+      color: white;
+      border: 0;
+      border-radius: 8px;
+    }
+    p {
+      line-height: 1.6;
+    }
+  </style>
+  <h1>Sushi balance audit</h1>
+  <p>
+    Isolated, local test accounts. These fixtures use the current domain service and catalog. They
+    do not change an existing player account or connect to the production game backend.
+  </p>
+  <button data-mode="fresh">Fresh · zero yen</button
+  ><button data-mode="knife">Before precision knife</button
+  ><button data-mode="counter">Before service counter</button
+  ><button data-mode="complete">Completed restaurant</button>
+  <p id="status">Choose a scenario.</p>
+  <script type="module">
+    import { SUSHI_CATALOG } from '/src/course/sushi-game/catalog.ts';
+    import { createDefaultRestaurantState } from '/src/course/sushi-game/economy.ts';
+    import {
+      SushiService,
+      InMemorySushiRepository,
+    } from '/src/course/sushi-game/domain-service.ts';
+    if (!['localhost', '127.0.0.1'].includes(location.hostname)) throw Error('Local audit only');
+    for (const button of document.querySelectorAll('button'))
+      button.onclick = async () => {
+        const mode = button.dataset.mode,
+          uid = 'balance-audit-20261027-' + mode,
+          now = Date.now(),
+          repo = new InMemorySushiRepository(),
+          service = new SushiService(repo);
+        let state = createDefaultRestaurantState(uid, now, {
+          balanceUnits: 1000000 * 60000,
+          permanentGrants: SUSHI_CATALOG.map((i) => i.id),
+        });
+        const before =
+          mode === 'knife' ? 8 : mode === 'counter' ? 10 : mode === 'complete' ? 13 : 6;
+        for (const item of SUSHI_CATALOG.filter(
+          (i) => mode === 'complete' || (i.requiredTier === 'bronze' && i.requiredLesson < before),
+        )) {
+          await repo.set(state);
+          const result = await service.purchaseCatalogItem(uid, item.id, 'fixture-' + item.id, now);
+          if (!result.success) throw Error(result.reason);
+          state = result.state;
+        }
+        state.balanceUnits = (mode === 'knife' ? 2400 : mode === 'counter' ? 5400 : 0) * 60000;
+        if (mode === 'fresh') state.permanentGrants = ['prep_counter'];
+        if (mode === 'complete')
+          state.equipped = { wallSlot: 'noren_curtain', floorSlot: 'golden_maneki_neko' };
+        sessionStorage.setItem(
+          'japc11-mock-user',
+          JSON.stringify({ uid, displayName: 'Balance audit · ' + mode }),
+        );
+        localStorage.setItem('japc11-dk2-sushi-v1-' + uid, JSON.stringify(state));
+        location.href = '/?sushi=1#/sushi';
+      };
+  </script>
+</html>

@@ -1,0 +1,528 @@
+{
+  "auditedAt": "2026-10-27",
+  "commit": "1137913",
+  "catalogTotal": 48000,
+  "categoryTotals": {
+    "bronze": 31500,
+    "silver": 11400,
+    "gold": 5100
+  },
+  "upgrades": [
+    {
+      "id": "prep_counter",
+      "name": "Förbättrad beredningsbänk",
+      "chapter": 6,
+      "price": 300,
+      "before": 10,
+      "after": 20,
+      "delta": 10,
+      "K": 3,
+      "S": 2,
+      "A": 10,
+      "capHours": 8,
+      "earnMinutes": 30,
+      "paybackMinutes": 30
+    },
+    {
+      "id": "cap_extension_12h",
+      "name": "Längre produktionstid",
+      "chapter": 7,
+      "price": 1800,
+      "before": 20,
+      "after": 20,
+      "delta": 0,
+      "K": 3,
+      "S": 2,
+      "A": 10,
+      "capHours": 12,
+      "earnMinutes": 90,
+      "paybackMinutes": null
+    },
+    {
+      "id": "precision_knife",
+      "name": "Precisionskniv",
+      "chapter": 8,
+      "price": 2400,
+      "before": 20,
+      "after": 20,
+      "delta": 0,
+      "K": 4,
+      "S": 2,
+      "A": 10,
+      "capHours": 12,
+      "earnMinutes": 120,
+      "paybackMinutes": null
+    },
+    {
+      "id": "conveyor_belt",
+      "name": "Transportband",
+      "chapter": 9,
+      "price": 3600,
+      "before": 20,
+      "after": 40,
+      "delta": 20,
+      "K": 4,
+      "S": 4,
+      "A": 10,
+      "capHours": 12,
+      "earnMinutes": 180,
+      "paybackMinutes": 180
+    },
+    {
+      "id": "service_counter",
+      "name": "Utökad serveringsdisk",
+      "chapter": 10,
+      "price": 5400,
+      "before": 40,
+      "after": 40,
+      "delta": 0,
+      "K": 4,
+      "S": 6,
+      "A": 10,
+      "capHours": 12,
+      "earnMinutes": 135,
+      "paybackMinutes": null
+    },
+    {
+      "id": "sous_chef",
+      "name": "Assisterande kock",
+      "chapter": 11,
+      "price": 7200,
+      "before": 40,
+      "after": 60,
+      "delta": 20,
+      "K": 6,
+      "S": 6,
+      "A": 10,
+      "capHours": 12,
+      "earnMinutes": 180,
+      "paybackMinutes": 360
+    },
+    {
+      "id": "master_license",
+      "name": "Mästarcertifiering",
+      "chapter": 12,
+      "price": 10800,
+      "before": 60,
+      "after": 90,
+      "delta": 30,
+      "K": 6,
+      "S": 6,
+      "A": 15,
+      "capHours": 12,
+      "earnMinutes": 180,
+      "paybackMinutes": 360
+    }
+  ],
+  "candidateUpgrades": [
+    {
+      "id": "prep_counter",
+      "chapter": 6,
+      "rate": 20,
+      "revenuePerOrder": 10
+    },
+    {
+      "id": "cap_extension_12h",
+      "chapter": 7,
+      "rate": 20,
+      "revenuePerOrder": 10
+    },
+    {
+      "id": "precision_knife",
+      "chapter": 8,
+      "rate": 22,
+      "revenuePerOrder": 11
+    },
+    {
+      "id": "conveyor_belt",
+      "chapter": 9,
+      "rate": 44,
+      "revenuePerOrder": 11
+    },
+    {
+      "id": "service_counter",
+      "chapter": 10,
+      "rate": 48,
+      "revenuePerOrder": 12
+    },
+    {
+      "id": "sous_chef",
+      "chapter": 11,
+      "rate": 72,
+      "revenuePerOrder": 12
+    },
+    {
+      "id": "master_license",
+      "chapter": 12,
+      "rate": 90,
+      "revenuePerOrder": 15
+    }
+  ],
+  "cadences": [
+    {
+      "intervalHours": 168,
+      "finalWallet": 86400,
+      "owned": 21,
+      "rate": 90,
+      "weeklySnapshots": [
+        {
+          "day": 0,
+          "chapter": 6,
+          "wallet": 0,
+          "owned": 0,
+          "rate": 10,
+          "bought": []
+        },
+        {
+          "day": 7,
+          "chapter": 7,
+          "wallet": 450,
+          "owned": 6,
+          "rate": 20,
+          "bought": [
+            "prep_counter",
+            "cap_extension_12h",
+            "salmon_nigiri",
+            "paper_lantern",
+            "kappamaki",
+            "potted_plant"
+          ]
+        },
+        {
+          "day": 14,
+          "chapter": 8,
+          "wallet": 10650,
+          "owned": 9,
+          "rate": 20,
+          "bought": ["precision_knife", "maguro_nigiri", "noren_curtain"]
+        },
+        {
+          "day": 21,
+          "chapter": 9,
+          "wallet": 19350,
+          "owned": 12,
+          "rate": 40,
+          "bought": ["conveyor_belt", "ebi_nigiri", "wave_print"]
+        },
+        {
+          "day": 28,
+          "chapter": 10,
+          "wallet": 40200,
+          "owned": 15,
+          "rate": 40,
+          "bought": ["service_counter", "tamago_nigiri", "andon_lantern"]
+        },
+        {
+          "day": 35,
+          "chapter": 11,
+          "wallet": 58500,
+          "owned": 18,
+          "rate": 60,
+          "bought": ["sous_chef", "sashimi_plate", "sakura_bonsai"]
+        },
+        {
+          "day": 42,
+          "chapter": 12,
+          "wallet": 86400,
+          "owned": 21,
+          "rate": 90,
+          "bought": ["master_license", "omakase_menu", "golden_maneki_neko"]
+        }
+      ]
+    },
+    {
+      "intervalHours": 24,
+      "finalWallet": 921600,
+      "owned": 21,
+      "rate": 90,
+      "weeklySnapshots": [
+        {
+          "day": 0,
+          "chapter": 6,
+          "wallet": 0,
+          "owned": 0,
+          "rate": 10,
+          "bought": []
+        },
+        {
+          "day": 7,
+          "chapter": 7,
+          "wallet": 58050,
+          "owned": 6,
+          "rate": 20,
+          "bought": ["cap_extension_12h", "kappamaki", "potted_plant"]
+        },
+        {
+          "day": 14,
+          "chapter": 8,
+          "wallet": 154650,
+          "owned": 9,
+          "rate": 20,
+          "bought": ["precision_knife", "maguro_nigiri", "noren_curtain"]
+        },
+        {
+          "day": 21,
+          "chapter": 9,
+          "wallet": 249750,
+          "owned": 12,
+          "rate": 40,
+          "bought": ["conveyor_belt", "ebi_nigiri", "wave_print"]
+        },
+        {
+          "day": 28,
+          "chapter": 10,
+          "wallet": 443400,
+          "owned": 15,
+          "rate": 40,
+          "bought": ["service_counter", "tamago_nigiri", "andon_lantern"]
+        },
+        {
+          "day": 35,
+          "chapter": 11,
+          "wallet": 634500,
+          "owned": 18,
+          "rate": 60,
+          "bought": ["sous_chef", "sashimi_plate", "sakura_bonsai"]
+        },
+        {
+          "day": 42,
+          "chapter": 12,
+          "wallet": 921600,
+          "owned": 21,
+          "rate": 90,
+          "bought": ["master_license", "omakase_menu", "golden_maneki_neko"]
+        }
+      ]
+    },
+    {
+      "intervalHours": 12,
+      "finalWallet": 1896000,
+      "owned": 21,
+      "rate": 90,
+      "weeklySnapshots": [
+        {
+          "day": 0,
+          "chapter": 6,
+          "wallet": 0,
+          "owned": 0,
+          "rate": 10,
+          "bought": []
+        },
+        {
+          "day": 7,
+          "chapter": 7,
+          "wallet": 125250,
+          "owned": 6,
+          "rate": 20,
+          "bought": ["cap_extension_12h", "kappamaki", "potted_plant"]
+        },
+        {
+          "day": 14,
+          "chapter": 8,
+          "wallet": 322650,
+          "owned": 9,
+          "rate": 20,
+          "bought": ["precision_knife", "maguro_nigiri", "noren_curtain"]
+        },
+        {
+          "day": 21,
+          "chapter": 9,
+          "wallet": 518550,
+          "owned": 12,
+          "rate": 40,
+          "bought": ["conveyor_belt", "ebi_nigiri", "wave_print"]
+        },
+        {
+          "day": 28,
+          "chapter": 10,
+          "wallet": 913800,
+          "owned": 15,
+          "rate": 40,
+          "bought": ["service_counter", "tamago_nigiri", "andon_lantern"]
+        },
+        {
+          "day": 35,
+          "chapter": 11,
+          "wallet": 1306500,
+          "owned": 18,
+          "rate": 60,
+          "bought": ["sous_chef", "sashimi_plate", "sakura_bonsai"]
+        },
+        {
+          "day": 42,
+          "chapter": 12,
+          "wallet": 1896000,
+          "owned": 21,
+          "rate": 90,
+          "bought": ["master_license", "omakase_menu", "golden_maneki_neko"]
+        }
+      ]
+    }
+  ],
+  "catchup": {
+    "hours": 16.22222222222222,
+    "growthHours": 12.833333333333334,
+    "growthOrder": [
+      "prep_counter",
+      "conveyor_belt",
+      "precision_knife",
+      "master_license",
+      "service_counter",
+      "sous_chef"
+    ]
+  },
+  "mastery": [
+    {
+      "chapter": 6,
+      "vocab": 49,
+      "kanji": 15,
+      "dojo": 14,
+      "quiz": 12,
+      "total": 90,
+      "noQuizPercent": 86.66666666666667,
+      "noQuizMedal": "silver",
+      "bronzeItems": 54,
+      "silverItems": 72,
+      "goldItems": 90,
+      "goldExtraOverSilver": 18
+    },
+    {
+      "chapter": 7,
+      "vocab": 57,
+      "kanji": 14,
+      "dojo": 11,
+      "quiz": 10,
+      "total": 92,
+      "noQuizPercent": 89.1304347826087,
+      "noQuizMedal": "silver",
+      "bronzeItems": 56,
+      "silverItems": 74,
+      "goldItems": 92,
+      "goldExtraOverSilver": 18
+    },
+    {
+      "chapter": 8,
+      "vocab": 30,
+      "kanji": 14,
+      "dojo": 12,
+      "quiz": 12,
+      "total": 68,
+      "noQuizPercent": 82.3529411764706,
+      "noQuizMedal": "silver",
+      "bronzeItems": 41,
+      "silverItems": 55,
+      "goldItems": 68,
+      "goldExtraOverSilver": 13
+    },
+    {
+      "chapter": 9,
+      "vocab": 28,
+      "kanji": 15,
+      "dojo": 12,
+      "quiz": 12,
+      "total": 67,
+      "noQuizPercent": 82.08955223880596,
+      "noQuizMedal": "silver",
+      "bronzeItems": 41,
+      "silverItems": 54,
+      "goldItems": 67,
+      "goldExtraOverSilver": 13
+    },
+    {
+      "chapter": 10,
+      "vocab": 28,
+      "kanji": 14,
+      "dojo": 10,
+      "quiz": 14,
+      "total": 66,
+      "noQuizPercent": 78.78787878787878,
+      "noQuizMedal": "bronze",
+      "bronzeItems": 40,
+      "silverItems": 53,
+      "goldItems": 66,
+      "goldExtraOverSilver": 13
+    },
+    {
+      "chapter": 11,
+      "vocab": 26,
+      "kanji": 16,
+      "dojo": 10,
+      "quiz": 14,
+      "total": 66,
+      "noQuizPercent": 78.78787878787878,
+      "noQuizMedal": "bronze",
+      "bronzeItems": 40,
+      "silverItems": 53,
+      "goldItems": 66,
+      "goldExtraOverSilver": 13
+    },
+    {
+      "chapter": 12,
+      "vocab": 27,
+      "kanji": 14,
+      "dojo": 10,
+      "quiz": 14,
+      "total": 65,
+      "noQuizPercent": 78.46153846153847,
+      "noQuizMedal": "bronze",
+      "bronzeItems": 39,
+      "silverItems": 52,
+      "goldItems": 65,
+      "goldExtraOverSilver": 13
+    }
+  ],
+  "capSensitivity": [
+    {
+      "hours": 4,
+      "base8h": 2400,
+      "base12h": 2400,
+      "upgraded8h": 4800,
+      "upgraded12h": 4800,
+      "lostPercent12h": 0
+    },
+    {
+      "hours": 8,
+      "base8h": 4800,
+      "base12h": 4800,
+      "upgraded8h": 9600,
+      "upgraded12h": 9600,
+      "lostPercent12h": 0
+    },
+    {
+      "hours": 12,
+      "base8h": 4800,
+      "base12h": 7200,
+      "upgraded8h": 9600,
+      "upgraded12h": 14400,
+      "lostPercent12h": 0
+    },
+    {
+      "hours": 24,
+      "base8h": 4800,
+      "base12h": 7200,
+      "upgraded8h": 9600,
+      "upgraded12h": 14400,
+      "lostPercent12h": 50
+    },
+    {
+      "hours": 48,
+      "base8h": 4800,
+      "base12h": 7200,
+      "upgraded8h": 9600,
+      "upgraded12h": 14400,
+      "lostPercent12h": 75
+    },
+    {
+      "hours": 168,
+      "base8h": 4800,
+      "base12h": 7200,
+      "upgraded8h": 9600,
+      "upgraded12h": 14400,
+      "lostPercent12h": 92.85714285714286
+    }
+  ],
+  "decor": {
+    "count": 7,
+    "slots": 2
+  }
+}

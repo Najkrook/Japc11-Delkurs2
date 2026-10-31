@@ -4,19 +4,25 @@
   "private": true,
   "type": "module",
   "scripts": {
+    "preview:sushi": "powershell -NoProfile -ExecutionPolicy Bypass -File scripts/sushi-preview.ps1",
     "dev": "vite --host 127.0.0.1 --port 5173",
     "build": "tsc --noEmit && vite build",
     "typecheck": "tsc --noEmit",
     "preview": "vite preview --host 127.0.0.1 --port 4173",
     "test": "node --test tests/*.test.ts",
     "test:e2e": "playwright test",
+    "test:production": "npm run build && playwright test --config playwright.production.config.ts",
     "format": "prettier --write .",
     "format:check": "prettier --check .",
-    "test:rules": "firebase emulators:exec --only firestore --project demo-japc11-delkurs2 \"node --test tests/firestore/*.test.ts\""
+    "test:rules": "firebase emulators:exec --only firestore --project demo-japc11-delkurs2 \"node --test tests/firestore/*.test.ts\"",
+    "test:backend": "npm run build --prefix functions && firebase emulators:exec --only auth,firestore,functions --project demo-japc11-delkurs2 \"node --test tests/backend/*.test.ts\"",
+    "test:backend:e2e": "npm run build --prefix functions && firebase emulators:exec --only auth,firestore,functions --project demo-japc11-delkurs2 \"playwright test --config playwright.backend.config.ts\""
   },
   "dependencies": {
+    "@fontsource/dotgothic16": "^5.3.1",
     "firebase": "^11.4.0",
-    "lit-html": "^3.2.1"
+    "lit-html": "^3.2.1",
+    "pixelarticons": "^2.4.2"
   },
   "devDependencies": {
     "@playwright/test": "1.63.0",

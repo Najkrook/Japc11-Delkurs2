@@ -1,5 +1,10 @@
 import { courseWeeks } from '../data/index.ts';
-import { buildNaiChoices, buildTaChoices, buildTeChoices } from '../study-drills.ts';
+import {
+  buildNaiChoices,
+  buildTaChoices,
+  buildTeChoices,
+  getWeekDefaultTargetForm,
+} from '../study-drills.ts';
 import type { ArenaQuestion, ArenaRoomConfig, ArenaWeekFilter } from './arena-types.ts';
 import type { CourseWeek } from '../types.ts';
 
@@ -49,7 +54,7 @@ export function buildAllCourseArenaQuestions(
         weekId: week.id,
         lessonNumber: week.lessonNumber,
         category: q.category,
-        badgeLabel: `Lektion ${week.lessonNumber} · ${
+        badgeLabel: `Kapitel ${week.lessonNumber} · ${
           q.category === 'te-form'
             ? 'て-form'
             : q.category === 'vocab'
@@ -65,9 +70,9 @@ export function buildAllCourseArenaQuestions(
       });
     }
 
-    // 2. Generated conjugation questions (te-form in W1-2, nai-form in W3, ta-form in W4)
+    // 2. Generated conjugation questions share the week's focus with the Dojo.
     for (const conj of week.conjugations) {
-      if (week.lessonNumber === 8 || week.id === 'week-3') {
+      if (getWeekDefaultTargetForm(week.id) === 'nai') {
         const target = conj.naiFormKana ?? conj.teFormKana;
         const targetKanji = conj.naiFormKanji ?? conj.naiFormKana ?? conj.teFormKanji;
         const choices = shuffleArray(buildNaiChoices(conj), rng);
@@ -76,14 +81,14 @@ export function buildAllCourseArenaQuestions(
           weekId: week.id,
           lessonNumber: week.lessonNumber,
           category: 'te-form',
-          badgeLabel: `Lektion ${week.lessonNumber} · ない-form Dojo`,
+          badgeLabel: `Kapitel ${week.lessonNumber} · ない-form Dojo`,
           prompt: `Vilken är rätt ない-form av ${conj.dictionaryKanji} (${conj.dictionaryKana} — "${conj.sv}")?`,
           highlightJp: `${conj.dictionaryKanji}（${conj.dictionaryKana}）`,
           choices,
           answer: target,
           explanationSv: `${conj.ruleLabelSv}: ${conj.dictionaryKanji} (${conj.dictionaryKana}) → ${targetKanji} (${target}). ${conj.ruleExplanationSv}`,
         });
-      } else if (week.lessonNumber === 9 || week.id === 'week-4') {
+      } else if (getWeekDefaultTargetForm(week.id) === 'ta') {
         const target = conj.taFormKana ?? conj.teFormKana;
         const targetKanji = conj.taFormKanji ?? conj.taFormKana ?? conj.teFormKanji;
         const choices = shuffleArray(buildTaChoices(conj), rng);
@@ -92,7 +97,7 @@ export function buildAllCourseArenaQuestions(
           weekId: week.id,
           lessonNumber: week.lessonNumber,
           category: 'te-form',
-          badgeLabel: `Lektion ${week.lessonNumber} · た-form Dojo`,
+          badgeLabel: `Kapitel ${week.lessonNumber} · た-form Dojo`,
           prompt: `Vilken är rätt た-form av ${conj.dictionaryKanji} (${conj.dictionaryKana} — "${conj.sv}")?`,
           highlightJp: `${conj.dictionaryKanji}（${conj.dictionaryKana}）`,
           choices,
@@ -106,7 +111,7 @@ export function buildAllCourseArenaQuestions(
           weekId: week.id,
           lessonNumber: week.lessonNumber,
           category: 'te-form',
-          badgeLabel: `Lektion ${week.lessonNumber} · て-form Dojo`,
+          badgeLabel: `Kapitel ${week.lessonNumber} · て-form Dojo`,
           prompt: `Vilken är rätt て-form av ${conj.dictionaryKanji} (${conj.dictionaryKana} — "${conj.sv}")?`,
           highlightJp: `${conj.dictionaryKanji}（${conj.dictionaryKana}）`,
           choices,
@@ -131,7 +136,7 @@ export function buildAllCourseArenaQuestions(
           weekId: week.id,
           lessonNumber: week.lessonNumber,
           category: 'vocab',
-          badgeLabel: `Lektion ${week.lessonNumber} · Glosor (JP ➔ SV)`,
+          badgeLabel: `Kapitel ${week.lessonNumber} · Glosor (JP ➔ SV)`,
           prompt: `Vad betyder "${jpDisplay}" på svenska?`,
           highlightJp: jpDisplay,
           choices: shuffleArray([v.sv, ...svDistractors], rng),
@@ -153,7 +158,7 @@ export function buildAllCourseArenaQuestions(
           weekId: week.id,
           lessonNumber: week.lessonNumber,
           category: 'vocab',
-          badgeLabel: `Lektion ${week.lessonNumber} · Glosor (SV ➔ JP)`,
+          badgeLabel: `Kapitel ${week.lessonNumber} · Glosor (SV ➔ JP)`,
           prompt: `Hur säger man "${v.sv}" på japanska?`,
           choices: shuffleArray([jpAnswer, ...jpDistractors], rng),
           answer: jpAnswer,
@@ -176,7 +181,7 @@ export function buildAllCourseArenaQuestions(
           weekId: week.id,
           lessonNumber: week.lessonNumber,
           category: 'kanji',
-          badgeLabel: `Lektion ${week.lessonNumber} · Kanji`,
+          badgeLabel: `Kapitel ${week.lessonNumber} · Kanji`,
           prompt: `Vad betyder kanjitecknet ${k.kanji}?`,
           highlightJp: k.kanji,
           choices: shuffleArray([k.meaningSv, ...meaningDistractors], rng),
@@ -193,7 +198,7 @@ export function buildAllCourseArenaQuestions(
             weekId: week.id,
             lessonNumber: week.lessonNumber,
             category: 'kanji',
-            badgeLabel: `Lektion ${week.lessonNumber} · Kanjiläsning`,
+            badgeLabel: `Kapitel ${week.lessonNumber} · Kanjiläsning`,
             prompt: `Hur läses ${comp.word} ("${comp.sv}") med hiragana?`,
             highlightJp: comp.word,
             choices: shuffleArray([comp.reading, ...readingDistractors], rng),

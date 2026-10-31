@@ -1,6 +1,10 @@
 import test from 'node:test';
 import assert from 'node:assert/strict';
-import { createStudyDrills, getDojoExpectedForm } from '../src/course/study-drills.ts';
+import {
+  buildKanjiQuizQuestions,
+  createStudyDrills,
+  getDojoExpectedForm,
+} from '../src/course/study-drills.ts';
 import { recordQuizMistakes } from '../src/course/components/week-quiz.ts';
 import { createCourseProgress, type CourseProgressCommand } from '../src/course/course-progress.ts';
 import { createFreshCourseProgress } from '../src/course/course-state.ts';
@@ -32,6 +36,7 @@ function setup(week: CourseWeek = courseWeeks[0]) {
     vocab: () => drills.vocab.read(week, progress.snapshot()),
     dojo: () => drills.dojo.read(week, courseWeeks, progress.snapshot()),
     quiz: () => drills.quiz.read(week),
+    kanjiQuiz: () => drills.kanjiQuiz.read(week),
   };
 }
 
@@ -502,4 +507,87 @@ test('Dojo Choices: Choices are shuffled so the correct answer position is rando
   drills.reset();
   const resetState = dojo();
   assert.equal(resetState.choices.length, 4);
+});
+
+test('Kanji Quiz Questions: Generates balanced questions with exactly 4 unique choices including the correct answer', () => {
+  const week = courseWeeks[0];
+  const questions = buildKanjiQuizQuestions(week.kanji, Math.random, 12);
+
+  assert.ok(questions.length >= 8, 'Should generate a rich set of kanji questions');
+  for (const q of questions) {
+    assert.equal(q.category, 'kanji');
+    assert.equal(q.choices.length, 4, `Question ${q.id} must have exactly 4 choices`);
+    const uniqueChoices = new Set(q.choices);
+    assert.equal(
+      uniqueChoices.size,
+      4,
+      `Question ${q.id} must have 4 distinct choices without duplicates`,
+    );
+    assert.ok(
+      q.choices.includes(q.answer),
+      `Question ${q.id} choices must include the correct answer`,
+    );
+    assert.ok(q.explanationSv.length > 0, `Question ${q.id} must include an explanation`);
+    assert.ok(q.prompt.length > 0, `Question ${q.id} must have a prompt`);
+    assert.ok(q.kanjiId, `Question ${q.id} must link to a valid kanji item`);
+  }
+});
+
+test('Kanji Quiz Drill: Complete session answering, scoring, advancing, and restart', () => {
+  const week = courseWeeks[0];
+  const { drills, kanjiQuiz } = setup(week);
+
+  // Initial read starts the quiz
+  let state = kanjiQuiz();
+  assert.ok(state.total > 0, 'Quiz should contain questions');
+  assert.equal(state.score, 0);
+  assert.equal(state.index, 0);
+  assert.equal(state.finished, false);
+
+  const total = state.total;
+  let correctCount = 0;
+
+  for (let i = 0; i < total; i++) {
+    state = kanjiQuiz();
+    const curr = state.current;
+    assert.ok(curr);
+    assert.equal(state.index, i);
+
+    // Answer every question correctly
+    drills.kanjiQuiz.choose(curr.answer);
+    correctCount++;
+
+    const afterChoice = kanjiQuiz();
+    assert.equal(afterChoice.chosen, curr.answer);
+
+    // Advance
+    drills.kanjiQuiz.advance();
+  }
+
+  // Quiz must now be finished with full score
+  const finalState = kanjiQuiz();
+  assert.equal(finalState.finished, true);
+  assert.equal(finalState.score, correctCount);
+  assert.equal(finalState.score, total);
+
+  // Restarting with start(week) resets cleanly
+  drills.kanjiQuiz.start(week);
+  const restartedState = kanjiQuiz();
+  assert.equal(restartedState.finished, false);
+  assert.equal(restartedState.index, 0);
+  assert.equal(restartedState.score, 0);
+  assert.equal(Object.keys(restartedState.answers).length, 0);
+});
+
+test('Kanji Quiz Choices: Random distribution of answer positions across choices', () => {
+  const week = courseWeeks[0];
+  const questions = buildKanjiQuizQuestions(week.kanji, Math.random, 12);
+  const answerIndices = questions.map((q) => q.choices.indexOf(q.answer));
+
+  // The answers must not all be at index 0
+  const uniqueIndices = new Set(answerIndices);
+  assert.ok(
+    uniqueIndices.size > 1,
+    'Kanji quiz answers should be distributed across multiple positions (0, 1, 2, 3), not fixed to index 0',
+  );
 });

@@ -1,0 +1,99 @@
+{
+  "generator": "Built-in ImageGen",
+  "canvas": [1536, 1024],
+  "tiers": [
+    {
+      "tier": 1,
+      "file": "tier-1.png",
+      "source": "Existing approved tier 1",
+      "foreground": "tier-1-front.png"
+    },
+    {
+      "tier": 2,
+      "file": "tier-2-expanded.png",
+      "references": ["tier-1.png"],
+      "prompt": "Production environment illustration for TIER 2 Established Sushi Bar in cozy restaurant game. Renovate reference image's EXACT same compact isometric dollhouse room, same building footprint, cream background, camera, entrance at left, adjacent window, structural corner and framing. 1536x1024 landscape. Major improvement: substantial L-SHAPED cedar sushi counter in middle, long front runs diagonally from left-mid to right-lower, short return going toward back at RIGHT. THREE evenly spaced matching sage-cushioned stools on long customer-facing side. Polished broad warm wood worktop, paneled front, fitted kitchen cabinets, ivory tile backsplash, enclosed storage, repaired finished wood floor, fresh sage plaster, tasteful restrained upper-wall lattice, discreet built-in warm lighting. Keep a basic stove, sink, rice pot, compact fridge, clear kitchen aisle and free countertop. Warm outlined pixel-like painted art exactly matching reference, clean readable game shapes. Environment only. No characters, people, food plates, conveyor, display case, separate service desk, decorations, paper lantern, curtain, plants, wall art, certificate, cat, text, UI or numbers. Leave right wall and right floor clear for separate decoration sprites. All room edges inside canvas. Same room noticeably professionally renovated, still cozy.",
+      "foreground": "tier-2-expanded-front.png",
+      "previousFile": "tier-2.png",
+      "previousForeground": "tier-2-front.png",
+      "expansionProvenance": "expanded-tiers.json"
+    },
+    {
+      "tier": 3,
+      "file": "tier-3-expanded-no-bench.png",
+      "references": ["tier-1.png", "tier-2.png"],
+      "prompt": "Production environment illustration TIER 3 Cozy Master Restaurant, final of THREE tiers. Image 1 is original humble shop, image 2 established shop. Renovate EXACT same image2 room and L-SHAPED counter silhouette, same building footprint, wall endpoints, entrance, adjacent window, back corner, 1536x1024 cream-background canvas and elevated isometric camera. Warm outlined pixel-like painted game art. Dramatic refined craftsmanship: luminous pale hinoki countertop and fine honey-wood counter front with exquisite joinery; keep THREE matching premium deep sage upholstered stools at exact existing positions. Cream plaster framed in dark pine, refined deep teal accents, fine delicate traditional kumiko wood lattice on upper walls, discreet golden warm under-trim lighting. Framed elegant wooden floor border. Replace basic kitchen with TWO organized empty chef work bays, premium coordinated enclosed cabinetry, refined ivory backsplash, discreet sink and cooking station, rice pot and small fridge; clear work aisle. Right wall and right floor remain usable for separate decoration/certificate/cat. Cozy intimate exceptional traditional Japanese master sushi restaurant, not opulent hotel, not bigger building. No people, chef, guests, food plates, conveyor, sushi display, extra service counter, lanterns, curtains, plants, art, certificate, lucky cat, text, UI, numbers. Keep clear countertop for animated serving layers. All edges fully within frame.",
+      "refinement": "Refine this final-tier sushi restaurant illustration while keeping exact room, entrance/window, counter silhouette, THREE stools, perspective, canvas and object positions. Make final renovation MUCH MORE VISIBLY DISTINCT from mid-tier: counter TOP luminous very pale creamy hinoki, counter FRONT refined dark honey-wood small kumiko panels. Walls mostly warm CREAM plaster with richer deep teal framed lower accents. Make floor distinct with a broad DARK PINE wooden perimeter border and central light warm wood planks. Kitchen bench has TWO obvious empty prep sections with fitted premium drawers, replace portable single burner with small fitted two-burner cooking inset at same position, keep small sink and rice pot. More intricate upper lattice craftsmanship, elegant warm lighting integrated under trim. Premium sage stool upholstery. Do not add clutter or any characters, decorative trophies, plants, wall art, conveyor, plates, text. Same cozy outlined pixel-painted art. Complete 1536x1024 opaque cream background.",
+      "foreground": "tier-3-expanded-front.png",
+      "previousFile": "tier-3.png",
+      "previousForeground": "tier-3-front.png",
+      "expansionProvenance": "expanded-tiers.json",
+      "previousExpandedFile": "tier-3-expanded.png",
+      "benchRemovalProvenance": "../../../../docs/sushi-game/upgrade-art-2026-10-29.md"
+    }
+  ],
+  "sprites": [
+    {
+      "file": "tier-1-sprites/chef-preparing.png",
+      "frames": 4,
+      "frameSize": [256, 256],
+      "prompt": "Create exactly FOUR full-body poses of the EXACT reference sushi chef in ONE horizontal 4-cell strip. Same smiling face, dark hair, white short toque, white crossover coat, navy apron/trousers, brown shoes, facing lower LEFT, elevated three-quarter angle, same proportions and outline palette, warm pixel-like game illustration. Reference seed in first slot is identity anchor. Frame1 hands together relaxed idle. Frame2 small lean shaping rice at waist. Frame3 shaping one tiny WHITE FISH nigiri, hands close at waist. Frame4 gently presenting that WHITE FISH nigiri toward lower-left. Body, hat, feet stationary same baseline, only small arm/torso changes. All heads and shoes complete within equal square cells, generous margin, exact same scale each pose. One strip at once. Genuine transparent background, no scenery, counter, shadow, labels, other characters. White fish only, no orange/red fish. Wide 4:1 canvas."
+    },
+    {
+      "file": "tier-1-sprites/guest-coral.png",
+      "frameSize": [256, 256],
+      "frames": 1,
+      "prompt": "ONE isolated transparent game sprite matching reference chef/guest warm outlined chibi pixel-painted art. Young woman guest with dark brown shoulder-length hair in a small half-bun, coral pink sweater, dark trousers, brown shoes. Seated body viewed mostly from behind in three-quarter view facing upper RIGHT, knees bent, hands in front at counter height, friendly face profile visible. Entire full seated body and shoes, NO stool or chair, NO table, NO props, no text, no background. Same proportions as supplied navy guest, clean silhouette, generous transparent square padding."
+    },
+    {
+      "file": "tier-1-sprites/guest-mustard.png",
+      "frameSize": [256, 256],
+      "frames": 1,
+      "prompt": "ONE isolated transparent game sprite matching supplied guest warm outlined chibi pixel-painted art. Young guest with short fluffy black hair, round black glasses, mustard yellow sweater, dark trousers and brown shoes. Seated body viewed mostly from behind in three-quarter view facing upper RIGHT, knees bent, hands in front at counter height, friendly profile visible. Full seated body and shoes, NO stool/chair, NO table, NO food, NO other props, no text, no scenery. Same scale and proportions family as navy guest, generous transparent square padding."
+    },
+    {
+      "file": "conveyor-surface.png",
+      "prompt": "Precise production asset adaptation of this sushi conveyor artwork for the renovated restaurant. Retain its warm cedar edging, charcoal gray slatted track and cozy pixel-painted game style. Extract ONLY the flat oval conveyor TRACK TOP SURFACE, no counter base, no legs, no stools, NO lantern bar/posts, NO plants, NO plates, NO sushi or food. Empty gray track with warm wooden oval rim, an elongated racetrack loop seen from elevated isometric perspective. Long axis runs diagonally DOWN toward the RIGHT to match a sushi counter from upper-left to lower-right (mirror the reference orientation). Isolated complete standalone low-profile track surface with genuine transparent background, generous margin. No text or scenery. This asset sits ON an existing counter, so must not include furniture beneath. One surface only.",
+      "reference": "../tycoon-atlas.png cell 3; removes baked food and furniture so ownership remains accurate"
+    },
+    {
+      "file": "../upgrades/tier-1-prep-cabinet.png",
+      "reference": "tier-1.png",
+      "provenance": "../../../../docs/sushi-game/upgrade-art-2026-10-29.md"
+    },
+    {
+      "file": "../upgrades/entrance-host-station.png",
+      "reference": "tier-2-expanded.png",
+      "provenance": "../../../../docs/sushi-game/upgrade-art-2026-10-29.md"
+    },
+    {
+      "file": "../upgrades/tier-3-l-conveyor.png",
+      "reference": "tier-3-expanded.png and conveyor-surface.png",
+      "provenance": "../../../../docs/sushi-game/upgrade-art-2026-10-29.md"
+    }
+  ],
+  "normalization": "Sprite workflow normalize_sprite_strip.py: shared-scale 224px content in padded 256px frames, bottom center at y=240. Chef strip 1024x256. Room foregrounds are exact source pixels through counter polygon masks. Scene anchors are normalized in src/course/sushi-game/tier-scenes.ts.",
+  "sceneManifest": "../../../../src/course/sushi-game/tier-scenes.ts",
+  "layerOrder": [
+    "room",
+    "rear furniture and projects",
+    "kitchen characters",
+    "counter foreground",
+    "food and front objects",
+    "guest buttons and hearts"
+  ],
+  "foregroundMasksPixels": {
+    "1": [
+      [451, 446],
+      [551, 411],
+      [997, 652],
+      [998, 682],
+      [967, 694],
+      [967, 795],
+      [902, 823],
+      [465, 580],
+      [452, 560]
+    ]
+  },
+  "expandedForegroundExtractor": "../../../../scripts/extract-expanded-counter-foregrounds.py"
+}

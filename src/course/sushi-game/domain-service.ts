@@ -1,0 +1,890 @@
+import {
+  migrateRestaurantTier,
+  RESTAURANT_RENOVATIONS,
+  type RenovationResult,
+} from './renovations.ts';
+/**
+ * Restaurant Service & Repository Layer
+ * JAPC11 Delkurs 2 Prototype
+ *
+ * Provides transactional restaurant initialization and atomic revenue collection.
+ * Supports both Firestore (production/emulator) and InMemory (fast unit tests).
+ */
+
+import { calculateAccrual, createDefaultRestaurantState, unitsToWholeYen } from './economy.ts';
+import { mergePermanentGrants } from './medals.ts';
+import {
+  getCatalogItem,
+  type SushiCatalogItem,
+  type PurchaseItemResult,
+  type PurchaseSuccessResult,
+  type PurchaseFailureResult,
+  type PurchaseFailureReason,
+} from './catalog.ts';
+import type { SushiRestaurantState, EquipDecorationResult } from './types.ts';
+import {
+  CURRENT_BALANCE_VERSION,
+  DEFAULT_AVERAGE_REVENUE,
+  DEFAULT_CAP_MS,
+  DEFAULT_KITCHEN_CAPACITY,
+  DEFAULT_SERVICE_CAPACITY,
+  EXTENDED_CAP_MS,
+} from './types.ts';
+import {
+  getRestaurantProject,
+  projectEligibility,
+  type PurchaseRestaurantProjectResult,
+} from './projects.ts';
+
+export type {
+  SushiCatalogItem,
+  PurchaseItemResult,
+  PurchaseSuccessResult,
+  PurchaseFailureResult,
+  PurchaseFailureReason,
+};
+
+export interface CollectRevenueResult {
+  state: SushiRestaurantState;
+  collectedUnits: number;
+  collectedYen: number;
+  wasAlreadyProcessed: boolean;
+}
+
+export interface SushiRestaurantRepository {
+  get(uid: string): Promise<SushiRestaurantState | null>;
+  set(state: SushiRestaurantState): Promise<void>;
+  transaction<T>(
+    uid: string,
+    updateFn: (
+      current: SushiRestaurantState | null,
+    ) => Promise<{ state: SushiRestaurantState | null; result: T }>,
+  ): Promise<T>;
+}
+
+export interface SushiStorageLike {
+  getItem(key: string): string | null;
+  setItem(key: string, value: string): void;
+  removeItem(key: string): void;
+}
+
+export function sushiStorageKey(uid: string): string {
+  return `japc11-dk2-sushi-v1-${uid}`;
+}
+
+export const MAX_PROCESSED_REQUESTS = 200;
+
+function canonicalRevenue(inventory: readonly string[]): number {
+  return [...new Set(inventory)].reduce(
+    (revenue, id) => revenue + (getCatalogItem(id)?.averageRevenueDelta ?? 0),
+    DEFAULT_AVERAGE_REVENUE,
+  );
+}
+
+/** Settle the old rules first. New balance rules only affect future production. */
+export function migrateRestaurantBalance(
+  state: SushiRestaurantState,
+  nowMs: number,
+): SushiRestaurantState {
+  if ((state.balanceVersion ?? 1) >= CURRENT_BALANCE_VERSION) return state;
+  const accrued = calculateAccrual(state, nowMs).updatedState;
+  const inventory = [...new Set(state.inventory)];
+  const kitchen = inventory.reduce(
+    (value, id) => value + (getCatalogItem(id)?.kitchenCapacityDelta ?? 0),
+    DEFAULT_KITCHEN_CAPACITY,
+  );
+  const service = inventory.reduce(
+    (value, id) => value + (getCatalogItem(id)?.serviceCapacityDelta ?? 0),
+    DEFAULT_SERVICE_CAPACITY,
+  );
+  const revenue = canonicalRevenue(inventory);
+  // A legacy license cost +5/order. Do not remove a benefit already paid for.
+  // Future purchases consume this floor instead of stacking a second bonus.
+  const legacyRevenueFloor = Math.max(revenue, state.averageRevenuePerOrder);
+  return {
+    ...state,
+    ...accrued,
+    balanceVersion: CURRENT_BALANCE_VERSION,
+    legacyRevenueFloor,
+    kitchenCapacity: Math.max(kitchen, state.kitchenCapacity),
+    serviceCapacity: Math.max(service, state.serviceCapacity),
+    averageRevenuePerOrder: legacyRevenueFloor,
+    capMs: Math.max(
+      state.capMs,
+      inventory.includes('cap_extension_12h') ? EXTENDED_CAP_MS : DEFAULT_CAP_MS,
+    ),
+    completedProjects: state.completedProjects ?? [],
+    updatedAtMs: Math.max(state.updatedAtMs, nowMs),
+  };
+}
+
+function recordProcessedRequest(
+  existing: SushiRestaurantState['processedRequests'] | undefined,
+  key: string,
+  entry: { processedAtMs: number; resultSummary?: string },
+  maxEntries = MAX_PROCESSED_REQUESTS,
+): SushiRestaurantState['processedRequests'] {
+  const next: SushiRestaurantState['processedRequests'] = {
+    ...(existing || {}),
+    [key]: entry,
+  };
+  const keys = Object.keys(next);
+  if (keys.length <= maxEntries) return next;
+  const sorted = keys.sort((a, b) => next[a].processedAtMs - next[b].processedAtMs);
+  for (const oldKey of sorted.slice(0, keys.length - maxEntries)) {
+    delete next[oldKey];
+  }
+  return next;
+}
+
+/**
+ * In-Memory Repository for unit tests and offline fast execution.
+ * Simulates Firestore transactions per-user.
+ * Optionally mirrors state to a backing storage (e.g. window.localStorage in browser).
+ */
+export class InMemorySushiRepository implements SushiRestaurantRepository {
+  private storage = new Map<string, SushiRestaurantState>();
+  private locks = new Map<string, Promise<unknown>>();
+  private backingStorage: SushiStorageLike | null;
+
+  constructor(backingStorage: SushiStorageLike | null = null) {
+    this.backingStorage = backingStorage;
+  }
+
+  public getBackingStorage(): SushiStorageLike | null {
+    return this.backingStorage;
+  }
+
+  public async get(uid: string): Promise<SushiRestaurantState | null> {
+    let existing = this.storage.get(uid);
+
+    // If not in memory, attempt lazy hydration from backing storage
+    if (!existing && this.backingStorage) {
+      try {
+        const raw = this.backingStorage.getItem(sushiStorageKey(uid));
+        if (raw) {
+          const parsed = JSON.parse(raw) as Partial<SushiRestaurantState>;
+          if (
+            parsed &&
+            typeof parsed === 'object' &&
+            parsed.id === uid &&
+            typeof parsed.balanceUnits === 'number' &&
+            typeof parsed.uncollectedUnits === 'number'
+          ) {
+            existing = parsed as SushiRestaurantState;
+            this.storage.set(uid, existing);
+          }
+        }
+      } catch {
+        /* Ignore JSON parse errors or storage access denial */
+      }
+    }
+
+    if (!existing) return null;
+    return JSON.parse(JSON.stringify(existing)) as SushiRestaurantState;
+  }
+
+  public async set(state: SushiRestaurantState | null): Promise<void> {
+    if (!state) return;
+    const cloned = JSON.parse(JSON.stringify(state)) as SushiRestaurantState;
+    this.storage.set(state.id, cloned);
+
+    if (this.backingStorage) {
+      try {
+        this.backingStorage.setItem(sushiStorageKey(state.id), JSON.stringify(cloned));
+      } catch {
+        /* Private browsing, quota exceeded, or disabled storage */
+      }
+    }
+  }
+
+  public async transaction<T>(
+    uid: string,
+    updateFn: (
+      current: SushiRestaurantState | null,
+    ) => Promise<{ state: SushiRestaurantState | null; result: T }>,
+  ): Promise<T> {
+    // Chain transactions for this UID to ensure serialized atomic execution
+    const prev = this.locks.get(uid) || Promise.resolve();
+    let resolveLock: () => void = () => {};
+    const nextLock = new Promise<void>((resolve) => {
+      resolveLock = resolve;
+    });
+    this.locks.set(uid, nextLock);
+
+    try {
+      await prev;
+      const current = await this.get(uid);
+      const { state, result } = await updateFn(current);
+      if (state) {
+        await this.set(state);
+      }
+      return result;
+    } finally {
+      resolveLock();
+      if (this.locks.get(uid) === nextLock) {
+        this.locks.delete(uid);
+      }
+    }
+  }
+
+  public clear(): void {
+    if (this.backingStorage) {
+      try {
+        for (const uid of this.storage.keys()) {
+          this.backingStorage.removeItem(sushiStorageKey(uid));
+        }
+      } catch {
+        /* Ignore storage errors */
+      }
+    }
+    this.storage.clear();
+    this.locks.clear();
+  }
+}
+
+/**
+ * SushiService manages business logic and repository interactions.
+ */
+export class SushiService {
+  public async equipDecoration(
+    uid: string,
+    slot: string,
+    itemId: string | null,
+    idempotencyKey: string,
+    nowMs = Date.now(),
+  ): Promise<EquipDecorationResult> {
+    if (!uid || !idempotencyKey) throw new Error('User and request ID are required');
+    if (slot !== 'wallSlot' && slot !== 'floorSlot') {
+      return { success: false, message: 'Ogiltig dekorationsplats.' };
+    }
+    const item = itemId === null ? null : getCatalogItem(itemId);
+    if (itemId !== null && (!item || item.category !== 'decoration' || item.slotType !== slot)) {
+      return { success: false, message: 'Föremålet passar inte på den här platsen.' };
+    }
+    return this.balanceTransaction<EquipDecorationResult>(uid, nowMs, async (current) => {
+      if (!current)
+        return {
+          state: null,
+          result: { success: false as const, message: 'Restaurangen kunde inte hittas.' },
+        };
+      if (itemId !== null && !current.inventory.includes(itemId)) {
+        return {
+          state: null,
+          result: { success: false as const, message: 'Köp dekorationen innan du placerar den.' },
+        };
+      }
+      const summary = `equip:${slot}:${itemId ?? 'empty'}`;
+      const previous = current.processedRequests[idempotencyKey];
+      if (Object.hasOwn(current.processedRequests, idempotencyKey)) {
+        if (previous.resultSummary !== summary) {
+          return {
+            state: null,
+            result: {
+              success: false as const,
+              message: 'Anropet hör till ett annat dekorationsval.',
+            },
+          };
+        }
+        const refreshed = {
+          ...current,
+          ...calculateAccrual(current, nowMs).updatedState,
+          updatedAtMs: nowMs,
+        };
+        return {
+          state: refreshed,
+          result: { success: true as const, state: refreshed, wasAlreadyProcessed: true },
+        };
+      }
+      const state: SushiRestaurantState = {
+        ...current,
+        ...calculateAccrual(current, nowMs).updatedState,
+        equipped: { ...current.equipped, [slot]: itemId },
+        updatedAtMs: nowMs,
+        processedRequests: recordProcessedRequest(current.processedRequests, idempotencyKey, {
+          processedAtMs: nowMs,
+          resultSummary: summary,
+        }),
+      };
+      return { state, result: { success: true as const, state, wasAlreadyProcessed: false } };
+    });
+  }
+
+  public async renovateRestaurant(
+    uid: string,
+    targetTier: number,
+    idempotencyKey: string,
+    nowMs = Date.now(),
+  ): Promise<RenovationResult> {
+    if (!uid || !idempotencyKey) throw new Error('User and request ID are required');
+    return this.balanceTransaction<RenovationResult>(uid, nowMs, async (current) => {
+      const fail = (reason: import('./renovations.ts').RenovationFailure, message: string) => ({
+        state: current,
+        result: {
+          success: false as const,
+          reason,
+          message,
+          ...(current ? { state: current } : {}),
+        },
+      });
+      if (!current) return fail('RESTAURANT_NOT_FOUND', 'Öppna restaurangen först.');
+      const renovation = RESTAURANT_RENOVATIONS.find((r) => r.targetTier === targetTier);
+      if (!renovation) return fail('INVALID_TARGET', 'Den restaurangnivån finns inte.');
+      const summary = `renovate:${targetTier}`;
+      if (Object.hasOwn(current.processedRequests, idempotencyKey)) {
+        if (current.processedRequests[idempotencyKey].resultSummary !== summary)
+          return fail('REQUEST_CONFLICT', 'Anropet hör till ett annat köp.');
+        return {
+          state: current,
+          result: { success: true as const, state: current, wasAlreadyProcessed: true },
+        };
+      }
+      if (current.restaurantTier + 1 !== targetTier)
+        return fail(
+          'PREVIOUS_TIER_REQUIRED',
+          'Köp renoveringarna i ordning. Du kan bara köpa nästa nivå.',
+        );
+      if (!current.permanentGrants.includes(renovation.bronzeGrant))
+        return fail('MEDAL_REQUIRED', `Nå brons (60 %) i kapitel ${renovation.chapter} först.`);
+      const accrued = {
+        ...current,
+        ...calculateAccrual(current, nowMs).updatedState,
+        updatedAtMs: Math.max(current.updatedAtMs, nowMs),
+      };
+      if (accrued.balanceUnits < renovation.priceUnits)
+        return {
+          state: accrued,
+          result: {
+            success: false as const,
+            reason: 'INSUFFICIENT_FUNDS',
+            message: `Du behöver ¥ ${renovation.priceYen} i disponibelt saldo.`,
+            state: accrued,
+          },
+        };
+      const state: SushiRestaurantState = {
+        ...accrued,
+        restaurantTier: renovation.targetTier,
+        balanceUnits: accrued.balanceUnits - renovation.priceUnits,
+        processedRequests: recordProcessedRequest(accrued.processedRequests, idempotencyKey, {
+          processedAtMs: nowMs,
+          resultSummary: summary,
+        }),
+      };
+      return { state, result: { success: true as const, state, wasAlreadyProcessed: false } };
+    });
+  }
+
+  private repo: SushiRestaurantRepository;
+
+  constructor(repo: SushiRestaurantRepository) {
+    this.repo = repo;
+  }
+
+  private balanceTransaction<T>(
+    uid: string,
+    nowMs: number,
+    update: (
+      current: SushiRestaurantState | null,
+    ) => Promise<{ state: SushiRestaurantState | null; result: T }>,
+  ): Promise<T> {
+    return this.repo.transaction(uid, async (stored) => {
+      const current = stored
+        ? migrateRestaurantTier(migrateRestaurantBalance(stored, nowMs))
+        : null;
+      const changed = await update(current);
+      // Even a rejected operation must persist a one-time migration, if needed.
+      return current !== stored && changed.state === null
+        ? { ...changed, state: current }
+        : changed;
+    });
+  }
+
+  public getRepository(): SushiRestaurantRepository {
+    return this.repo;
+  }
+
+  public setRepository(repo: SushiRestaurantRepository): void {
+    this.repo = repo;
+  }
+
+  /** Buy one optional, permanent cosmetic project without changing production. */
+  public async purchaseRestaurantProject(
+    uid: string,
+    projectId: string,
+    idempotencyKey: string,
+    nowMs = Date.now(),
+  ): Promise<PurchaseRestaurantProjectResult> {
+    if (!uid || !idempotencyKey || typeof idempotencyKey !== 'string') {
+      throw new Error('User and request ID are required');
+    }
+    return this.balanceTransaction<PurchaseRestaurantProjectResult>(uid, nowMs, async (current) => {
+      if (!current)
+        return {
+          state: null,
+          result: {
+            success: false,
+            reason: 'RESTAURANT_NOT_FOUND',
+            message: 'Öppna restaurangen först.',
+          },
+        };
+      const project = getRestaurantProject(projectId);
+      if (!project)
+        return {
+          state: current,
+          result: {
+            success: false,
+            reason: 'PROJECT_NOT_FOUND',
+            message: 'Projektet finns inte.',
+            state: current,
+          },
+        };
+      const summary = `project:${project.id}`;
+      if (Object.hasOwn(current.processedRequests, idempotencyKey)) {
+        if (current.processedRequests[idempotencyKey].resultSummary !== summary)
+          return {
+            state: current,
+            result: {
+              success: false,
+              reason: 'REQUEST_CONFLICT',
+              message: 'Anropet hör till ett annat köp.',
+              state: current,
+            },
+          };
+        return {
+          state: current,
+          result: { success: true, state: current, project, wasAlreadyProcessed: true },
+        };
+      }
+      if ((current.completedProjects ?? []).includes(project.id))
+        return {
+          state: current,
+          result: {
+            success: false,
+            reason: 'ALREADY_COMPLETED',
+            message: 'Projektet är redan klart.',
+            state: current,
+          },
+        };
+      const eligibility = projectEligibility(current, project);
+      if (!eligibility.eligible)
+        return {
+          state: current,
+          result: {
+            success: false,
+            reason: 'PROJECT_LOCKED',
+            message: eligibility.reason,
+            state: current,
+          },
+        };
+      const accrued: SushiRestaurantState = {
+        ...current,
+        ...calculateAccrual(current, nowMs).updatedState,
+        updatedAtMs: Math.max(current.updatedAtMs, nowMs),
+      };
+      if (accrued.balanceUnits < project.priceUnits)
+        return {
+          state: accrued,
+          result: {
+            success: false,
+            reason: 'INSUFFICIENT_FUNDS',
+            message: 'Samla ihop projektets pris i disponibla yen först.',
+            state: accrued,
+          },
+        };
+      const state: SushiRestaurantState = {
+        ...accrued,
+        balanceUnits: accrued.balanceUnits - project.priceUnits,
+        completedProjects: [...(accrued.completedProjects ?? []), project.id],
+        processedRequests: recordProcessedRequest(accrued.processedRequests, idempotencyKey, {
+          processedAtMs: nowMs,
+          resultSummary: summary,
+        }),
+      };
+      return { state, result: { success: true, state, project, wasAlreadyProcessed: false } };
+    });
+  }
+
+  /**
+   * Initializes a new restaurant if none exists, or lazily evaluates accrual up to nowMs.
+   * If initialGrants is supplied, retroactively merges newly eligible grants into permanentGrants.
+   */
+  public async getOrInitRestaurant(
+    uid: string,
+    nowMs: number = Date.now(),
+    initialGrants?: string[],
+  ): Promise<SushiRestaurantState> {
+    if (!uid) {
+      throw new Error('INVALID_UID: User UID must be provided');
+    }
+
+    return await this.balanceTransaction(uid, nowMs, async (current) => {
+      if (!current) {
+        const fresh = createDefaultRestaurantState(uid, nowMs);
+        if (initialGrants && initialGrants.length > 0) {
+          fresh.permanentGrants = mergePermanentGrants([], initialGrants);
+        }
+        return { state: fresh, result: fresh };
+      }
+
+      // Existing restaurant: lazy accrual up to server nowMs
+      const accrual = calculateAccrual(current, nowMs);
+      const existingGrants = Array.isArray(current.permanentGrants) ? current.permanentGrants : [];
+      const mergedGrants =
+        initialGrants && initialGrants.length > 0
+          ? mergePermanentGrants(existingGrants, initialGrants)
+          : existingGrants;
+
+      const updated: SushiRestaurantState = {
+        ...current,
+        uncollectedUnits: accrual.updatedState.uncollectedUnits,
+        usedProductionMs: accrual.updatedState.usedProductionMs,
+        accountedAtMs: accrual.updatedState.accountedAtMs,
+        permanentGrants: mergedGrants,
+        updatedAtMs: nowMs,
+      };
+
+      return { state: updated, result: updated };
+    });
+  }
+
+  /**
+   * Synchronizes course medal grants into permanentGrants.
+   * Enforces strict non-revocation: permanentGrants = mergePermanentGrants(current.permanentGrants, earnedGrants).
+   * Automatically initializes the restaurant if it does not yet exist.
+   */
+  public async syncMedalGrants(
+    uid: string,
+    earnedGrants: string[],
+    nowMs: number = Date.now(),
+  ): Promise<SushiRestaurantState> {
+    if (!uid) {
+      throw new Error('INVALID_UID: User UID must be provided');
+    }
+    if (!Array.isArray(earnedGrants)) {
+      throw new Error('INVALID_GRANTS: earnedGrants must be an array of strings');
+    }
+
+    return await this.balanceTransaction(uid, nowMs, async (current) => {
+      if (!current) {
+        // Cold start: restaurant created directly via medal sync
+        const fresh = createDefaultRestaurantState(uid, nowMs);
+        fresh.permanentGrants = mergePermanentGrants([], earnedGrants);
+        return { state: fresh, result: fresh };
+      }
+
+      // Lazy accrual up to nowMs
+      const accrual = calculateAccrual(current, nowMs);
+      const existingGrants = Array.isArray(current.permanentGrants) ? current.permanentGrants : [];
+      const mergedGrants = mergePermanentGrants(existingGrants, earnedGrants);
+
+      const updated: SushiRestaurantState = {
+        ...current,
+        uncollectedUnits: accrual.updatedState.uncollectedUnits,
+        usedProductionMs: accrual.updatedState.usedProductionMs,
+        accountedAtMs: accrual.updatedState.accountedAtMs,
+        permanentGrants: mergedGrants,
+        updatedAtMs: nowMs,
+      };
+
+      return { state: updated, result: updated };
+    });
+  }
+
+  /**
+   * Atomically collects uncollected revenue into spendable balanceUnits.
+   * Protects against duplicate payouts via idempotencyKey.
+   */
+  public async collectRevenue(
+    uid: string,
+    idempotencyKey: string,
+    nowMs: number = Date.now(),
+  ): Promise<CollectRevenueResult> {
+    if (!uid) {
+      throw new Error('INVALID_UID: User UID must be provided');
+    }
+    if (!idempotencyKey || typeof idempotencyKey !== 'string') {
+      throw new Error('INVALID_IDEMPOTENCY_KEY: idempotencyKey must be a non-empty string');
+    }
+
+    return await this.balanceTransaction<CollectRevenueResult>(uid, nowMs, async (current) => {
+      if (!current) {
+        throw new Error('RESTAURANT_NOT_FOUND: User does not have an active restaurant');
+      }
+
+      // Check idempotency: if already processed, return stored state without crediting again
+      if (
+        idempotencyKey &&
+        current.processedRequests &&
+        Object.hasOwn(current.processedRequests, idempotencyKey)
+      ) {
+        return {
+          state: current,
+          result: {
+            state: current,
+            collectedUnits: 0,
+            collectedYen: 0,
+            wasAlreadyProcessed: true,
+          },
+        };
+      }
+
+      // 1. Accrue up to collection time
+      const accrual = calculateAccrual(current, nowMs);
+      const accruedState = accrual.updatedState;
+      const transferredUnits = accruedState.uncollectedUnits;
+      const newBalanceUnits = accruedState.balanceUnits + transferredUnits;
+      const transferredYen = unitsToWholeYen(transferredUnits);
+
+      // 2. Record idempotency key
+      const updatedProcessedRequests = recordProcessedRequest(
+        current.processedRequests,
+        idempotencyKey,
+        {
+          processedAtMs: nowMs,
+          resultSummary: `collected ${transferredUnits} units (${transferredYen} yen)`,
+        },
+      );
+
+      // 3. Reset uncollected register and timer
+      const updatedState: SushiRestaurantState = {
+        ...current,
+        balanceUnits: newBalanceUnits,
+        uncollectedUnits: 0,
+        usedProductionMs: 0,
+        accountedAtMs: Math.max(accruedState.accountedAtMs, nowMs),
+        periodStartMs: Math.max(accruedState.accountedAtMs, nowMs),
+        updatedAtMs: nowMs,
+        processedRequests: updatedProcessedRequests,
+      };
+
+      return {
+        state: updatedState,
+        result: {
+          state: updatedState,
+          collectedUnits: transferredUnits,
+          collectedYen: transferredYen,
+          wasAlreadyProcessed: false,
+        },
+      };
+    });
+  }
+
+  /**
+   * Purchases a restaurant upgrade from the catalog.
+   *
+   * Transaction rules:
+   * 1. Rejects if userId or itemId is missing/invalid.
+   * 2. Rejects if restaurant does not exist (RESTAURANT_NOT_FOUND).
+   * 3. Checks idempotency: if idempotencyKey was already processed, returns cached result without double-charging.
+   * 4. Rejects if itemId is not found in catalog (ITEM_NOT_FOUND).
+   * 5. Duplicate check: rejects if already in inventory (ALREADY_OWNED).
+   * 6. Unlock check: rejects if not in permanentGrants (ITEM_LOCKED).
+   * 7. Prospective accrual: accounts up to nowMs at OLD rates & OLD cap.
+   * 8. Spendable balance check: rejects if balanceUnits < priceUnits (INSUFFICIENT_FUNDS).
+   *    Persists intermediate accrual state so student keeps uncollected income earned up to nowMs.
+   * 9. Deducts priceUnits from balanceUnits, appends itemId to inventory, applies stat deltas,
+   *    preserves uncollectedUnits and usedProductionMs, advances accountedAtMs, and records idempotencyKey.
+   */
+  public async purchaseCatalogItem(
+    uid: string,
+    itemId: string,
+    idempotencyKey?: string,
+    nowMs: number = Date.now(),
+  ): Promise<PurchaseItemResult> {
+    if (!uid || typeof uid !== 'string' || !uid.trim()) {
+      throw new Error('INVALID_UID: User UID must be provided');
+    }
+    if (!itemId || typeof itemId !== 'string' || !itemId.trim()) {
+      throw new Error('INVALID_ITEM_ID: Item ID must be provided');
+    }
+
+    return await this.balanceTransaction<PurchaseItemResult>(uid, nowMs, async (current) => {
+      if (!current) {
+        return {
+          state: null,
+          result: {
+            success: false,
+            reason: 'RESTAURANT_NOT_FOUND',
+            message: 'User does not have an active restaurant',
+          },
+        };
+      }
+
+      const item = getCatalogItem(itemId);
+
+      // Idempotency check: Object.hasOwn prevents prototype pollution exploits
+      if (
+        idempotencyKey &&
+        current.processedRequests &&
+        Object.hasOwn(current.processedRequests, idempotencyKey)
+      ) {
+        return {
+          state: current,
+          result: {
+            success: true,
+            state: current,
+            restaurant: current,
+            item: item!,
+            purchasedItem: item!,
+            debitedUnits: item ? item.priceUnits : 0,
+            debitedYen: item ? item.priceYen : 0,
+            wasAlreadyProcessed: true,
+          },
+        };
+      }
+
+      if (!item) {
+        return {
+          state: current,
+          result: {
+            success: false,
+            reason: 'ITEM_NOT_FOUND',
+            message: `Föremålet "${itemId}" finns inte i butikskatalogen.`,
+            state: current,
+            restaurant: current,
+          },
+        };
+      }
+
+      // Check if already owned (all MVP catalog upgrades have exactly 1 purchasable tier)
+      const isAlreadyOwned = Array.isArray(current.inventory) && current.inventory.includes(itemId);
+      if (isAlreadyOwned) {
+        return {
+          state: current,
+          result: {
+            success: false,
+            reason: 'ALREADY_OWNED',
+            message: `Du äger redan "${item.name}". Föremålet kan bara köpas en gång.`,
+            state: current,
+            restaurant: current,
+            item,
+            purchasedItem: item,
+          },
+        };
+      }
+
+      // Check medal grant prerequisite
+      const isUnlocked =
+        Array.isArray(current.permanentGrants) && current.permanentGrants.includes(itemId);
+      if (!isUnlocked) {
+        return {
+          state: current,
+          result: {
+            success: false,
+            reason: 'ITEM_LOCKED',
+            message: `"${item.name}" är låst. Uppnå ${item.requiredTierLabel}medalj i Kapitel ${item.requiredLesson} för att låsa upp köpmöjligheten.`,
+            state: current,
+            restaurant: current,
+            item,
+            purchasedItem: item,
+          },
+        };
+      }
+
+      if (current.restaurantTier < item.requiredRestaurantTier) {
+        return {
+          state: current,
+          result: {
+            success: false,
+            reason: 'RESTAURANT_TIER_REQUIRED',
+            message: `Renovera till restaurangnivå ${item.requiredRestaurantTier} innan du köper detta föremål.`,
+            state: current,
+            restaurant: current,
+            item,
+            purchasedItem: item,
+          },
+        };
+      }
+
+      // Prospective accrual at previous rates and cap up to nowMs
+      const accrual = calculateAccrual(current, nowMs);
+      const intermediateState = accrual.updatedState;
+
+      // Spendable balance validation: uncollected revenue CANNOT fund purchases!
+      const priceUnits = item.priceUnits;
+      if (intermediateState.balanceUnits < priceUnits) {
+        // Persist intermediate accrual so user keeps earned uncollected revenue
+        const accruedCurrent: SushiRestaurantState = {
+          ...current,
+          uncollectedUnits: intermediateState.uncollectedUnits,
+          usedProductionMs: intermediateState.usedProductionMs,
+          accountedAtMs: intermediateState.accountedAtMs,
+          updatedAtMs: nowMs,
+        };
+
+        return {
+          state: accruedCurrent,
+          result: {
+            success: false,
+            reason: 'INSUFFICIENT_FUNDS',
+            message: `Otillräckligt saldo. Föremålet kostar ¥ ${item.priceYen} (${priceUnits} enheter), men du har endast ¥ ${unitsToWholeYen(
+              intermediateState.balanceUnits,
+            )} disponibla yen.`,
+            requiredUnits: priceUnits,
+            actualUnits: intermediateState.balanceUnits,
+            state: accruedCurrent,
+            restaurant: accruedCurrent,
+            item,
+            purchasedItem: item,
+          },
+        };
+      }
+
+      // Apply atomic state transition
+      const newBalanceUnits = intermediateState.balanceUnits - priceUnits;
+      const newInventory = [...(current.inventory || []), itemId];
+      const newKitchen = intermediateState.kitchenCapacity + (item.kitchenCapacityDelta ?? 0);
+      const newService = intermediateState.serviceCapacity + (item.serviceCapacityDelta ?? 0);
+      const newAvgRev =
+        current.legacyRevenueFloor !== undefined
+          ? Math.max(canonicalRevenue(newInventory), current.legacyRevenueFloor)
+          : intermediateState.averageRevenuePerOrder + (item.averageRevenueDelta ?? 0);
+      const newCapMs = item.newCapMs ?? intermediateState.capMs;
+
+      const updatedProcessedRequests = idempotencyKey
+        ? recordProcessedRequest(current.processedRequests, idempotencyKey, {
+            processedAtMs: nowMs,
+            resultSummary: `purchased ${itemId} for ${priceUnits} units (${item.priceYen} yen)`,
+          })
+        : current.processedRequests || {};
+
+      const updatedState: SushiRestaurantState = {
+        ...current,
+        balanceUnits: newBalanceUnits,
+        uncollectedUnits: intermediateState.uncollectedUnits, // Preserved!
+        usedProductionMs: intermediateState.usedProductionMs, // Preserved!
+        accountedAtMs: intermediateState.accountedAtMs,
+        kitchenCapacity: newKitchen,
+        serviceCapacity: newService,
+        averageRevenuePerOrder: newAvgRev,
+        capMs: newCapMs,
+        inventory: newInventory,
+        updatedAtMs: nowMs,
+        processedRequests: updatedProcessedRequests,
+      };
+
+      return {
+        state: updatedState,
+        result: {
+          success: true,
+          state: updatedState,
+          restaurant: updatedState,
+          item,
+          purchasedItem: item,
+          debitedUnits: priceUnits,
+          debitedYen: item.priceYen,
+          wasAlreadyProcessed: false,
+        },
+      };
+    });
+  }
+
+  public async purchaseUpgrade(
+    uid: string,
+    itemId: string,
+    idempotencyKey?: string,
+    nowMs: number = Date.now(),
+  ): Promise<PurchaseItemResult> {
+    return await this.purchaseCatalogItem(uid, itemId, idempotencyKey, nowMs);
+  }
+}

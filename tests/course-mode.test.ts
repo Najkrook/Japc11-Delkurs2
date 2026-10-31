@@ -35,8 +35,8 @@ function createMemoryStorage() {
   };
 }
 
-test('JAPC11 Delkurs 2 Data: Contains 4 structured Genki weeks (Lessons 6–9) with authentic content', () => {
-  assert.equal(courseWeeks.length, 4);
+test('JAPC11 Delkurs 2 Data: Contains 7 structured Genki weeks (Lessons 6–12) with authentic content', () => {
+  assert.equal(courseWeeks.length, 7);
 
   const w1 = getCourseWeekById('week-1');
   assert.equal(w1.lessonNumber, 6);
@@ -753,7 +753,7 @@ test('Quiz Mistake Coupling: All quiz questions with vocabId and conjugationId m
   );
 });
 
-test('Ticket 07: Samtliga verb i Vecka 1–4 har definierade te-, nai- och ta-former', () => {
+test('Samtliga verb i Vecka 1–7 har definierade te-, nai- och ta-former', () => {
   let totalVerbs = 0;
   for (const week of courseWeeks) {
     assert.ok(week.conjugations.length > 0, `Week ${week.id} must have conjugations`);
@@ -785,7 +785,7 @@ test('Ticket 07: Samtliga verb i Vecka 1–4 har definierade te-, nai- och ta-fo
       );
     }
   }
-  assert.equal(totalVerbs, 46, 'Total of 46 verbs across Lessons 6–9 all have full conjugations');
+  assert.equal(totalVerbs, 79, 'All 79 verbs across Lessons 6–12 have full conjugations');
 });
 
 test('Ticket 07: Arenans böjningsfrågor testar rätt fokusform per vecka (te för W1-2, nai för W3, ta för W4)', () => {

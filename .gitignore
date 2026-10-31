@@ -9,3 +9,11 @@ test-results/
 playwright-report/
 *.log
 Material/vocabulary.pdf
+
+functions/lib/
+# Local experiments, captures, and generated review reports
+/.scratch/
+/output/
+/.scratch/sushi-game/preview-logs/
+/.scratch/sushi-game/asset-options/research-only/
+/output/playwright/sushi-playtest-*.png

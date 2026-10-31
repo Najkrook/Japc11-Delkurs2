@@ -6,7 +6,7 @@ test.describe('Ticket 10: Hash-routing och delbara direktlänkar', () => {
 
     // Initial load defaults to vecka 1
     await expect(page).toHaveURL(/#\/vecka\/week-1/);
-    await expect(page.locator('main h1')).toContainText('Vecka 1 · Lektion 6');
+    await expect(page.locator('main h1')).toContainText('Kapitel 6');
 
     // Click て-form Dojo in top nav
     await page
@@ -26,9 +26,9 @@ test.describe('Ticket 10: Hash-routing och delbara direktlänkar', () => {
     await expect(page).toHaveURL(/#\/vecka\/week-1\/grammar/);
 
     // Switch week to Vecka 2 via sidebar ribbon
-    await page.getByRole('tab', { name: /Vecka 2/ }).click();
+    await page.getByRole('tab', { name: /Kapitel 7/ }).click();
     await expect(page).toHaveURL(/#\/vecka\/week-2$/);
-    await expect(page.locator('main h1')).toContainText('Vecka 2 · Lektion 7');
+    await expect(page.locator('main h1')).toContainText('Kapitel 7');
 
     // Click Kurs-Arena (visar spärrsida för gäst)
     await page.locator('[data-course-nav="arena"]').first().click();
@@ -93,7 +93,7 @@ test.describe('Ticket 10: Hash-routing och delbara direktlänkar', () => {
     // Step 3 back -> should return to Hub
     await page.goBack();
     await expect(page).toHaveURL(/#\/vecka\/week-1/);
-    await expect(page.locator('main h1')).toContainText('Vecka 1 · Lektion 6');
+    await expect(page.locator('main h1')).toContainText('Kapitel 6');
 
     // Step forward -> should return to Dojo
     await page.goForward();

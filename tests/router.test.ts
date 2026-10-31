@@ -49,6 +49,9 @@ test('Router: parseRoute handles arena, arena room codes, and extra studies', ()
     arenaRoomCode: '9876',
   });
   assert.deepEqual(parseRoute('#/extra'), { weekId: 'week-1', subView: 'extra' });
+  assert.deepEqual(parseRoute('#/sushi'), { weekId: 'week-1', subView: 'sushi' });
+  assert.deepEqual(parseRoute('#/restaurang', 'week-3'), { weekId: 'week-3', subView: 'sushi' });
+  assert.deepEqual(parseRoute('#/sushigame', 'week-4'), { weekId: 'week-4', subView: 'sushi' });
 });
 
 test('Router: formatRoute produces canonical hash strings', () => {
@@ -59,6 +62,7 @@ test('Router: formatRoute produces canonical hash strings', () => {
   assert.equal(formatRoute({ weekId: 'week-1', subView: 'grammar' }), '#/vecka/week-1/grammar');
   assert.equal(formatRoute({ weekId: 'week-1', subView: 'quiz' }), '#/vecka/week-1/quiz');
   assert.equal(formatRoute({ weekId: 'week-1', subView: 'extra' }), '#/extra');
+  assert.equal(formatRoute({ weekId: 'week-3', subView: 'sushi' }), '#/sushi');
   assert.equal(formatRoute({ weekId: 'week-1', subView: 'arena' }), '#/arena');
   assert.equal(
     formatRoute({ weekId: 'week-1', subView: 'arena', arenaRoomCode: '5678' }),
@@ -72,6 +76,8 @@ test('Router: normalizeHash maps raw or alias URLs to canonical hashes', () => {
   assert.equal(normalizeHash('#/glosor', 'week-2'), '#/vecka/week-2/vocab');
   assert.equal(normalizeHash('#/arena/room-4444'), '#/arena/4444');
   assert.equal(normalizeHash('#/extra'), '#/extra');
+  assert.equal(normalizeHash('#/sushi'), '#/sushi');
+  assert.equal(normalizeHash('#/restaurang'), '#/sushi');
 });
 
 interface MockWindow {

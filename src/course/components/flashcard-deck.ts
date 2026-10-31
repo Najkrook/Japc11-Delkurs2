@@ -8,8 +8,14 @@ import type {
 import type { UpdateCourseProgress } from '../course-progress.ts';
 import { studyDrills } from '../study-drills.ts';
 import { bindSwipeableFlashcard } from '../apple-physics.ts';
+import { renderKanjiQuizModule } from './kanji-quiz.ts';
 
 let vocabMode: 'cards' | 'list' = 'cards';
+let kanjiMode: 'cards' | 'quiz' = 'cards';
+
+export function resetKanjiMode(): void {
+  kanjiMode = 'cards';
+}
 const vocabDrill = studyDrills.vocab;
 
 const CATEGORY_LABELS: Record<string, string> = {
@@ -38,7 +44,7 @@ export function renderVocabModule(
   };
 
   return html`
-    <section class="course-module-section" aria-label="Veckans glosor">
+    <section class="course-module-section" aria-label="Kapitlets glosor">
       <div class="course-module-topbar">
         <button class="course-back-btn" @click=${onBackToHub}>
           ← Tillbaka till ${week.titleSv.split(':')[0]}
@@ -71,8 +77,8 @@ export function renderVocabModule(
 
       <div class="dojo-header-banner">
         <div>
-          <span class="course-eyebrow">LEKTION ${week.lessonNumber} · ORDFÖRRÅD</span>
-          <h1>Veckans glosor (${week.vocab.length} ord)</h1>
+          <span class="course-eyebrow">KAPITEL ${week.lessonNumber} · ORDFÖRRÅD</span>
+          <h1>Kapitlets glosor (${week.vocab.length} ord)</h1>
           <p>Vänd korten, lyssna på uttalet och bocka av de ord som sitter.</p>
         </div>
         <div class="dojo-score-pill">
@@ -114,9 +120,9 @@ export function renderVocabModule(
               <p>
                 ${
                   state.filter === 'mistakes'
-                    ? 'Inga svaga ord sparade i denna vecka än! 🎉 När du klickar "Behöver öva mer" på ett kort eller missar ett verb i Dojon hamnar det automatiskt här.'
+                    ? 'Inga svaga ord sparade i detta kapitel än! 🎉 När du klickar "Behöver öva mer" på ett kort eller missar ett verb i Dojon hamnar det automatiskt här.'
                     : state.filter === 'unmastered' && week.vocab.length
-                      ? 'Alla veckans glosor är bemästrade.'
+                      ? 'Alla kapitlets glosor är bemästrade.'
                       : 'Inga glosor matchar det valda filtret.'
                 }
               </p>
@@ -386,21 +392,47 @@ export function renderKanjiModule(
   updateProgress: UpdateCourseProgress,
   onBackToHub: () => void,
 ): CourseTemplate {
+  if (kanjiMode === 'quiz') {
+    return renderKanjiQuizModule(week, progress, host, updateProgress, () => {
+      kanjiMode = 'cards';
+      host.render();
+    });
+  }
+
   const masteredCount = week.kanji.filter((k) => progress.masteredKanjiIds[k.id]).length;
 
   return html`
-    <section class="course-module-section" aria-label="Veckans Kanji">
+    <section class="course-module-section" aria-label="Kapitlets Kanji">
       <div class="course-module-topbar">
-        <button class="course-back-btn" @click=${onBackToHub}>
+        <button
+          class="course-back-btn"
+          @click=${() => {
+            kanjiMode = 'cards';
+            onBackToHub();
+          }}
+        >
           ← Tillbaka till ${week.titleSv.split(':')[0]}
         </button>
       </div>
 
       <div class="dojo-header-banner">
         <div>
-          <span class="course-eyebrow">LEKTION ${week.lessonNumber} · KANJIBANK</span>
-          <h1>Veckans Kanji (${week.kanji.length} tecken)</h1>
+          <span class="course-eyebrow">KAPITEL ${week.lessonNumber} · KANJIBANK</span>
+          <h1>Kapitlets Kanji (${week.kanji.length} tecken)</h1>
           <p>Studera läsningar (on/kun), minnesbilder och vanliga sammansättningar.</p>
+        </div>
+        <div class="kanji-header-actions">
+          <button
+            type="button"
+            class="course-btn-primary kanji-quiz-trigger-btn"
+            @click=${() => {
+              studyDrills.kanjiQuiz.start(week);
+              kanjiMode = 'quiz';
+              host.render();
+            }}
+          >
+            🎯 Starta Kanji-Quiz
+          </button>
         </div>
         <div class="dojo-score-pill">
           <strong>${masteredCount} / ${week.kanji.length}</strong>
@@ -475,7 +507,7 @@ export function renderGrammarModule(
   onBackToHub: () => void,
 ): CourseTemplate {
   return html`
-    <section class="course-module-section" aria-label="Veckans grammatik">
+    <section class="course-module-section" aria-label="Kapitlets grammatik">
       <div class="course-module-topbar">
         <button class="course-back-btn" @click=${onBackToHub}>
           ← Tillbaka till ${week.titleSv.split(':')[0]}
@@ -485,8 +517,8 @@ export function renderGrammarModule(
 
       <div class="dojo-header-banner">
         <div>
-          <span class="course-eyebrow">LEKTION ${week.lessonNumber} · GRAMMATIKGUIDE</span>
-          <h1>Veckans grammatik & mönster</h1>
+          <span class="course-eyebrow">KAPITEL ${week.lessonNumber} · GRAMMATIKGUIDE</span>
+          <h1>Kapitlets grammatik & mönster</h1>
           <p>Tydliga förklaringar på svenska med formationsregler och exempelmeningar.</p>
         </div>
       </div>

@@ -16,7 +16,7 @@ test('remaining cards advance without skipping and end with an empty state', asy
     await expect(page.locator('.course-flashcard-jp')).toHaveText(word.kanji || word.kana);
     await page.getByRole('button', { name: '✓ Jag kan detta!', exact: true }).click();
   }
-  await expect(page.getByText('Alla veckans glosor är bemästrade.')).toBeVisible();
+  await expect(page.getByText('Alla kapitlets glosor är bemästrade.')).toBeVisible();
   await expect(page.locator('.course-flashcard')).toHaveCount(0);
   await page.getByRole('button', { name: /Hela ordlistan/ }).click();
   await expect(page.locator('.course-vocab-row')).toHaveCount(0);

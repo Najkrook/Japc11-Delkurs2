@@ -1,0 +1,345 @@
+<!doctype html>
+<html lang="en">
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>Sushi audit — independent verification</title>
+  <style>
+    body {
+      font:
+        16px/1.65 system-ui,
+        sans-serif;
+      color: #243129;
+      background: #f5f4ed;
+      margin: 0;
+    }
+    main {
+      max-width: 1000px;
+      margin: auto;
+      padding: 40px 24px;
+    }
+    h1,
+    h2 {
+      line-height: 1.2;
+      color: #163c32;
+    }
+    h2 {
+      margin-top: 36px;
+    }
+    p,
+    li {
+      max-width: 85ch;
+    }
+    a {
+      color: #175c77;
+    }
+    code {
+      background: #e6e9df;
+      padding: 2px 5px;
+    }
+    table {
+      border-collapse: collapse;
+      width: 100%;
+      background: white;
+    }
+    th,
+    td {
+      text-align: left;
+      padding: 12px;
+      border: 1px solid #d7ddd1;
+      vertical-align: top;
+    }
+    th {
+      background: #e6ece2;
+    }
+    .lead {
+      font-size: 20px;
+    }
+    figure {
+      margin: 24px 0;
+    }
+    img {
+      display: block;
+      max-width: 100%;
+      max-height: 800px;
+      object-fit: contain;
+      object-position: left;
+    }
+    figcaption {
+      font-size: 14px;
+      color: #526050;
+    }
+    pre {
+      white-space: pre-wrap;
+      overflow-wrap: anywhere;
+      background: #e6ece2;
+      padding: 16px;
+    }
+    .meta {
+      color: #526050;
+    }
+    @media (max-width: 600px) {
+      main {
+        padding: 24px 16px;
+      }
+      th,
+      td {
+        padding: 8px;
+        font-size: 14px;
+      }
+    }
+  </style>
+  <main>
+    <h1>Sushi audit: independent verification</h1>
+    <p class="meta">
+      27 October 2026 · Local checkout <code>5ee6972833e931ec7b23f7588026cfa621b6c914</code>
+    </p>
+    <p class="lead">
+      The report identifies real presentation regressions. Its strongest evidence concerns
+      misleading money displays, hidden production information, and artwork that does not reflect
+      ownership. Its balance and educational conclusions mix documented design choices with defects.
+    </p>
+    <p>
+      Scope: compared the <a href="sushi-audit-report.html">original report</a> against current
+      source, the introducing Git diff, <a href="../../sushigame.md">the product brief</a>, the
+      <a href="gdd.md">GDD</a>, and the <a href="economy-balance-model.md">balance model</a>.
+      Reproduced the empty-register bug in the local browser and exercised actual render,
+      collection, and purchase code with a frozen clock. No game implementation, economy values, or
+      original report were changed.
+    </p>
+
+    <h2>Findings and corrections</h2>
+    <table>
+      <thead>
+        <tr>
+          <th>Report claim</th>
+          <th>Verdict</th>
+          <th>Evidence and practical meaning</th>
+        </tr>
+      </thead>
+      <tbody>
+        <tr>
+          <td>Empty register shows ¥6,280</td>
+          <td>Confirmed · high priority</td>
+          <td>
+            <code>sushi-view.ts:744</code> substitutes 6280 when displayed income is zero. After
+            collection, the visible disabled button and Sales plaque show ¥6,280 while the
+            accessible label correctly says zero. A seven-yen fixture renders seven correctly.
+            Domain collection transfers seven yen once and leaves zero pending; this is a display
+            defect, not evidence of duplicated money.
+          </td>
+        </tr>
+        <tr>
+          <td>Production information is hidden</td>
+          <td>Confirmed · high priority</td>
+          <td>
+            <code>sushi-view.ts:802,863,871</code> apply <code>sr-only</code> to rate, register
+            amount, and cap/progress/warning/explanation containers.
+            <code>sushi.css:1553</code> clips them to a 1px box. The full-register warning still
+            renders for a capped fixture but is inside the clipped container. Correction: positive
+            uncollected amounts remain visible on the collect button; the report's claim that the
+            player can never see pending yen is too broad.
+          </td>
+        </tr>
+        <tr>
+          <td>Scene depicts unowned equipment and decorations</td>
+          <td>Confirmed · high priority</td>
+          <td>
+            <code>restaurant-scene.ts:100–117</code> renders four transparent sprite references and
+            an unconditional full-room PNG. The browser shows the furnished room while the
+            accessible description says basic kitchen/no conveyor. Conditional SVG overlays exist
+            but cannot remove objects baked into the image. This conflicts with visible
+            purchase/placement progression. Exact guest counts and claims that every decoration is
+            present were not independently established.
+          </td>
+        </tr>
+        <tr>
+          <td>Statistics and calendar are synthetic</td>
+          <td>Confirmed</td>
+          <td>
+            <code>sushi-view.ts:743–746</code> derives Customers and Served from capacity, and
+            Rating from inventory size; these are not daily activity measurements. Sales is pending
+            income, not daily sales, even when nonzero. Day 12 / Spring 1 / 12:30 are static at
+            lines 1539–1546. Presenting these as current statistics is misleading.
+          </td>
+        </tr>
+        <tr>
+          <td>Chapter 8 and 10 upgrades are dead</td>
+          <td>Immediate rate deltas confirmed; conclusion overstated</td>
+          <td>
+            Real chronological purchases yield 10 → 20 → 20 → 20 → 40 → 40 → 60 → 90 ¥/min
+            (including the starting rate). Knife and service counter have zero immediate rate delta,
+            but later complementary purchases use their capacity.
+            <code>sushigame.md §5.2</code> explicitly permits this; the balance model §4
+            specifically describes both plateaus as intentional. The shop still generates bottleneck
+            warnings at <code>sushi-view.ts:1163</code>. Changing them to revenue upgrades is a
+            redesign, not a required correctness fix.
+          </td>
+        </tr>
+        <tr>
+          <td>Seven recipes cost ¥11,400 with no income effect</td>
+          <td>Confirmed; cosmetic role is intentional</td>
+          <td>
+            All seven purchases leave kitchen, service, and revenue-per-order unchanged. The brief
+            §5.6 explicitly defines the original salmon recipe as visual menu variation only, and
+            the expanded design documents describe recipe variants. Their visual reward is weakened
+            by the scene regression. Adding +1 ¥/order or quizzes would change the design and
+            balance.
+          </td>
+        </tr>
+        <tr>
+          <td>The entire game is exhausted in 2–4 days</td>
+          <td>Not established</td>
+          <td>
+            The catalog totals are correct: ¥48,000 = ¥31,500 functional + ¥11,400 recipes + ¥5,100
+            decoration. At a constant 40–90 ¥/min, ¥48,000 represents 20–8.9 production hours; that
+            arithmetic is not a completion-time model. Rates must first be unlocked and purchased,
+            collection caps can stop income, and purchases remain medal-gated. Cash may outpace
+            weekly unlocks, but the asserted semester timeline needs a study/collection schedule. No
+            explicit gameplay wallet maximum was found.
+          </td>
+        </tr>
+        <tr>
+          <td>Icons and languages are inconsistent</td>
+          <td>Confirmed</td>
+          <td>
+            The chart icon calls the theme toggle; the gear opens the shop
+            (<code>sushi-view.ts:1590–1654</code>). English visible HUD text mixes with Swedish
+            dialogs and accessible labels. The heading's <code>lang="ja"</code> also covers Swedish
+            hidden text, making the language annotation inappropriate for the full heading.
+          </td>
+        </tr>
+        <tr>
+          <td>No educational value without in-game Japanese quizzes</td>
+          <td>Product opinion, not a demonstrated defect</td>
+          <td>
+            The documented learning loop is study → medal → restaurant unlock. The game need not
+            duplicate exercises to fulfill that purpose. Vocabulary and restaurant phrases could
+            improve it, but constitute new product work. Decorative Japanese lettering also appears
+            in the artwork, so “no Japanese” is too absolute.
+          </td>
+        </tr>
+        <tr>
+          <td>Dead activeRecipe and revenue category workaround</td>
+          <td>Confirmed, low priority</td>
+          <td>
+            <code>activeRecipe</code> is declared and initialized but has no gameplay consumer in
+            <code>src</code> or <code>functions/src</code>. Manual recipe selection was deferred by
+            the brief. Revenue items are deliberately included in the kitchen filter at
+            <code>sushi-view.ts:1110</code>; this is a grouping decision, not proof of a broken
+            purchase path.
+          </td>
+        </tr>
+        <tr>
+          <td>Viewport lock breaks mobile scrolling</td>
+          <td>Lock confirmed; blanket failure unproven</td>
+          <td>
+            <code>sushi.css:65–74</code> disables page scrolling, but modal content has its own
+            <code>overflow-y:auto</code> at line 1169. This investigation did not run a
+            mobile/zoom/keyboard reachability matrix. Fixed viewport CSS alone does not establish
+            that controls are inaccessible.
+          </td>
+        </tr>
+        <tr>
+          <td>Local/production synchronization differs</td>
+          <td>Confirmed architectural boundary</td>
+          <td>
+            <code>service.ts:60–75</code> selects localStorage on localhost unless explicitly using
+            emulators. <code>functions/src/index.ts:67–75</code> derives grants from stored course
+            progress in a server transaction. The report correctly recognizes that ignoring
+            client-supplied grants is intended. Local checks cannot establish production
+            synchronization correctness.
+          </td>
+        </tr>
+      </tbody>
+    </table>
+
+    <h2>Origin and test gap</h2>
+    <p>
+      The diff for <code>5ee6972</code> introduces the ¥6,280 fallback, synthetic statistics, hidden
+      production containers, static date/time, icon mappings, and raster scene. Its message
+      explicitly mentions retaining screen-reader telemetry and test contracts. The code supports a
+      regression caused by matching the illustration; it does not establish malicious intent.
+    </p>
+    <p>
+      The ¥18,740 wallet and ¥6,280 pending-income seed is restricted to the localhost service, the
+      <code>local-dev-user</code> account, and an empty balance/register/inventory
+      (<code>service.ts:114–131</code>). Default restaurant state remains zero/zero. The visible
+      fallback, unlike that seed, applies to every authenticated game view.
+    </p>
+    <p>
+      The selected existing view, economy, purchase, and scene suites pass <strong>87/87</strong>.
+      Their template/string/marker checks do not prove that data is visible or that removing a
+      decoration removes its pixels. The new diagnostic produces
+      <strong>four failing UI checks out of five</strong>, with the nonzero amount serving as a
+      passing control. This is evidence of a coverage gap, not a claim that all repository tests
+      pass.
+    </p>
+
+    <h2>Reproduction and validation</h2>
+    <p>
+      The <a href="audit-investigation.mjs">diagnostic harness</a> uses only an isolated in-memory
+      repository and a frozen clock. It was run twice with identical observations. It performs real
+      collection/purchases and renders the actual lit templates; CSS clipping is corroborated by
+      source and the browser screenshot. It is intentionally outside the normal test suite.
+    </p>
+    <pre>
+node docs/sushi-game/audit-investigation.mjs --assert-ui
+
+Empty register: FAIL — visible ¥ 6,280
+Nonempty seven-yen register: PASS — visible ¥ 7
+After collection: FAIL — visible ¥ 6,280; stored pending income is zero
+Visible rate container: FAIL — sr-only
+Visible cap/warning container: FAIL — sr-only
+AssertionError: UI regressions reproduced (4 !== 0)</pre>
+    <p>
+      Omit <code>--assert-ui</code> for an informational run.
+      <a href="../../output/sushi-audit-reproduction.txt">Full reproduction output</a>.
+    </p>
+    <pre>
+# PowerShell: focused existing suite
+$env:NODE_ENV='test'
+node --test tests/sushi-view.test.ts tests/sushi-economy.test.ts tests/sushi-purchase.test.ts tests/sushi-scene-adversarial-challenge.test.ts
+# 87 tests, 87 pass, 0 fail</pre>
+    <p>
+      The initial direct Node invocation lacked the test environment flag and produced two
+      entry-availability failures; setting the flag expected by those tests resolved them.
+      <a href="../../output/sushi-audit-baseline.txt">Final suite output</a>. Production
+      Firebase/emulator integration and a full responsive matrix were not run.
+    </p>
+    <figure>
+      <a href="../../output/playwright/sushi-audit-empty-register.png"
+        ><img
+          src="../../output/playwright/sushi-audit-empty-register.png"
+          alt="Local restaurant after collecting: visible button and Sales still display 6,280 yen, alongside a fully furnished room."
+      /></a>
+      <figcaption>
+        Browser evidence after collection: accessible label says zero; visible button and Sales say
+        ¥6,280. The preview account has no purchased equipment.
+      </figcaption>
+    </figure>
+
+    <h2>Recommended repair order</h2>
+    <ol>
+      <li>
+        Make the money display truthful at zero and positive balances; replace or remove unsupported
+        daily statistics and static clock/calendar.
+      </li>
+      <li>
+        Restore visible rate, cap, progress, full-register warning, and bottleneck guidance with a
+        responsive layout. Removing <code>sr-only</code> alone needs layout verification.
+      </li>
+      <li>
+        Make purchased/placed objects actual removable layers. Assess the prior vector scene as a
+        recovery option; a blanket commit revert would also undo unrelated presentation work.
+      </li>
+      <li>
+        Correct icon actions and language consistency. Add rendered-browser coverage for
+        zero/nonzero money, cap visibility, and visual ownership/placement differences.
+      </li>
+      <li>
+        Evaluate economy pacing separately using an explicit medal-unlock and collection schedule.
+        Preserve current intended bottleneck and cosmetic behavior until a design change is chosen.
+      </li>
+    </ol>
+  </main>
+</html>

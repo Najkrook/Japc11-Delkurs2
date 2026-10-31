@@ -16,7 +16,7 @@ test('Arena displays the actual length of a short focused match', async ({ page 
   ).length;
   await page.goto('/');
   await page.locator('[data-course-nav="arena"]').click();
-  await page.getByRole('button', { name: 'Vecka 1 (L6)', exact: true }).click();
+  await page.getByRole('button', { name: 'Kapitel 6', exact: true }).click();
   await page.getByRole('button', { name: 'Grammatik', exact: true }).click();
   await page.getByRole('button', { name: '15 frågor', exact: true }).click();
   await page.locator('[data-arena-action="create-room"]').click();
@@ -34,7 +34,7 @@ test('JAPC11 Delkurs 2 standalone app: Vecka för vecka, Te-Form Dojo, Flashcard
   // 1. Verify standalone JAPC11 Delkurs 2 shell is rendered immediately
   await expect(page.locator('.course-app-shell')).toBeVisible();
   await expect(page.locator('.course-brand-text strong')).toHaveText('JAPC11 · Delkurs 2');
-  await expect(page.locator('main h1')).toContainText('Vecka 1 · Lektion 6');
+  await expect(page.locator('main h1')).toContainText('Kapitel 6');
 
   // 2. Open Te-Form Dojo and answer a verb
   await page
@@ -91,7 +91,7 @@ test('JAPC11 Delkurs 2 standalone app: Vecka för vecka, Te-Form Dojo, Flashcard
 
   // Return to main study plan hub
   await page.getByRole('button', { name: '← Tillbaka till studieplanen' }).click();
-  await expect(page.locator('main h1')).toContainText('Vecka 1 · Lektion 6');
+  await expect(page.locator('main h1')).toContainText('Kapitel 6');
 
   expect(errors).toEqual([]);
 });

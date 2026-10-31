@@ -1,0 +1,199 @@
+
+> japc11-delkurs2@1.0.0 test:backend
+> npm run build --prefix functions && firebase emulators:exec --only auth,firestore,functions --project demo-japc11-delkurs2 "node --test tests/backend/*.test.ts"
+
+
+> build
+> esbuild src/index.ts --bundle --platform=node --target=node22 --outfile=lib/index.js --external:firebase-admin/* --external:firebase-functions/*
+
+
+  lib\index.js  334.2kb
+
+Done in 16ms
+i  emulators: Starting emulators: auth, functions, firestore
+i  emulators: Detected demo project ID "demo-japc11-delkurs2", emulated services will use a demo configuration and attempts to access non-emulated services for this project will fail.
+i  firestore: Firestore Emulator logging to firestore-debug.log
++  firestore: Firestore Emulator was started in standard edition.
++  firestore: Firestore Emulator UI websocket is running on 9150.
+(node:24844) [DEP0169] DeprecationWarning: `url.parse()` behavior is not standardized and prone to errors that have security implications. Use the WHATWG URL API instead. CVEs are not issued for `url.parse()` vulnerabilities.
+(Use `node --trace-deprecation ...` to show where the warning was created)
+i  functions: Watching "C:\Users\Najk\Documents\ChatGPT\Japc11-Delkurs2\functions" for Cloud Functions...
+!  functions: package.json indicates an outdated version of firebase-functions. Please upgrade using npm install --save firebase-functions@latest in your functions directory.
+!  functions: Please note that there will be breaking changes when you upgrade.
+!  functions: Your requested "node" version "22" doesn't match your global version "24". Using node@24 from host.
+Serving at port 8576
+
++  functions: Loaded functions definitions from source: sushi.
++  functions[europe-west1-sushi]: http function initialized (http://127.0.0.1:5001/demo-japc11-delkurs2/europe-west1/sushi).
+i  Running script: node --test tests/backend/*.test.ts
+i  functions: Beginning execution of "europe-west1-sushi"
+>  {"verifications":{"app":"MISSING","auth":"MISSING"},"logging.googleapis.com/labels":{"firebase-log-type":"callable-request-verification"},"severity":"DEBUG","message":"Callable request verification passed"}
+i  functions: Finished "europe-west1-sushi" in 8.5185ms
+i  functions: Beginning execution of "europe-west1-sushi"
+>  {"verifications":{"app":"MISSING","auth":"VALID"},"logging.googleapis.com/labels":{"firebase-log-type":"callable-request-verification"},"severity":"DEBUG","message":"Callable request verification passed"}
+i  functions: Finished "europe-west1-sushi" in 1.5258ms
+i  functions: Beginning execution of "europe-west1-sushi"
+>  {"verifications":{"app":"MISSING","auth":"VALID"},"logging.googleapis.com/labels":{"firebase-log-type":"callable-request-verification"},"severity":"DEBUG","message":"Callable request verification passed"}
+i  functions: Finished "europe-west1-sushi" in 1.0605ms
+i  functions: Beginning execution of "europe-west1-sushi"
+>  {"verifications":{"app":"MISSING","auth":"VALID"},"logging.googleapis.com/labels":{"firebase-log-type":"callable-request-verification"},"severity":"DEBUG","message":"Callable request verification passed"}
+i  functions: Beginning execution of "europe-west1-sushi"
+i  functions: Beginning execution of "europe-west1-sushi"
+i  functions: Beginning execution of "europe-west1-sushi"
+>  {"verifications":{"app":"MISSING","auth":"VALID"},"logging.googleapis.com/labels":{"firebase-log-type":"callable-request-verification"},"severity":"DEBUG","message":"Callable request verification passed"}
+>  {"verifications":{"app":"MISSING","auth":"VALID"},"logging.googleapis.com/labels":{"firebase-log-type":"callable-request-verification"},"severity":"DEBUG","message":"Callable request verification passed"}
+>  {"verifications":{"app":"MISSING","auth":"VALID"},"logging.googleapis.com/labels":{"firebase-log-type":"callable-request-verification"},"severity":"DEBUG","message":"Callable request verification passed"}
+i  functions: Finished "europe-west1-sushi" in 1055.7754ms
+i  functions: Finished "europe-west1-sushi" in 2792.2147999999997ms
+i  functions: Finished "europe-west1-sushi" in 3573.7815ms
+i  functions: Finished "europe-west1-sushi" in 3652.5677ms
+i  functions: Beginning execution of "europe-west1-sushi"
+>  {"verifications":{"app":"MISSING","auth":"VALID"},"logging.googleapis.com/labels":{"firebase-log-type":"callable-request-verification"},"severity":"DEBUG","message":"Callable request verification passed"}
+i  functions: Finished "europe-west1-sushi" in 1.1825ms
+i  functions: Beginning execution of "europe-west1-sushi"
+>  {"verifications":{"app":"MISSING","auth":"VALID"},"logging.googleapis.com/labels":{"firebase-log-type":"callable-request-verification"},"severity":"DEBUG","message":"Callable request verification passed"}
+i  functions: Finished "europe-west1-sushi" in 1.1305ms
+i  functions: Beginning execution of "europe-west1-sushi"
+>  {"verifications":{"app":"MISSING","auth":"VALID"},"logging.googleapis.com/labels":{"firebase-log-type":"callable-request-verification"},"severity":"DEBUG","message":"Callable request verification passed"}
+i  functions: Finished "europe-west1-sushi" in 0.9806ms
+i  functions: Beginning execution of "europe-west1-sushi"
+>  {"verifications":{"app":"MISSING","auth":"VALID"},"logging.googleapis.com/labels":{"firebase-log-type":"callable-request-verification"},"severity":"DEBUG","message":"Callable request verification passed"}
+i  functions: Finished "europe-west1-sushi" in 0.8091ms
+i  functions: Beginning execution of "europe-west1-sushi"
+>  {"verifications":{"app":"MISSING","auth":"VALID"},"logging.googleapis.com/labels":{"firebase-log-type":"callable-request-verification"},"severity":"DEBUG","message":"Callable request verification passed"}
+i  functions: Finished "europe-west1-sushi" in 26.5978ms
+[2026-10-27T22:20:31.227Z]  @firebase/firestore: Firestore (11.10.0): GrpcConnection RPC 'Write' stream 0x1b82375d error. Code: 7 Message: 7 PERMISSION_DENIED: 
+false for 'create' @ L27, false for 'update' @ L27
+i  functions: Beginning execution of "europe-west1-sushi"
+i  functions: Beginning execution of "europe-west1-sushi"
+i  functions: Beginning execution of "europe-west1-sushi"
+i  functions: Beginning execution of "europe-west1-sushi"
+>  {"verifications":{"app":"MISSING","auth":"VALID"},"logging.googleapis.com/labels":{"firebase-log-type":"callable-request-verification"},"severity":"DEBUG","message":"Callable request verification passed"}
+>  {"verifications":{"app":"MISSING","auth":"VALID"},"logging.googleapis.com/labels":{"firebase-log-type":"callable-request-verification"},"severity":"DEBUG","message":"Callable request verification passed"}
+>  {"verifications":{"app":"MISSING","auth":"VALID"},"logging.googleapis.com/labels":{"firebase-log-type":"callable-request-verification"},"severity":"DEBUG","message":"Callable request verification passed"}
+>  {"verifications":{"app":"MISSING","auth":"VALID"},"logging.googleapis.com/labels":{"firebase-log-type":"callable-request-verification"},"severity":"DEBUG","message":"Callable request verification passed"}
+i  functions: Beginning execution of "europe-west1-sushi"
+i  functions: Beginning execution of "europe-west1-sushi"
+>  {"verifications":{"app":"MISSING","auth":"VALID"},"logging.googleapis.com/labels":{"firebase-log-type":"callable-request-verification"},"severity":"DEBUG","message":"Callable request verification passed"}
+>  {"verifications":{"app":"MISSING","auth":"VALID"},"logging.googleapis.com/labels":{"firebase-log-type":"callable-request-verification"},"severity":"DEBUG","message":"Callable request verification passed"}
+i  functions: Finished "europe-west1-sushi" in 3093.5117ms
+i  functions: Finished "europe-west1-sushi" in 5182.0498ms
+i  functions: Finished "europe-west1-sushi" in 6521.114ms
+i  functions: Finished "europe-west1-sushi" in 6536.0445ms
+i  functions: Finished "europe-west1-sushi" in 6157.009ms
+i  functions: Finished "europe-west1-sushi" in 7114.731ms
+i  functions: Beginning execution of "europe-west1-sushi"
+i  functions: Beginning execution of "europe-west1-sushi"
+i  functions: Beginning execution of "europe-west1-sushi"
+i  functions: Beginning execution of "europe-west1-sushi"
+>  {"verifications":{"app":"MISSING","auth":"VALID"},"logging.googleapis.com/labels":{"firebase-log-type":"callable-request-verification"},"severity":"DEBUG","message":"Callable request verification passed"}
+>  {"verifications":{"app":"MISSING","auth":"VALID"},"logging.googleapis.com/labels":{"firebase-log-type":"callable-request-verification"},"severity":"DEBUG","message":"Callable request verification passed"}
+>  {"verifications":{"app":"MISSING","auth":"VALID"},"logging.googleapis.com/labels":{"firebase-log-type":"callable-request-verification"},"severity":"DEBUG","message":"Callable request verification passed"}
+>  {"verifications":{"app":"MISSING","auth":"VALID"},"logging.googleapis.com/labels":{"firebase-log-type":"callable-request-verification"},"severity":"DEBUG","message":"Callable request verification passed"}
+i  functions: Finished "europe-west1-sushi" in 3114.5557ms
+i  functions: Finished "europe-west1-sushi" in 3162.859ms
+i  functions: Finished "europe-west1-sushi" in 3290.6059ms
+i  functions: Finished "europe-west1-sushi" in 3415.0938ms
+i  functions: Beginning execution of "europe-west1-sushi"
+>  {"verifications":{"app":"MISSING","auth":"VALID"},"logging.googleapis.com/labels":{"firebase-log-type":"callable-request-verification"},"severity":"DEBUG","message":"Callable request verification passed"}
+i  functions: Finished "europe-west1-sushi" in 28.903ms
+i  functions: Beginning execution of "europe-west1-sushi"
+>  {"verifications":{"app":"MISSING","auth":"VALID"},"logging.googleapis.com/labels":{"firebase-log-type":"callable-request-verification"},"severity":"DEBUG","message":"Callable request verification passed"}
+i  functions: Finished "europe-west1-sushi" in 23.8831ms
+i  functions: Beginning execution of "europe-west1-sushi"
+>  {"verifications":{"app":"MISSING","auth":"VALID"},"logging.googleapis.com/labels":{"firebase-log-type":"callable-request-verification"},"severity":"DEBUG","message":"Callable request verification passed"}
+i  functions: Finished "europe-west1-sushi" in 26.8578ms
+i  functions: Beginning execution of "europe-west1-sushi"
+>  {"verifications":{"app":"MISSING","auth":"VALID"},"logging.googleapis.com/labels":{"firebase-log-type":"callable-request-verification"},"severity":"DEBUG","message":"Callable request verification passed"}
+i  functions: Finished "europe-west1-sushi" in 25.7841ms
+i  functions: Beginning execution of "europe-west1-sushi"
+>  {"verifications":{"app":"MISSING","auth":"VALID"},"logging.googleapis.com/labels":{"firebase-log-type":"callable-request-verification"},"severity":"DEBUG","message":"Callable request verification passed"}
+i  functions: Finished "europe-west1-sushi" in 29.763ms
+i  functions: Beginning execution of "europe-west1-sushi"
+>  {"verifications":{"app":"MISSING","auth":"VALID"},"logging.googleapis.com/labels":{"firebase-log-type":"callable-request-verification"},"severity":"DEBUG","message":"Callable request verification passed"}
+i  functions: Finished "europe-west1-sushi" in 28.2003ms
+i  functions: Beginning execution of "europe-west1-sushi"
+>  {"verifications":{"app":"MISSING","auth":"VALID"},"logging.googleapis.com/labels":{"firebase-log-type":"callable-request-verification"},"severity":"DEBUG","message":"Callable request verification passed"}
+i  functions: Finished "europe-west1-sushi" in 31.5178ms
+i  functions: Beginning execution of "europe-west1-sushi"
+>  {"verifications":{"app":"MISSING","auth":"VALID"},"logging.googleapis.com/labels":{"firebase-log-type":"callable-request-verification"},"severity":"DEBUG","message":"Callable request verification passed"}
+i  functions: Finished "europe-west1-sushi" in 28.4235ms
+i  functions: Beginning execution of "europe-west1-sushi"
+>  {"verifications":{"app":"MISSING","auth":"VALID"},"logging.googleapis.com/labels":{"firebase-log-type":"callable-request-verification"},"severity":"DEBUG","message":"Callable request verification passed"}
+i  functions: Finished "europe-west1-sushi" in 1.1168ms
+i  functions: Beginning execution of "europe-west1-sushi"
+>  {"verifications":{"app":"MISSING","auth":"VALID"},"logging.googleapis.com/labels":{"firebase-log-type":"callable-request-verification"},"severity":"DEBUG","message":"Callable request verification passed"}
+i  functions: Finished "europe-west1-sushi" in 0.7099ms
+i  functions: Beginning execution of "europe-west1-sushi"
+>  {"verifications":{"app":"MISSING","auth":"VALID"},"logging.googleapis.com/labels":{"firebase-log-type":"callable-request-verification"},"severity":"DEBUG","message":"Callable request verification passed"}
+i  functions: Finished "europe-west1-sushi" in 27.513ms
+i  functions: Beginning execution of "europe-west1-sushi"
+>  {"verifications":{"app":"MISSING","auth":"VALID"},"logging.googleapis.com/labels":{"firebase-log-type":"callable-request-verification"},"severity":"DEBUG","message":"Callable request verification passed"}
+i  functions: Finished "europe-west1-sushi" in 31.269ms
+i  functions: Beginning execution of "europe-west1-sushi"
+>  {"verifications":{"app":"MISSING","auth":"VALID"},"logging.googleapis.com/labels":{"firebase-log-type":"callable-request-verification"},"severity":"DEBUG","message":"Callable request verification passed"}
+i  functions: Finished "europe-west1-sushi" in 29.2767ms
+i  functions: Beginning execution of "europe-west1-sushi"
+>  {"verifications":{"app":"MISSING","auth":"VALID"},"logging.googleapis.com/labels":{"firebase-log-type":"callable-request-verification"},"severity":"DEBUG","message":"Callable request verification passed"}
+i  functions: Finished "europe-west1-sushi" in 29.6049ms
+i  functions: Beginning execution of "europe-west1-sushi"
+>  {"verifications":{"app":"MISSING","auth":"VALID"},"logging.googleapis.com/labels":{"firebase-log-type":"callable-request-verification"},"severity":"DEBUG","message":"Callable request verification passed"}
+i  functions: Finished "europe-west1-sushi" in 31.8445ms
+i  functions: Beginning execution of "europe-west1-sushi"
+>  {"verifications":{"app":"MISSING","auth":"VALID"},"logging.googleapis.com/labels":{"firebase-log-type":"callable-request-verification"},"severity":"DEBUG","message":"Callable request verification passed"}
+i  functions: Finished "europe-west1-sushi" in 28.6187ms
+i  functions: Beginning execution of "europe-west1-sushi"
+>  {"verifications":{"app":"MISSING","auth":"VALID"},"logging.googleapis.com/labels":{"firebase-log-type":"callable-request-verification"},"severity":"DEBUG","message":"Callable request verification passed"}
+i  functions: Finished "europe-west1-sushi" in 30.3354ms
+i  functions: Beginning execution of "europe-west1-sushi"
+>  {"verifications":{"app":"MISSING","auth":"VALID"},"logging.googleapis.com/labels":{"firebase-log-type":"callable-request-verification"},"severity":"DEBUG","message":"Callable request verification passed"}
+i  functions: Finished "europe-west1-sushi" in 29.4841ms
+i  functions: Beginning execution of "europe-west1-sushi"
+>  {"verifications":{"app":"MISSING","auth":"VALID"},"logging.googleapis.com/labels":{"firebase-log-type":"callable-request-verification"},"severity":"DEBUG","message":"Callable request verification passed"}
+i  functions: Finished "europe-west1-sushi" in 0.7211ms
+i  functions: Beginning execution of "europe-west1-sushi"
+>  {"verifications":{"app":"MISSING","auth":"VALID"},"logging.googleapis.com/labels":{"firebase-log-type":"callable-request-verification"},"severity":"DEBUG","message":"Callable request verification passed"}
+i  functions: Finished "europe-west1-sushi" in 0.6411ms
+i  functions: Beginning execution of "europe-west1-sushi"
+>  {"verifications":{"app":"MISSING","auth":"VALID"},"logging.googleapis.com/labels":{"firebase-log-type":"callable-request-verification"},"severity":"DEBUG","message":"Callable request verification passed"}
+i  functions: Finished "europe-west1-sushi" in 25.226ms
+i  functions: Beginning execution of "europe-west1-sushi"
+i  functions: Beginning execution of "europe-west1-sushi"
+i  functions: Beginning execution of "europe-west1-sushi"
+i  functions: Beginning execution of "europe-west1-sushi"
+>  {"verifications":{"app":"MISSING","auth":"VALID"},"logging.googleapis.com/labels":{"firebase-log-type":"callable-request-verification"},"severity":"DEBUG","message":"Callable request verification passed"}
+>  {"verifications":{"app":"MISSING","auth":"VALID"},"logging.googleapis.com/labels":{"firebase-log-type":"callable-request-verification"},"severity":"DEBUG","message":"Callable request verification passed"}
+>  {"verifications":{"app":"MISSING","auth":"VALID"},"logging.googleapis.com/labels":{"firebase-log-type":"callable-request-verification"},"severity":"DEBUG","message":"Callable request verification passed"}
+>  {"verifications":{"app":"MISSING","auth":"VALID"},"logging.googleapis.com/labels":{"firebase-log-type":"callable-request-verification"},"severity":"DEBUG","message":"Callable request verification passed"}
+i  functions: Finished "europe-west1-sushi" in 11.7096ms
+i  functions: Finished "europe-west1-sushi" in 3050.2854ms
+i  functions: Finished "europe-west1-sushi" in 3143.9796ms
+i  functions: Finished "europe-west1-sushi" in 3330.7774ms
+i  functions: Beginning execution of "europe-west1-sushi"
+>  {"verifications":{"app":"MISSING","auth":"VALID"},"logging.googleapis.com/labels":{"firebase-log-type":"callable-request-verification"},"severity":"DEBUG","message":"Callable request verification passed"}
+i  functions: Finished "europe-west1-sushi" in 24.1857ms
+i  functions: Beginning execution of "europe-west1-sushi"
+>  {"verifications":{"app":"MISSING","auth":"VALID"},"logging.googleapis.com/labels":{"firebase-log-type":"callable-request-verification"},"severity":"DEBUG","message":"Callable request verification passed"}
+i  functions: Finished "europe-west1-sushi" in 11.7626ms
+i  functions: Beginning execution of "europe-west1-sushi"
+>  {"verifications":{"app":"MISSING","auth":"VALID"},"logging.googleapis.com/labels":{"firebase-log-type":"callable-request-verification"},"severity":"DEBUG","message":"Callable request verification passed"}
+i  functions: Finished "europe-west1-sushi" in 28.0027ms
+✔ authenticated callable persists authoritative economy, medals and concurrent retries (20383.1026ms)
+ℹ tests 1
+ℹ suites 0
+ℹ pass 1
+ℹ fail 0
+ℹ cancelled 0
+ℹ skipped 0
+ℹ todo 0
+ℹ duration_ms 20566.0064
++  Script exited successfully (code 0)
+i  emulators: Shutting down emulators.
+i  functions: Stopping Functions Emulator
+i  firestore: Stopping Firestore Emulator
+!  Firestore Emulator has exited upon receiving signal: SIGINT
+i  auth: Stopping Authentication Emulator
+i  eventarc: Stopping Eventarc Emulator
+i  tasks: Stopping Cloud Tasks Emulator
+i  hub: Stopping emulator hub
+i  logging: Stopping Logging Emulator

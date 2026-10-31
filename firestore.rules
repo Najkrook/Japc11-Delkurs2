@@ -11,6 +11,22 @@ service cloud.firestore {
         && request.resource.data.updatedAt is int;
     }
 
+    match /users/{userId}/sushi/{document} {
+      // Helper function verifying that caller is an authenticated, non-anonymous owner
+      function isSushiOwner() {
+        return request.auth != null
+          && request.auth.uid == userId
+          && request.auth.token.get('firebase', {}).get('sign_in_provider', '') != 'anonymous';
+      }
+
+      // Authenticated owners may read their own sushi restaurant document
+      allow read: if isSushiOwner();
+
+      // Direct client writes are strictly denied: all mutations must proceed
+      // through trusted server backend (Firebase Cloud Functions / Admin SDK)
+      allow write: if false;
+    }
+
     match /courseRooms/{roomId} {
       // Kurs-Arena is locked for guests: anonymous Firebase sessions may not touch rooms.
       function signedInMember() {
