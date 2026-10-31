@@ -2052,7 +2052,15 @@ function renderSushiAuthenticatedStage(
                                 class="sushi-owned-indicator"
                                 data-testid="owned-indicator-${item.id}"
                               >
-                                ${item.slotType ? (state.equipped[item.slotType] === item.id ? 'Placerad i restaurangen' : 'Ägd · Inte placerad') : 'Aktiv i restaurangen'}
+                                ${
+                                  item.slotType
+                                    ? state.equipped[item.slotType] === item.id
+                                      ? 'Placerad i restaurangen'
+                                      : 'Ägd · Inte placerad'
+                                    : item.id === 'conveyor_belt' && tier < 3
+                                      ? 'Ägd · servicebonusen är aktiv; bandet placeras i nivå 3'
+                                      : 'Aktiv i restaurangen'
+                                }
                               </div>
                               <button
                                 type="button"

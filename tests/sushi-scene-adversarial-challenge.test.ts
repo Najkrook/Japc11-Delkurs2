@@ -187,7 +187,9 @@ test('CHALLENGE 2B: 1 item owned individually (all 21 items tested one by one)',
   for (const eqId of EQUIPMENT_IDS) {
     const testId = EXPECTED_TESTIDS[eqId];
     const state = createBaseState({ inventory: [eqId] });
-    const svgHtml = renderTemplateToString(renderRestaurantScene(state));
+    const svgHtml = renderTemplateToString(
+      renderRestaurantScene(state, eqId === 'conveyor_belt' ? { tier: 3 } : {}),
+    );
 
     assert.ok(
       svgHtml.includes(`data-testid="${testId}"`),
@@ -537,8 +539,8 @@ test('CHALLENGE 5: Accessibility tree carries correct title, desc and dynamic Sw
     'Desc reflects Precisionskniv',
   );
   assert.ok(
-    upgradedHtml.includes('Uppgraderad serveringsdisk.'),
-    'Desc reflects Uppgraderad serveringsdisk',
+    upgradedHtml.includes('Kassa och välkomstdisk vid entrén.'),
+    'Desc reflects the entrance host station',
   );
   assert.ok(
     upgradedHtml.includes('Assisterande souschef i köket.'),

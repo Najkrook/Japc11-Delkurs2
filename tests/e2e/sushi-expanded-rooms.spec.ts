@@ -37,7 +37,9 @@ for (const tier of [2, 3] as const) {
       await expect(scene).toBeVisible();
       await expect(page.getByTestId('starter-room')).toHaveAttribute(
         'href',
-        `/sprites/sushi/tiers/tier-${tier}-expanded.png`,
+        tier === 3
+          ? '/sprites/sushi/tiers/tier-3-expanded-no-bench.png'
+          : '/sprites/sushi/tiers/tier-2-expanded.png',
       );
       await expect(page.getByTestId('counter-foreground')).toHaveAttribute(
         'href',

@@ -35,7 +35,7 @@ test('renovation preview is read-only, Escape restores focus, purchase persists 
   await seed(page, { permanentGrants: ['conveyor_belt'] });
   await page.getByTestId('sushi-toggle-shop').click();
   await expect(page.getByTestId('buy-btn-conveyor_belt')).toBeDisabled();
-  await expect(page.getByTestId('tier-requirement-conveyor_belt')).toContainText('nivå 2');
+  await expect(page.getByTestId('tier-requirement-conveyor_belt')).toContainText('nivå 3');
   const before = await saved(page);
   await page.getByTestId('preview-renovation').click();
   await expect(page.getByTestId('restaurant-scene')).toHaveAttribute('data-tier', '2');
@@ -48,7 +48,8 @@ test('renovation preview is read-only, Escape restores focus, purchase persists 
   await expect(page.getByTestId('restaurant-scene')).toHaveAttribute('data-tier', '2');
   expect((await saved(page)).balanceUnits).toBe(before.balanceUnits - 3600 * 60000);
   await page.getByTestId('sushi-toggle-shop').click();
-  await expect(page.getByTestId('buy-btn-conveyor_belt')).toBeEnabled();
+  await expect(page.getByTestId('buy-btn-conveyor_belt')).toBeDisabled();
+  await expect(page.getByTestId('tier-requirement-conveyor_belt')).toContainText('nivå 3');
   await page.screenshot({ path: info.outputPath('tier-2-shop.png') });
   await page.reload();
   await expect(page.getByTestId('restaurant-scene')).toHaveAttribute('data-tier', '2');

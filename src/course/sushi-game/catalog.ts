@@ -268,7 +268,7 @@ export const SUSHI_CATALOG: readonly SushiCatalogItem[] = [
     categoryLabel: 'Service',
     icon: '🔄',
     requiredLesson: 9,
-    requiredRestaurantTier: 2,
+    requiredRestaurantTier: 3,
     requiredTier: 'bronze',
     requiredTierLabel: 'Brons',
     requiredPercent: 60,

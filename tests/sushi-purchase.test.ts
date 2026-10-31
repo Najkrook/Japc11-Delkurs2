@@ -419,7 +419,7 @@ test('M3-Asymmetrical: Purchasing conveyor belt first gives ±0 yen/min, then pr
   // User unlocked both conveyor_belt and prep_counter, has 5,000 yen
   await service.getOrInitRestaurant(uid, t0, ['conveyor_belt', 'prep_counter']);
   await repo.transaction(uid, async (current) => ({
-    state: { ...current!, restaurantTier: 2, balanceUnits: yenToUnits(5000) },
+    state: { ...current!, restaurantTier: 3, balanceUnits: yenToUnits(5000) },
     result: null,
   }));
 

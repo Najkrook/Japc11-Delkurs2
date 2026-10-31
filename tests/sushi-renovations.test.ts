@@ -144,3 +144,42 @@ test('guest counts follow the room seats without changing production timing', ()
     getRestaurantActivity(state, 3).cycleSeconds,
   );
 });
+
+test('the conveyor requires tier 3 while old tier 2 owners keep their purchase', async () => {
+  const locked = await fixture({ restaurantTier: 2, permanentGrants: ['conveyor_belt'] });
+  const rejected = await locked.service.purchaseCatalogItem(
+    locked.state.id,
+    'conveyor_belt',
+    'belt-early',
+    now,
+  );
+  assert.equal(rejected.success, false);
+  if (!rejected.success) assert.equal(rejected.reason, 'RESTAURANT_TIER_REQUIRED');
+  assert.equal((await locked.repo.get(locked.state.id))?.balanceUnits, locked.state.balanceUnits);
+
+  const eligible = await fixture({ restaurantTier: 3, permanentGrants: ['conveyor_belt'] });
+  const purchased = await eligible.service.purchaseCatalogItem(
+    eligible.state.id,
+    'conveyor_belt',
+    'belt-final',
+    now,
+  );
+  assert.equal(purchased.success, true);
+  assert.equal(purchased.state?.serviceCapacity, eligible.state.serviceCapacity + 2);
+
+  const legacy = createDefaultRestaurantState('old-belt-owner', now, {
+    schemaVersion: 1,
+    inventory: ['conveyor_belt'],
+    serviceCapacity: 4,
+    balanceUnits: 12345,
+  });
+  const migrated = migrateRestaurantTier(legacy);
+  assert.equal(
+    migrated.restaurantTier,
+    2,
+    'a tier-2 purchase must not grant a free tier-3 renovation',
+  );
+  assert.deepEqual(migrated.inventory, ['conveyor_belt']);
+  assert.equal(migrated.serviceCapacity, 4);
+  assert.equal(migrated.balanceUnits, 12345);
+});

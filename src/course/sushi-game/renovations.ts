@@ -38,7 +38,7 @@ export const RESTAURANT_RENOVATIONS: readonly RestaurantRenovation[] = [
     priceUnits: 10800 * YEN_UNIT_MULTIPLIER,
     name: RESTAURANT_TIER_NAMES[3],
     chapters: '11–12',
-    image: '/sprites/sushi/tiers/tier-3-expanded.png',
+    image: '/sprites/sushi/tiers/tier-3-expanded-no-bench.png',
   },
 ];
 
@@ -51,7 +51,10 @@ export function migrateRestaurantTier(state: SushiRestaurantState): SushiRestaur
   if (state.schemaVersion >= 2 && [1, 2, 3].includes(state.restaurantTier)) return state;
   const tier = state.inventory.reduce<RestaurantTier>((highest, id) => {
     const item = getCatalogItem(id);
-    return item ? (Math.max(highest, item.requiredRestaurantTier) as RestaurantTier) : highest;
+    // Older saves could buy the belt in tier 2. Its new tier-3 requirement
+    // must not retroactively grant a free final renovation.
+    const purchaseTier = id === 'conveyor_belt' ? 2 : item?.requiredRestaurantTier;
+    return purchaseTier ? (Math.max(highest, purchaseTier) as RestaurantTier) : highest;
   }, 1);
   return { ...state, schemaVersion: 2, restaurantTier: tier };
 }

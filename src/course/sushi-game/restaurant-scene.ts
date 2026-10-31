@@ -1,4 +1,12 @@
-import { RESTAURANT_SCENES, type TierScene } from './tier-scenes.ts';
+import { renderProjectImprovements } from './project-scene.ts';
+import {
+  renderEntranceHostStation,
+  renderExpandedPrepWorktop,
+  renderStarterPrepCabinet,
+  renderTierThreeConveyor,
+} from './equipment-scene.ts';
+import { RECIPE_DISPLAY_SIZE } from './recipe-display.ts';
+import { RESTAURANT_SCENES } from './tier-scenes.ts';
 import { currentRestaurantTier, RESTAURANT_TIER_NAMES } from './renovations.ts';
 import type { RestaurantTier } from './types.ts';
 import { html, svg } from 'lit-html';
@@ -34,14 +42,33 @@ export const SUSHI_SPRITES: Record<string, number> = {
   golden_maneki_neko: 20,
 };
 export function spriteStyle(index: number): string {
+  // Shop and purchase previews use the same art as the installed upgrades.
+  const upgradeArt: Record<number, string> = {
+    0: 'tier-1-prep-cabinet.png',
+    3: 'tier-3-l-conveyor.png',
+    4: 'entrance-host-station.png',
+  };
+  if (upgradeArt[index]) {
+    const orientation = index === 4 ? '; transform: scaleX(-1)' : '';
+    return `background-image: url('/sprites/sushi/upgrades/${upgradeArt[index]}'); background-size: contain; background-position: center; background-repeat: no-repeat${orientation}`;
+  }
+  // These cells touch their neighbours in the source atlas. Use the same
+  // isolated bounds as the scene so shop and purchase thumbnails stay clean.
+  if (index === 1) return 'background-size: 553.40% 500%; background-position: 26.77% 0%';
+  if (index === 16) return 'background-size: 545.22% 660%; background-position: 26.37% 71.90%';
+  if (index === 14) return 'background-size: 614.71% 500%; background-position: 100% 50%';
   return `background-position: ${(index % 5) * 25}% ${Math.floor(index / 5) * 25}%`;
 }
 function sprite(index: number, x: number, y: number, size: number) {
   // The wave-print cell includes the next row's chef hat; isolate the actual print.
   const viewBox =
-    index === 16
-      ? '270 765 230 190'
-      : `${(index % 5) * CELL} ${Math.floor(index / 5) * CELL} ${CELL} ${CELL}`;
+    index === 1
+      ? '275 0 226.6 250.8'
+      : index === 16
+        ? '270 765 230 190'
+        : index === 14
+          ? '1050 501.6 204 250.8'
+          : `${(index % 5) * CELL} ${Math.floor(index / 5) * CELL} ${CELL} ${CELL}`;
   return svg`<svg x=${x} y=${y} width=${size} height=${size}
     viewBox=${viewBox}
     overflow="hidden" aria-hidden="true">
@@ -98,6 +125,7 @@ function activityKeyframes(servings: number, guests: number) {
     @keyframes sushi-plate-travel-${servings} {
       0%, ${at(0.399, servings)} { opacity: 0; transform: translate(var(--plate-start-x), var(--plate-start-y)); }
       ${at(0.4, servings)} { opacity: 1; transform: translate(var(--plate-start-x), var(--plate-start-y)); }
+      ${at(0.5, servings)} { opacity: 1; transform: translate(var(--plate-corner-x), var(--plate-corner-y)); }
       ${at(0.699, servings)} { opacity: 1; transform: translate(var(--plate-end-x), var(--plate-end-y)); }
       ${at(0.7, servings)}, 100% { opacity: 0; transform: translate(var(--plate-end-x), var(--plate-end-y)); }
     }
@@ -126,26 +154,6 @@ function servingDish(id: string, size = 62) {
     : sprite(SUSHI_SPRITES[id], 0, 0, size);
 }
 
-/** Project art shares the room's painted materials and isometric camera. */
-function renderProjectImprovements(state: SushiRestaurantState, layout: TierScene) {
-  const built = new Set(state.completedProjects ?? []);
-  const projects = [
-    { id: 'study_nook', file: 'study-nook' },
-    { id: 'lantern_evening', file: 'lantern-evening' },
-    { id: 'garden_terrace', file: 'garden-terrace' },
-    { id: 'hanami_festival', file: 'hanami-festival-deck' },
-  ] as const;
-  return projects
-    .filter((project) => built.has(project.id))
-    .map((project) => {
-      const [x, y, size] = layout.projects[project.id];
-      const width = size * 1536;
-      return svg`<image data-testid=${`art-project-${project.id}`} aria-hidden="true"
-      href=${`/sprites/sushi/projects/${project.file}.png`}
-      x=${x * 1536} y=${y * 1024} width=${width} height=${(width * 2) / 3}/>`;
-    });
-}
-
 export function renderRestaurantScene(
   state: SushiRestaurantState,
   options: {
@@ -162,13 +170,20 @@ export function renderRestaurantScene(
 ) {
   const tier = options.tier ?? currentRestaurantTier(state);
   const layout = RESTAURANT_SCENES[tier];
+  const owns = (id: string) => state.inventory.includes(id);
   const placements = Object.fromEntries(
     Object.entries(layout.placements).map(([id, [x, y, size]]) => [
       id,
       [x * 1536, y * 1024, size * 1536],
     ]),
   );
-  const owns = (id: string) => state.inventory.includes(id);
+  // The entrance host station and floor decoration can coexist without sharing
+  // the same footprint in the larger dining room.
+  if (tier === 3 && owns('service_counter')) {
+    for (const id of ['potted_plant', 'andon_lantern', 'sakura_bonsai', 'golden_maneki_neko']) {
+      placements[id] = [0.28 * 1536, 0.39 * 1024, 0.075 * 1536];
+    }
+  }
   const candidate = getCatalogItem(options.previewDecorationId ?? '');
   const previewDecoration = candidate?.category === 'decoration' ? candidate : undefined;
   const sceneTitle = previewDecoration
@@ -181,11 +196,13 @@ export function renderRestaurantScene(
   const showsDecoration = (id: string) =>
     (wall === id || floor === id) && (owns(id) || previewDecoration?.id === id);
   const prep = owns('prep_counter');
-  const conveyor = owns('conveyor_belt');
+  // Preserve legacy ownership and its earned capacity in earlier tiers, but
+  // only install and animate the conveyor in its new tier-three home.
+  const conveyor = tier === 3 && owns('conveyor_belt');
   // Customers illustrate capacity, not tracked sales or a separate economy simulation.
   const { guests, cycleSeconds, servings } = getRestaurantActivity(state, tier);
   const renderPlacement = ([id, [x, y, size]]: [string, number[]]) => {
-    if (id === 'sous_chef') return '';
+    if (id === 'sous_chef' || (id === 'conveyor_belt' && !conveyor)) return '';
     const decor = getCatalogItem(id)?.category === 'decoration';
     if (decor ? !showsDecoration(id) : !owns(id)) return '';
     const marker =
@@ -204,10 +221,31 @@ export function renderRestaurantScene(
           ? 'sushi-curtain-flutter'
           : '';
     const glow = id === 'paper_lantern' || id === 'andon_lantern';
+    // Wall art follows its wall plane. The early-tier knife follows its built-in board.
+    const wallAngle =
+      id === 'noren_curtain' || id === 'master_license' ? -25 : id === 'wave_print' ? 25 : 0;
+    const spriteTransform =
+      id === 'precision_knife' && tier < 3
+        ? `translate(${2 * x + size} 0) scale(-1 1)`
+        : wallAngle
+          ? `translate(${x + size / 2} ${y + size / 2}) skewY(${wallAngle}) translate(${-x - size / 2} ${-y - size / 2})`
+          : '';
+    const art =
+      id === 'golden_maneki_neko'
+        ? luckyCatSprite(x, y, size)
+        : id === 'conveyor_belt'
+          ? renderTierThreeConveyor(x, y, size)
+          : id === 'service_counter'
+            ? renderEntranceHostStation(x, y, size)
+            : id === 'prep_counter'
+              ? tier === 1
+                ? renderStarterPrepCabinet(x, y, size)
+                : renderExpandedPrepWorktop(tier, x, y, size)
+              : sprite(SUSHI_SPRITES[id], x, y, size);
     return svg`<g data-testid="${marker}" class=${id === 'conveyor_belt' ? 'sushi-belt-tread' : id === 'sous_chef' ? 'sushi-owned-sprite sushi-sous-chef-working' : 'sushi-owned-sprite'} data-arrival-sequence=${arrival?.sequence ?? ''}>
             <g class=${arrival ? 'sushi-item-arrival' : ''} style=${`--item-arrival:sushi-item-arrive-${(arrival?.sequence ?? 0) % 2 ? 'a' : 'b'};--arrival-x:${x + size / 2}px;--arrival-y:${y + size}px`}>
               <g class=${ambient} style=${`transform-origin:${x + size / 2}px ${y + size * 0.1}px`}>
-                <g class=${glow ? 'sushi-decoration-glow' : ''}>${id === 'golden_maneki_neko' ? luckyCatSprite(x, y, size) : id === 'conveyor_belt' ? svg`<image href="/sprites/sushi/tiers/conveyor-surface.png" x=${x} y=${y} width=${size} height=${size * 0.55}/>` : sprite(SUSHI_SPRITES[id], x, y, size)}</g>
+                <g class=${glow ? 'sushi-decoration-glow' : ''} transform=${spriteTransform}>${art}</g>
               </g>
             </g>
           </g>`;
@@ -221,10 +259,19 @@ export function renderRestaurantScene(
         ? [
             layout.recipeDisplays[recipeIndex][0] * 1536,
             layout.recipeDisplays[recipeIndex][1] * 1024,
-            62,
+            RECIPE_DISPLAY_SIZE,
           ]
         : placements[spotlightId]
       : undefined;
+  const spotlightHeight = spotlight
+    ? spotlightId === 'conveyor_belt'
+      ? spotlight[2] * ((0.28 * 1024) / (0.45 * 1536))
+      : spotlightId === 'service_counter'
+        ? (spotlight[2] * 729) / 858
+        : spotlightId === 'prep_counter'
+          ? spotlight[2] * (tier === 1 ? (920 * 1.28) / 1110 : 0.5)
+          : spotlight[2]
+    : 0;
   return html`<figure
     class="sushi-illustration"
     data-testid="restaurant-scene"
@@ -256,7 +303,7 @@ export function renderRestaurantScene(
           ${prep ? 'Förbättrad beredningsbänk' : 'Grundkök'}.
           ${conveyor ? 'Transportband installerat' : 'Serveringsdisk utan transportband'}.
           ${owns('precision_knife') ? 'Precisionskniv vid beredningsbänken.' : ''}
-          ${owns('service_counter') ? 'Uppgraderad serveringsdisk.' : ''}
+          ${owns('service_counter') ? 'Kassa och välkomstdisk vid entrén.' : ''}
           ${owns('sous_chef') ? 'Assisterande souschef i köket.' : ''}
           ${owns('master_license') ? 'Inramad mästarlicens på väggen.' : ''}
           ${owns('salmon_nigiri') ? 'Laxnigiri på disken.' : ''}
@@ -278,7 +325,7 @@ export function renderRestaurantScene(
             .join(' ')}
         </desc>
         <image data-testid="starter-room" href=${layout.room} width="1536" height="1024" />
-        ${renderProjectImprovements(state, layout)}
+        ${renderProjectImprovements(state, tier)}
         ${owns('sous_chef') ? svg`<g class="sushi-sous-chef-working" data-testid="art-sous_chef">${sprite(SUSHI_SPRITES.sous_chef, placements.sous_chef[0], placements.sous_chef[1], placements.sous_chef[2])}</g>` : ''}
         ${Object.entries(placements)
           .filter(([id]) => !frontIds.has(id))
@@ -319,14 +366,29 @@ export function renderRestaurantScene(
           const y = py * 1024;
           const arrival = options.arrival?.itemId === id ? options.arrival : null;
           return svg`<g data-testid="${`art-${id}`}" data-arrival-sequence=${arrival?.sequence ?? ''}>
-            <g class=${arrival ? 'sushi-item-arrival' : ''} style=${`--item-arrival:sushi-item-arrive-${(arrival?.sequence ?? 0) % 2 ? 'a' : 'b'};--arrival-x:${x + 31}px;--arrival-y:${y + 62}px`}>${sprite(SUSHI_SPRITES[id], x, y, 62)}</g>
+            <g class=${arrival ? 'sushi-item-arrival' : ''} style=${`--item-arrival:sushi-item-arrive-${(arrival?.sequence ?? 0) % 2 ? 'a' : 'b'};--arrival-x:${x + RECIPE_DISPLAY_SIZE / 2}px;--arrival-y:${y + RECIPE_DISPLAY_SIZE}px`}>
+              <ellipse cx=${x + RECIPE_DISPLAY_SIZE * 0.5} cy=${y + RECIPE_DISPLAY_SIZE * 0.87}
+                rx=${RECIPE_DISPLAY_SIZE * 0.3} ry=${RECIPE_DISPLAY_SIZE * 0.075}
+                fill="#57321c" fill-opacity="0.3" aria-hidden="true"/>
+              ${sprite(SUSHI_SPRITES[id], x, y, RECIPE_DISPLAY_SIZE)}
+            </g>
           </g>`;
         })}
         <g class="sushi-serving-layer" aria-hidden="true">
           ${servings.map(({ dish, guest }, index) => {
             const endX = layout.dishes[guest][0] * 1536;
             const endY = layout.dishes[guest][1] * 1024;
-            return svg`<g class="sushi-serving-slot" data-dish=${dish} data-guest=${guest} style=${`--serving-delay:${(index - servings.length) * cycleSeconds}s;--plate-start-x:${conveyor ? layout.beltStart[0] * 1536 : layout.chef[0] * 1536 - 10}px;--plate-start-y:${conveyor ? layout.beltStart[1] * 1024 : layout.chef[1] * 1024 - 85}px;--plate-end-x:${conveyor ? layout.beltEnd[0] * 1536 : endX}px;--plate-end-y:${conveyor ? layout.beltEnd[1] * 1024 : endY}px`}>
+            const startX = conveyor ? layout.beltStart[0] * 1536 : layout.chef[0] * 1536 - 10;
+            const startY = conveyor ? layout.beltStart[1] * 1024 : layout.chef[1] * 1024 - 85;
+            const travelEndX = conveyor ? layout.beltEnd[0] * 1536 : endX;
+            const travelEndY = conveyor ? layout.beltEnd[1] * 1024 : endY;
+            const cornerX = conveyor
+              ? layout.beltCorner[0] * 1536
+              : startX + (travelEndX - startX) / 3;
+            const cornerY = conveyor
+              ? layout.beltCorner[1] * 1024
+              : startY + (travelEndY - startY) / 3;
+            return svg`<g class="sushi-serving-slot" data-dish=${dish} data-guest=${guest} style=${`--serving-delay:${(index - servings.length) * cycleSeconds}s;--plate-start-x:${startX}px;--plate-start-y:${startY}px;--plate-corner-x:${cornerX}px;--plate-corner-y:${cornerY}px;--plate-end-x:${travelEndX}px;--plate-end-y:${travelEndY}px`}>
               <g class="sushi-travelling-plate" style=${`animation-name:sushi-plate-travel-${servings.length}`}>${servingDish(dish, conveyor ? 48 : 62)}</g>
               <g transform=${`translate(${endX} ${endY})`}><g class="sushi-served-plate" style=${`animation-name:sushi-plate-dining-${servings.length}`}>${servingDish(dish)}</g></g>
             </g>`;
@@ -345,8 +407,8 @@ export function renderRestaurantScene(
         ${
           spotlight
             ? svg`<g class="sushi-purchase-spotlight" data-testid="sushi-purchase-spotlight" data-item-id=${spotlightId} aria-hidden="true" pointer-events="none">
-          <rect x=${spotlight[0] - 12} y=${spotlight[1] - 12} width=${spotlight[2] + 24} height=${spotlight[2] + 24} rx="20" fill="none" stroke="#fff9e7" stroke-width="12"/>
-          <rect x=${spotlight[0] - 12} y=${spotlight[1] - 12} width=${spotlight[2] + 24} height=${spotlight[2] + 24} rx="20" fill="none" stroke="#b77416" stroke-width="5"/>
+          <rect x=${spotlight[0] - 12} y=${spotlight[1] - 12} width=${spotlight[2] + 24} height=${spotlightHeight + 24} rx="20" fill="none" stroke="#fff9e7" stroke-width="12"/>
+          <rect x=${spotlight[0] - 12} y=${spotlight[1] - 12} width=${spotlight[2] + 24} height=${spotlightHeight + 24} rx="20" fill="none" stroke="#b77416" stroke-width="5"/>
         </g>`
             : ''
         }
