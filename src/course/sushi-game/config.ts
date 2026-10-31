@@ -1,13 +1,19 @@
 /**
  * Konfiguration och kontroller för Sushirestaurangen.
  *
- * Enligt Ticket 02 och releaseuppgiften (Ticket 12) hålls produktionsingången till
- * spelet otillgänglig tills backend och åtkomstregler har publicerats.
+ * Produktionsbyggen låser spelet, även på localhost och med preview-flaggor.
+ * Vites utvecklings- och testservrar behåller åtkomst för fortsatt arbete.
  *
  * I utvecklingsmiljö (DEV), testmiljö (MODE === 'test'), på localhost
  * eller när preview uttryckligen aktiveras (via window.__SUSHI_ENTRY_ENABLED,
  * sessionStorage eller URL-parameter) exponeras ingången från studieappen.
  */
+
+declare const __SUSHI_GAME_ENABLED__: boolean;
+
+// Node unit tests do not run through Vite. Every browser build receives a literal.
+export const SUSHI_GAME_ENABLED =
+  typeof __SUSHI_GAME_ENABLED__ === 'undefined' || __SUSHI_GAME_ENABLED__;
 
 /**
  * Kontrollerar om angivet fönster/värd körs i lokal miljö (localhost / 127.0.0.1 / [::1]).
@@ -28,6 +34,9 @@ export function isLocalhost(windowObj?: Window): boolean {
 }
 
 export function isSushiEntryAvailable(windowObj?: Window): boolean {
+  // This build-time lock takes precedence over every browser-controlled override.
+  if (!SUSHI_GAME_ENABLED) return false;
+
   const win = windowObj ?? (typeof window !== 'undefined' ? window : undefined);
 
   // 1. Explicit fönster-override (för E2E-tester och manuell växling)

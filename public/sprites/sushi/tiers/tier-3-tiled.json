@@ -3,10 +3,7 @@
   "date": "2026-10-28",
   "file": "tier-3-tiled.png",
   "editTarget": "tier-3.png",
-  "canvas": [
-    1536,
-    1024
-  ],
+  "canvas": [1536, 1024],
   "purpose": "Tiled-floor variant of tier 3 with the same room proportions and framing.",
   "prompt": "Use case: precise-object-edit.\nEdit target: the supplied tier-3 restaurant illustration, 1536 x 1024 pixels, landscape 3:2.\nChange ONLY the visible INTERIOR FLOOR SURFACE from wooden planks to professionally laid MATTE WARM IVORY CERAMIC TILES, with restrained muted sage-green accent tiles (a few evenly spaced sage insets, not a busy high-contrast checkerboard). Subtle thin warm-beige grout. Tiles are coherent square tiles in the exact existing isometric floor plane; their grid follows the room's two existing isometric floor directions and perspective. Retain the existing dark wood perimeter border and all structural wood.\nCRITICAL INVARIANTS: Keep the exact 1536 x 1024 canvas, crop, scale, room proportions, camera angle, building footprint, cream background margins, room corners, wall heights, sliding door, window, beams, cabinet positions, stove, sink, rice pot, pale hinoki L-shaped counter, counter lattice fronts, three stools, shadows and warm lighting. All furniture must remain the exact same size and same position. Preserve every non-floor object and all silhouettes as closely as possible. No zoom, reframing, rotation, expansion, rearranging, extra room, roof, signage or missing furniture. Tile floor must extend naturally behind the stools and through the existing work aisle, with contact shadows preserved. No wooden planks remaining in the interior field, except the existing perimeter border.\nStyle: preserve the same cozy warm outlined pixel-like painted game illustration and finish quality. Ivory-and-sage tiles should make the final restaurant feel refined and welcoming.\nNo people, sprites, food plates, text, UI, watermarks, or additional decorations. Output ONE finished full restaurant illustration, opaque warm cream background, exactly the same proportions as the original."
 }

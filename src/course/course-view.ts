@@ -15,7 +15,7 @@ import { renderWeekQuizModule } from './components/week-quiz.ts';
 import { renderCourseArenaModule } from './components/course-arena.ts';
 import { renderHubStampBadge, renderMiniStamp } from './components/stamp-medal.ts';
 import { courseProgressPersistence } from '../cloud.ts';
-import { isSushiEntryAvailable } from './sushi-game/config.ts';
+import { isSushiEntryAvailable, SUSHI_GAME_ENABLED } from './sushi-game/config.ts';
 
 type ExtraStudiesModule = typeof import('./components/extra-studies.ts');
 let extraStudiesModule: ExtraStudiesModule | null = null;
@@ -84,6 +84,10 @@ let sushiGameLoadingPromise: Promise<SushiGameModule> | null = null;
 let sushiGameLoadError: Error | null = null;
 
 export function loadSushiGameModule(host?: CourseHostContext): Promise<SushiGameModule> {
+  // A literal false in production also removes the dynamic import from the bundle.
+  if (!SUSHI_GAME_ENABLED || !isSushiEntryAvailable()) {
+    return Promise.reject(new Error('Sushirestaurangen är inte tillgänglig.'));
+  }
   if (sushiGameModule) {
     return Promise.resolve(sushiGameModule);
   }
@@ -242,6 +246,7 @@ export function selectCourseWeek(weekId: string, host?: CourseHostContext): void
 }
 
 export function selectCourseSubView(subView: CourseSubView, host?: CourseHostContext): void {
+  if (subView === 'sushi' && !isSushiEntryAvailable()) subView = 'hub';
   if (subView !== 'kanji') {
     resetKanjiMode();
   }
@@ -256,7 +261,12 @@ export function selectCourseSubView(subView: CourseSubView, host?: CourseHostCon
 }
 
 export function renderCourseShell(host: CourseHostContext): CourseTemplate {
-  const progress = courseProgress.snapshot();
+  let progress = courseProgress.snapshot();
+  // Old local/cloud progress may still reopen the restaurant without a URL.
+  if (progress.activeSubView === 'sushi' && !isSushiEntryAvailable()) {
+    courseProgress.update({ type: 'subview', subView: 'hub' });
+    progress = courseProgress.snapshot();
+  }
   updateMedalCelebration(progress);
   const week = getCourseWeekById(progress.activeWeekId);
   const summary = getWeekProgressSummary(progress, week);

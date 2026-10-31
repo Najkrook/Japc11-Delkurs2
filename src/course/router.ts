@@ -3,6 +3,7 @@ import { courseWeeks } from './data/index.ts';
 import { courseProgress as defaultCourseProgress } from './course-view.ts';
 import { courseArenaManager as defaultArenaManager } from './multiplayer/arena-service.ts';
 import { loadExtraStudiesModule, loadSushiGameModule } from './course-view.ts';
+import { isSushiEntryAvailable } from './sushi-game/config.ts';
 
 export interface CourseRoute {
   weekId: string;
@@ -65,7 +66,8 @@ function normalizeSubView(raw?: string): CourseSubView {
   if (!raw) return 'hub';
   const clean = raw.trim().toLowerCase();
   if (clean in SUBVIEW_ALIASES) {
-    return SUBVIEW_ALIASES[clean];
+    const subView = SUBVIEW_ALIASES[clean];
+    return subView === 'sushi' && !isSushiEntryAvailable() ? 'hub' : subView;
   }
   if (VALID_SUBVIEWS.has(clean as CourseSubView)) {
     return clean as CourseSubView;
@@ -128,7 +130,7 @@ export function parseRoute(hash: string, fallbackWeekId = 'week-1'): CourseRoute
   if (first === 'sushi' || first === 'restaurang' || first === 'sushigame') {
     return {
       weekId: fallback,
-      subView: 'sushi',
+      subView: normalizeSubView(first),
     };
   }
 
@@ -167,7 +169,7 @@ export function formatRoute(route: CourseRoute): string {
     return '#/extra';
   }
   if (route.subView === 'sushi') {
-    return '#/sushi';
+    return isSushiEntryAvailable() ? '#/sushi' : `#/vecka/${route.weekId}`;
   }
   if (route.subView === 'hub') {
     return `#/vecka/${route.weekId}`;
@@ -319,6 +321,7 @@ export class CourseRouter {
     } finally {
       this.isApplyingFromHash = false;
     }
+    this.syncToHash(true);
   }
 
   public syncToHash(replace = false): void {

@@ -47,7 +47,16 @@ För interaktiv lokal körning: bygg med `npm run build --prefix functions`, sta
 `firebase emulators:start --only auth,firestore,functions --project demo-japc11-delkurs2`
 och kör Vite med `--mode test` samt miljövariabeln `VITE_FIREBASE_EMULATORS=true`.
 Emulatorerna använder port 9099, 8080 och 5001. Funktionernas driftsruntime är Node 22.
-Produktionsingången hålls spärrad tills publicering och driftkontroller i ticket 12 är klara.
+Sushirestaurangen är låst i alla byggda versioner (`npm run build`), även på
+localhost och med tidigare URL-, sessionStorage- eller fönsterflaggor. Navigeringen
+döljs och direktlänkar återgår till kursen. Spelets JavaScript och CSS tas bort ur
+produktionspaketet, och Firebase Hosting undantar `sprites/sushi/**` vid publicering.
+Utvecklingsservern och `npm run preview:sushi` behåller spelet för fortsatt arbete.
+
+`npm run test:production` bygger appen och kontrollerar produktionslåset i Chromium
+och mobil WebKit. Publicera kursappen med
+`firebase deploy --only hosting --project japc11-delkurs2`; Hosting bygger först
+appen på nytt. Sushis Cloud Function publiceras inte av det kommandot.
 
 Inloggade arenarum sparas med Firestore-transaktioner. Gästrum är lokala för samma
 webbläsare och ursprung och använder Web Locks för att samordna flikar. Dessa rum
