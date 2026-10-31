@@ -12,7 +12,7 @@ export const RECIPE_DISPLAY_POSITIONS: Record<
   readonly (readonly [number, number])[]
 > = {
   1: [
-    [463 / 900, 324 / 600],
+    [471 / 900, 324 / 600],
     [499 / 900, 342 / 600],
     [535 / 900, 360 / 600],
     [441 / 900, 313 / 600],

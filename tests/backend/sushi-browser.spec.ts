@@ -112,7 +112,10 @@ for (const width of [390, 1280]) {
       await db
         .doc(`users/${uid}/progress/course`)
         .set({ payload: JSON.stringify(progress), updatedAt: progress.updatedAt });
-      await db.doc(`users/${uid}/sushi/restaurant`).update({ balanceUnits: 600_000_000 });
+      // This persistence test buys the conveyor, which now requires the final renovation.
+      await db
+        .doc(`users/${uid}/sushi/restaurant`)
+        .update({ balanceUnits: 600_000_000, restaurantTier: 3 });
       await page.reload();
       await page.getByTestId('sushi-toggle-shop').click();
       await expect(page.getByTestId('buy-btn-salmon_nigiri')).toBeEnabled();
@@ -160,7 +163,10 @@ for (const width of [390, 1280]) {
       });
       await expect(page.getByTestId('restaurant-scene')).toHaveAttribute('data-paused', 'false');
       await page.getByTestId('sushi-toggle-menu').click();
+      const menu = page.getByTestId('sushi-scene-placeholder');
+      await menu.getByRole('tab', { name: 'Meny', exact: true }).click();
       await expect(page.getByTestId('menu-salmon_nigiri')).toBeVisible();
+      await menu.getByRole('tab', { name: 'Inredning', exact: true }).click();
       await expect(page.getByTestId('placed-wallSlot')).toContainText('Tom plats');
       const wall = page.getByTestId('decoration-wallSlot');
       await wall.locator('summary').focus();
@@ -199,8 +205,10 @@ for (const width of [390, 1280]) {
       await expect(page.getByTestId('placed-floorSlot')).toContainText('Krukväxt');
       await page.reload();
       await page.getByTestId('sushi-toggle-menu').click();
+      await menu.getByRole('tab', { name: 'Inredning', exact: true }).click();
       await expect(page.getByTestId('placed-wallSlot')).toContainText('Vågmotiv');
       await expect(page.getByTestId('placed-floorSlot')).toContainText('Krukväxt');
+      await menu.getByRole('tab', { name: 'Meny', exact: true }).click();
       await expect(page.getByTestId('menu-salmon_nigiri')).toBeVisible();
       await expect(page.getByTestId('art-wave_print')).toBeVisible();
       await expect(page.getByTestId('art-paper_lantern')).toHaveCount(0);
@@ -210,6 +218,7 @@ for (const width of [390, 1280]) {
         .getByTestId('restaurant-scene')
         .screenshot({ path: `test-results/restaurant-upgraded-${width}.png` });
       await page.getByTestId('sushi-toggle-menu').click();
+      await menu.getByRole('tab', { name: 'Inredning', exact: true }).click();
       await wall.locator('summary').click();
       await wall.getByRole('button', { name: 'Ta bort från väggplats' }).click();
       await expect(page.getByTestId('placed-wallSlot')).toContainText('Tom plats');
@@ -237,6 +246,7 @@ for (const width of [390, 1280]) {
       await db.doc(`users/${uid}/sushi/restaurant`).update({ balanceUnits: 60_000 * 60_000 });
       await page.reload();
       await page.getByTestId('sushi-toggle-menu').click();
+      await menu.getByRole('tab', { name: 'Projekt', exact: true }).click();
       await page.getByTestId('buy-project-study_nook').click();
       await expect(page.getByTestId('sushi-project-study_nook')).toContainText('Byggt');
       const afterProject = (await db.doc(`users/${uid}/sushi/restaurant`).get()).data();

@@ -146,9 +146,13 @@ for (const width of [320, 390, 640]) {
 for (const tier of [1, 2, 3] as const) {
   test(`owned recipes have a visible position clear of guests in tier ${tier}`, async ({
     page,
-  }) => {
+  }, info) => {
     await page.setViewportSize({ width: 1280, height: 720 });
     await seed(page, tier);
+    await page.getByTestId('restaurant-scene').screenshot({
+      path: info.outputPath('owned-recipes.png'),
+      animations: 'disabled',
+    });
     const guests = await page.locator('.sushi-scene-guest').evaluateAll((elements) =>
       elements.map((element) => {
         const r = element.getBoundingClientRect();
